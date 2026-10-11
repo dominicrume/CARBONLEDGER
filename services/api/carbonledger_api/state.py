@@ -25,15 +25,19 @@ HEALTH_CACHE_S = 10.0                  # how long one chain health answer is tru
 class Limits:
     """Edge limits, from the environment or a test."""
     def __init__(self, rate_per_minute: int = 60, burst: int = 20, max_request_bytes: int = 65536, request_timeout_s: float = 40.0,
-                 agent_sig_max_age_s: int = 120):
+                 agent_sig_max_age_s: int = 120, demo_keys: bool = False, demo_keys_per_hour: int = 10):
         self.rate_per_minute, self.burst, self.max_request_bytes, self.request_timeout_s = rate_per_minute, burst, max_request_bytes, request_timeout_s
         self.agent_sig_max_age_s = agent_sig_max_age_s
+        # Self-serve demo logins (DEMO_KEYS=1, only with APP_ENV=demo): anyone with the link can mint a personal or
+        # business key for simulated units, a few per hour per address. Never on for real units.
+        self.demo_keys, self.demo_keys_per_hour = demo_keys, demo_keys_per_hour
 
     @classmethod
     def from_env(cls) -> "Limits":
         e = os.environ.get
         return cls(int(e("RATE_LIMIT_PER_MINUTE", "60")), int(e("RATE_LIMIT_BURST", "20")), int(e("MAX_REQUEST_BYTES", "65536")),
-                   float(e("REQUEST_TIMEOUT_SECONDS", "40")), int(e("AGENT_SIGNATURE_MAX_AGE_SECONDS", "120")))
+                   float(e("REQUEST_TIMEOUT_SECONDS", "40")), int(e("AGENT_SIGNATURE_MAX_AGE_SECONDS", "120")),
+                   e("DEMO_KEYS", "0") == "1" and e("APP_ENV", "") == "demo", int(e("DEMO_KEYS_PER_HOUR", "10")))
 
 
 class State:
@@ -46,6 +50,8 @@ class State:
         self.limits = limits or Limits()
         self.keys = keys or keys_from_env()
         self.bucket = TokenBucket(self.limits.rate_per_minute, self.limits.burst)
+        self.demo_bucket = TokenBucket(max(1, self.limits.demo_keys_per_hour), max(1, self.limits.demo_keys_per_hour))   # per client address, refills over an hour
+        self.demo_bucket.rate = self.limits.demo_keys_per_hour / 3600.0
         self.store = store if store is not None else store_from_env(os.environ.get("DATABASE_URL"))
         self.registry = Registry(authority="trustee", verifiers={"verifier-1"})
         self.receipts = ReceiptChain()
@@ -132,7 +138,7 @@ def keys_from_env() -> ApiKeyStore:
         store.add_hashed(role, owner, key_hash)
     demo = _real(os.environ.get("API_DEMO_KEY"))
     demo_biz = _real(os.environ.get("API_DEMO_BUSINESS_KEY"))
-    if env in ("dev", "test") and (demo or demo_biz):
+    if env in ("dev", "test", "demo") and (demo or demo_biz):
         from carbonledger.auth import hash_key
         if demo:
             store.add_hashed("personal", "demo", hash_key(pepper, demo), "key-demo")

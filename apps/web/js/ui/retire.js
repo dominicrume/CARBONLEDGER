@@ -2,7 +2,7 @@
 // Wording follows rules/HARDENING-PRODUCT.md: pilot units are retired, never "offset", and are labelled simulated.
 import { settings } from '../core/settings.js';
 import { store } from '../core/store.js';
-import { ledger, gramsToClt, priceGBP, ref } from '../core/ledger.js';
+import { ledger, gramsToClt, priceGBP, ref, getDemoLogin } from '../core/ledger.js';
 import { badgeBook, countryQueue } from '../core/game.js';
 import { target, resolveTarget } from '../core/target.js';
 import { COUNTRIES } from '../data/countries.js';
@@ -36,6 +36,7 @@ export function confirmRetirement(entry, onDone) {
     <p class="note" id="tgt-note"></p>
     <p class="note">Demo only. No payment is taken. These are simulated pilot units, not verified credits.</p>
     <p class="note bad" id="retire-error" role="alert"></p>
+    <p class="row" id="retire-login" hidden><button class="btn ghost small" type="button" id="get-demo-login">Get a demo login</button><span class="note">A login for simulated units, kept in this browser. Then confirm again.</span></p>
     <div class="row"><button class="btn ghost" data-close>Cancel</button><button class="btn primary" id="confirm-retire">Confirm retirement</button></div>
   `, { onOpen: (root, close) => {
     const pick = () => ({ mode: root.querySelector('[name=tgt]:checked').value, iso3: root.querySelector('#tgt-country').value });
@@ -57,6 +58,18 @@ export function confirmRetirement(entry, onDone) {
         const rec = await ledger.retire({ ...entry, idempotencyKey, countryIso3: dest?.iso3, countryName: dest?.name, mode: dest?.mode, finished: !!dest?.finished });
         const fresh = badgeBook(account, ctx).all.filter(b => !before.has(b.id));
         close(); showReceipt(rec, fresh); onDone?.(rec);
+      } catch (err) {
+        e.target.disabled = false; root.querySelector('#retire-error').textContent = err.message;
+        if (/NO_KEY|BAD_KEY|REVOKED_KEY/.test(err.message)) root.querySelector('#retire-login').hidden = false;
+      }
+    });
+    root.querySelector('#get-demo-login').addEventListener('click', async (e) => {
+      e.target.disabled = true;
+      try {
+        const owner = await getDemoLogin('personal');
+        root.querySelector('#retire-error').textContent = '';
+        root.querySelector('#retire-login').innerHTML = `<span class="note ok" id="retire-login-ok">Logged in as ${esc(owner)}. Press Confirm retirement again.</span>`;
+        document.dispatchEvent(new CustomEvent('carbonledger:login'));
       } catch (err) { e.target.disabled = false; root.querySelector('#retire-error').textContent = err.message; }
     });
   } });

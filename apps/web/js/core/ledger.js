@@ -29,6 +29,14 @@ const all = () => store.get('ledger', []);
 // The API key is a login, like a password. It signs nothing and decides nothing. It lives in this browser's storage
 // like any session and is sent as a bearer header. It is never a wallet key. Set it in Settings.
 export const apiKey = { get: () => store.get('apiKey', ''), set: v => store.set('apiKey', String(v || '').trim()) };
+// Demo only: the API mints a login for simulated units when it runs with DEMO_KEYS=1. Returns the owner id or throws.
+export async function getDemoLogin(role = 'personal') {
+  const res = await fetch(`${CONFIG.api.baseUrl}/v1/demo/key?role=${encodeURIComponent(role)}`, { method: 'POST', signal: AbortSignal.timeout(CONFIG.api.timeoutMs) });
+  const d = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(typeof d.detail === 'string' ? d.detail : `No demo login (${res.status}).`);
+  apiKey.set(d.api_key);
+  return d.owner;
+}
 export function apiHeaders() {
   const h = { 'content-type': 'application/json' };
   const k = apiKey.get();

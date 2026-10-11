@@ -10,6 +10,7 @@ The retire flow (rule 6 as refined on 2026-10-11):
 import asyncio
 import copy
 import os
+import secrets
 import time
 from datetime import datetime, timezone
 from typing import Callable, Optional
@@ -78,7 +79,8 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
         try:
             rec = st.keys.check(token)
         except AuthError as exc:
-            raise HTTPException(401, f"Not allowed: {exc.code}. Nothing was recorded.", headers={"WWW-Authenticate": "Bearer"})
+            how = "Get a demo login below, or open Settings and add your API key." if st.limits.demo_keys else "Open Settings (the gear icon) and add your API key."
+            raise HTTPException(401, f"Not allowed: {exc.code}. This needs a login. {how} Nothing was recorded.", headers={"WWW-Authenticate": "Bearer"})
         if not st.bucket.take(rec.key_id):
             raise HTTPException(429, "Too many requests for this key. Wait a minute. Nothing was recorded.", headers={"Retry-After": "60"})
         return rec
@@ -111,7 +113,25 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
     @app.get("/health")
     def health():
         return {"status": "ok", "chain": getattr(st.chain_client, "cluster", "unknown"), "units": UNITS_STATUS,
-                "anchors": st.outbox.counts(), "store": st.store.kind}
+                "anchors": st.outbox.counts(), "store": st.store.kind, "demo_keys": st.limits.demo_keys}
+
+    @app.post("/v1/demo/key", status_code=201)
+    def demo_key(request: Request, role: str = "personal"):
+        """A self-serve login for the demo (simulated units only). Off unless DEMO_KEYS=1 and APP_ENV=demo: then
+        a few per hour per client address, personal or business, stored like any other key. The plaintext is
+        shown once, to the caller, and never logged."""
+        if not st.limits.demo_keys:
+            raise HTTPException(404, "Demo logins are not available here. Ask whoever runs the API for a key.")
+        if role not in ("personal", "business"):
+            raise HTTPException(422, "role must be personal or business. Nothing was recorded.")
+        client = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or (request.client.host if request.client else "unknown")
+        if not st.demo_bucket.take(client):
+            raise HTTPException(429, "Too many demo logins from this address. Try again in an hour.", headers={"Retry-After": "3600"})
+        owner = f"demo-{role}-{secrets.token_hex(4)}"
+        key, rec = st.keys.issue(role, owner)
+        st.store.insert_api_key(rec)
+        return {"api_key": key, "role": role, "owner": owner, "units": UNITS_STATUS,
+                "note": "A demo login for simulated pilot units. It signs nothing. Keep it in this browser's Settings."}
 
     @app.get("/v1/registry/summary")
     def summary():

@@ -516,3 +516,26 @@ def test_every_decided_refusal_is_recorded_but_malformed_requests_are_not():
     assert v["count"] == 3 and v["refused"] == 3 and v["accepted"] == 0 and v["intact"]
     codes = [r["refusal_code"] for r in c.get("/v1/audit/receipts.json").json()]
     assert codes == ["OVER_RETIREMENT", "BELOW_COMPUTED", "UNKNOWN_PRODUCT"]
+
+
+# ---- self-serve demo logins (demo only) ----
+def test_demo_logins_are_off_unless_enabled_and_then_rate_limited_per_address():
+    off = make()
+    assert off.anon().post("/v1/demo/key").status_code == 404
+    assert off.get("/health").json()["demo_keys"] is False
+    c = make(limits=Limits(demo_keys=True, demo_keys_per_hour=2))
+    a = c.anon()
+    assert c.get("/health").json()["demo_keys"] is True
+    r = a.post("/v1/demo/key").json()
+    assert r["api_key"].startswith("clk_personal_") and r["owner"].startswith("demo-personal-") and "Simulated" in r["units"]
+    b = a.post("/v1/demo/key?role=business").json()
+    assert b["api_key"].startswith("clk_business_")
+    assert a.post("/v1/demo/key").status_code == 429                      # two an hour per address in this test
+    other = TestClient(c.app); other.headers["x-forwarded-for"] = "203.0.113.9"
+    assert other.post("/v1/demo/key").status_code == 201                  # a different address has its own allowance
+    assert a.post("/v1/demo/key?role=authority").status_code == 422
+    # the minted key works like any other and its refusal message points at the login
+    fresh = TestClient(c.app); fresh.headers["authorization"] = f"Bearer {r['api_key']}"
+    assert fresh.post("/v1/retire", json=body()).status_code == 200
+    nokey = c.anon().post("/v1/retire", json=body()).json()["detail"]
+    assert "NO_KEY" in nokey and "demo login" in nokey and "Nothing was recorded" in nokey

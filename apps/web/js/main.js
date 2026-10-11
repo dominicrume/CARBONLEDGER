@@ -8,7 +8,7 @@ import { mountMe, refreshMe } from './ui/me.js';
 import { mountBusiness, refreshBusiness } from './ui/business.js';
 import { mountVerify } from './ui/verify.js';
 import { openSettings } from './ui/settings.js';
-import { ledger } from './core/ledger.js';
+import { ledger, apiKey } from './core/ledger.js';
 import { levelFor } from './core/game.js';
 import { $ } from './ui/dom.js';
 
@@ -49,10 +49,11 @@ async function showConnection() {
   try {
     const r = await fetch(`${CONFIG.api.baseUrl}/health`, { signal: AbortSignal.timeout(4000) });
     const h = await r.json();
-    el.textContent = `Connected to the ledger (${h.chain})`; el.dataset.state = 'connected';
+    el.textContent = `Connected to the ledger (${h.chain})${apiKey.get() ? '' : ', no login yet'}`; el.dataset.state = 'connected';
   } catch { el.textContent = 'Ledger not reachable'; el.dataset.state = 'down'; }
 }
 showConnection();
+document.addEventListener('carbonledger:login', async () => { showConnection(); if (await ledger.sync()) { updateChip(); VIEWS[currentView].refresh?.(); } });
 window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (VIEWS[h]) show(h); });
 document.querySelectorAll('.tabs [data-tab]').forEach(b => b.addEventListener('click', () => show(b.dataset.tab)));
 $('#level-chip').addEventListener('click', () => show('me'));

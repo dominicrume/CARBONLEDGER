@@ -83,6 +83,12 @@ test('without a key the ledger refuses and says nothing was recorded', async ({ 
   await page.click('#confirm-retire');
   await expect(page.locator('#retire-error')).toContainText('NO_KEY');
   await expect(page.locator('#retire-error')).toContainText('Nothing was recorded');
+  // demo mode: get a login right there and confirm again
+  await page.click('#get-demo-login');
+  await expect(page.locator('#retire-login-ok')).toContainText('Logged in as demo-personal-');
+  await page.click('#confirm-retire');
+  await expect(page.locator('.receipt')).toContainText('Retirement receipt');
+  await expect(page.locator('#conn')).not.toContainText('no login');
 });
 
 test('when the API is down the app says so and records nothing', async ({ page }) => {
