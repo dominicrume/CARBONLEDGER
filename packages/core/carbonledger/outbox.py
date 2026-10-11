@@ -37,6 +37,7 @@ class AnchorOutbox:
     lock: threading.Lock = field(default_factory=threading.Lock)
     changed: threading.Condition = field(default_factory=threading.Condition)
     kick: threading.Event = field(default_factory=threading.Event)      # wakes the worker on enqueue
+    on_change: Optional[Callable[["AnchorEntry"], None]] = None          # persistence hook, called after each change
 
     def enqueue(self, receipt_id: str, receipt_hash: str) -> AnchorEntry:
         with self.lock:
@@ -65,8 +66,18 @@ class AnchorOutbox:
         with self.lock:
             for k, v in kw.items():
                 setattr(e, k, v)
+        if self.on_change:
+            self.on_change(e)
         with self.changed:
             self.changed.notify_all()
+
+    def restore(self, rows) -> None:
+        """Load entries from storage rows (receipt_id, receipt_hash, status, signature, explorer_url, cluster, slot, attempts, last_error, anchored_at)."""
+        with self.lock:
+            for r in rows:
+                e = AnchorEntry(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8] or "", r[9])
+                self.entries[e.receipt_id] = e
+                self.order.append(e.receipt_id)
 
     def wait_settled(self, receipt_id: str, timeout: float) -> AnchorEntry:
         """Block up to `timeout` seconds for the entry to leave pending. Returns the entry either way."""

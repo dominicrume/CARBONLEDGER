@@ -36,6 +36,16 @@ class ReceiptChain:
     def entries(self) -> List[dict]:
         return copy.deepcopy(self._entries)
 
+    @classmethod
+    def from_entries(cls, entries: List[dict]) -> "ReceiptChain":
+        """Rebuild from stored rows. Raises ValueError naming the first bad index if the stored chain is broken."""
+        bad = verify(entries)
+        if bad is not None:
+            raise ValueError(f"stored receipt chain is broken at index {bad}")
+        c = cls()
+        c._entries = copy.deepcopy(entries)
+        return c
+
     def find(self, receipt_id: str) -> Optional[dict]:
         for e in self._entries:
             if e["receipt"].get("receipt_id") == receipt_id:

@@ -17,5 +17,12 @@ if __name__ == "__main__":
     key, rec = store.issue(sys.argv[1], sys.argv[2])
     print("Give this key to the caller once. It is not stored anywhere:")
     print(f"  {key}")
-    print("Add this to API_KEYS in .env (comma separated, role:owner:hash):")
-    print(f"  {rec.role}:{rec.owner}:{rec.key_hash}")
+    url = os.environ.get("DATABASE_URL")
+    if url:
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "services", "api"))
+        from carbonledger_api.store import PostgresStore  # noqa: E402
+        PostgresStore(url).insert_api_key(rec)
+        print(f"Stored the hash in the database as {rec.key_id} ({rec.role}, owner {rec.owner}).")
+    else:
+        print("Add this to API_KEYS in .env (comma separated, role:owner:hash):")
+        print(f"  {rec.role}:{rec.owner}:{rec.key_hash}")

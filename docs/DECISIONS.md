@@ -73,3 +73,13 @@ vectors, and refuses a total below its own figure. A higher total is allowed bec
 facts come from the server's own catalogue or its own Open Food Facts lookup, never from the client.
 Why: D1 and T7. A browser total is a claim. The server must be able to stand behind every receipt it signs.
 Who agreed: Engineering, during the autonomous run. Awaiting Rume.
+
+---
+Date: 2026-10-11
+Decision: With DATABASE_URL set, every committed change is written to Postgres in one transaction before the
+in-memory state changes, so the database constraints (exclusion on serial ranges, append-only history, issuance
+cap, anchors that only move forward, evidence decided once) are a second guard. At start the server rebuilds from
+the rows and verifies the receipt chain; a broken chain refuses to start. Without DATABASE_URL, state is in memory.
+Why: D4 and D9. A restart must not lose receipts or keys, and an insider with database access must still be
+unable to rewrite history quietly.
+Who agreed: Engineering, during the autonomous run. Awaiting Rume.

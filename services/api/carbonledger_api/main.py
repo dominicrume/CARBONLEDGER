@@ -31,6 +31,7 @@ from .lookup import ProductLookup
 from .models import STATUS_FOR, UNITS_STATUS, MandateIn, RetireIn
 from .recompute import RecomputeError, compute
 from .state import DEMO_BATCH, DEMO_ISSUED_G, DEMO_PROJECT, Limits, State, anchor_wait_from_env, chain_from_env
+from .store import StoreError
 
 __all__ = ["create_app", "public_receipt_id", "DEMO_BATCH", "DEMO_ISSUED_G", "DEMO_PROJECT", "UNITS_STATUS"]
 
@@ -42,9 +43,9 @@ def public_receipt_id(receipt_body: dict) -> str:
 
 def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = time.time, web_origin: Optional[str] = None,
                anchor_wait_s: Optional[float] = None, start_worker: bool = True, keys: Optional[ApiKeyStore] = None,
-               limits: Optional[Limits] = None, product_lookup: Optional[ProductLookup] = None) -> FastAPI:
+               limits: Optional[Limits] = None, product_lookup: Optional[ProductLookup] = None, store=None) -> FastAPI:
     st = State(chain or chain_from_env(), now, anchor_wait_from_env() if anchor_wait_s is None else anchor_wait_s,
-               keys=keys, limits=limits or Limits.from_env(), product_lookup=product_lookup)
+               keys=keys, limits=limits or Limits.from_env(), product_lookup=product_lookup, store=store)
     dev = os.environ.get("APP_ENV") == "dev"
     app = FastAPI(title="CarbonLedger API", docs_url="/docs" if dev else None, redoc_url=None, openapi_url="/openapi.json" if dev else None)
     app.state.st = st
@@ -91,7 +92,7 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
     @app.get("/health")
     def health():
         return {"status": "ok", "chain": getattr(st.chain_client, "cluster", "unknown"), "units": UNITS_STATUS,
-                "anchors": st.outbox.counts()}
+                "anchors": st.outbox.counts(), "store": st.store.kind}
 
     @app.get("/v1/registry/summary")
     def summary():
@@ -107,6 +108,7 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
             mid = "mnd-" + digest({"n": len(st.mandates), "o": caller.owner, "a": body.agent})[:12]
             st.mandates[mid] = Mandate(mid, caller.owner, body.agent, body.cap_g, int(st.now()) + body.ttl_seconds,
                                        tuple(body.allow_projects) if body.allow_projects is not None else None)
+            st.store.upsert_mandate(st.mandates[mid])
         return {"mandate_id": mid, "owner": caller.owner}
 
     @app.post("/v1/mandates/{mandate_id}/revoke")
@@ -119,6 +121,7 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
                 revoke(m, caller.owner)
             except MandateError as exc:
                 raise HTTPException(403, str(exc))
+            st.store.upsert_mandate(m)
         return {"revoked": True}
 
     def _response(receipt: dict, receipt_hash: str, anchor: dict) -> dict:
@@ -194,10 +197,18 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
         # The public id comes from the receipt's own content, so the memo never exposes a running count (F14).
         receipt_id = public_receipt_id(receipt)
         receipt["receipt_id"] = receipt_id
+        preview = {"index": st.receipts.next_index(), "receipt": receipt, "prev_hash": st.receipts.head_hash()}
+        preview["hash"] = digest(preview)
+        try:                                     # the database first (its constraints are the second guard), then memory
+            st.store.write_retirement(preview, ret, reg.batches[DEMO_BATCH], body.idempotency_key, payload_digest)
+        except StoreError as exc:
+            raise HTTPException(409, f"{exc}. Nothing was recorded.")
         entry = st.receipts.append(receipt)
+        assert entry["hash"] == preview["hash"]
         st.registry = reg
         if mandate is not None:
             consume(mandate, body.grams)
+            st.store.upsert_mandate(mandate)
         st.outbox.enqueue(receipt_id, entry["hash"])
         st.idem[body.idempotency_key] = (payload_digest, receipt_id)
         return receipt_id

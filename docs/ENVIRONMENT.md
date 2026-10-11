@@ -23,7 +23,9 @@ apps/web/js/config.js (ENGINEERING rule 14). CI reads GitHub Actions secrets.
 | API_KEY_PEPPER | 1 | `openssl rand -hex 32` | server secret store |
 | REGISTRY_AUTHORITY_PUBKEY | 1 | public key of a Squads multisig or hardware wallet | the trust, never a laptop |
 | VERIFIER_PUBKEYS | 1 | each verifier makes their own key and sends the public half | each verifier |
-| POSTGRES_PASSWORD, DATABASE_URL | 1b | `openssl rand -hex 24`, docker compose locally, Supabase or Neon hosted | server secret store |
+| POSTGRES_PASSWORD, DATABASE_URL | 1b | `openssl rand -hex 24`, `docker compose up -d db` locally (port 5433), Supabase or Neon hosted; then `python scripts/migrate.py` | server secret store |
+| DATABASE_URL_TEST | tests | a scratch database whose name ends with _test; `docker compose exec db psql -U postgres -d carbonledger -c 'CREATE DATABASE carbonledger_test'` | developer, CI |
+| API_KEYS or the api_keys table | 1 | `API_KEY_PEPPER=... python scripts/make_api_key.py <role> <owner>` | server |
 | CARBON_REGISTRY_PROGRAM_ID | 1c | `anchor keys list` after the first build | public, goes in three places |
 | OPEN_FOOD_FACTS_USER_AGENT | any | type it, include a contact | anyone |
 | ANTHROPIC_API_KEY | later | console.anthropic.com | server secret store, only if category suggestion ships |

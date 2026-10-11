@@ -11,9 +11,11 @@ from carbonledger.auth import ApiKeyStore, TokenBucket
 from carbonledger.chain import ChainClient, DryRunChain, SolanaMemoChain
 from carbonledger.outbox import AnchorOutbox, AnchorWorker
 from carbonledger.receipts import ReceiptChain
-from carbonledger.registry import Registry
+from carbonledger.mandate import Mandate
+from carbonledger.registry import Batch, Project, Registry, Retirement
 
 from .lookup import ProductLookup, lookup_from_env
+from .store import MemoryStore, store_from_env
 
 DEMO_PROJECT, DEMO_BATCH = "demo-pilot-1", "pilot-2026"
 DEMO_ISSUED_G = 1_000_000_000          # 1,000 tonnes, simulated (ASSUMPTION for the demo)
@@ -36,25 +38,49 @@ class Limits:
 
 class State:
     def __init__(self, chain: ChainClient, now: Callable[[], float] = time.time, anchor_wait_s: float = 0.0,
-                 keys: Optional[ApiKeyStore] = None, limits: Optional[Limits] = None, product_lookup: Optional[ProductLookup] = None):
+                 keys: Optional[ApiKeyStore] = None, limits: Optional[Limits] = None, product_lookup: Optional[ProductLookup] = None,
+                 store=None):
         self.lock = threading.Lock()
         self.product_lookup = product_lookup or lookup_from_env()
         self.chain_client, self.now, self.anchor_wait_s = chain, now, anchor_wait_s
         self.limits = limits or Limits()
         self.keys = keys or keys_from_env()
         self.bucket = TokenBucket(self.limits.rate_per_minute, self.limits.burst)
+        self.store = store if store is not None else store_from_env(os.environ.get("DATABASE_URL"))
         self.registry = Registry(authority="trustee", verifiers={"verifier-1"})
         self.receipts = ReceiptChain()
         self.outbox = AnchorOutbox()
+        self.outbox.on_change = self.store.update_outbox
         self.worker = AnchorWorker(chain, self.outbox, now=now)
-        self.idem = {}                          # key -> (payload digest, response)
+        self.idem = {}                          # key -> (payload digest, receipt id)
         self.mandates = {}
         self._health: Optional[bool] = None
         self._health_at = 0.0
+        saved = self.store.load()
+        if saved is None:
+            r = self.registry
+            r.register_project("trustee", DEMO_PROJECT, "GBR", "SIMULATED-PILOT")
+            r.attest_project("verifier-1", DEMO_PROJECT, DEMO_ISSUED_G)
+            r.issue_batch("trustee", DEMO_PROJECT, DEMO_BATCH, 2026, DEMO_ISSUED_G)
+            self.store.seed(r.projects.values(), r.batches.values())
+        else:
+            self._restore(saved)
+
+    def _restore(self, s: dict) -> None:
+        """Rebuild from storage. The receipt chain is verified first: a broken chain refuses to start."""
+        self.receipts = ReceiptChain.from_entries(s["receipts"])
         r = self.registry
-        r.register_project("trustee", DEMO_PROJECT, "GBR", "SIMULATED-PILOT")
-        r.attest_project("verifier-1", DEMO_PROJECT, DEMO_ISSUED_G)
-        r.issue_batch("trustee", DEMO_PROJECT, DEMO_BATCH, 2026, DEMO_ISSUED_G)
+        r.projects = {row[0]: Project(*row) for row in s["projects"]}
+        r.batches = {row[0]: Batch(*row) for row in s["batches"]}
+        r.retirements = [Retirement(*row) for row in s["retirements"]]
+        r.check_invariants()
+        self.outbox.restore(s["outbox"])
+        self.idem = {k: (d, rid) for k, d, rid in s["idem"]}
+        for mid, owner, agent, cap, used, exp, allow, revoked in s["mandates"]:
+            self.mandates[mid] = Mandate(mid, owner, agent, cap, int(exp), tuple(allow) if allow is not None else None, used, revoked)
+        for key_id, role, owner, key_hash, revoked in s["api_keys"]:
+            rec = self.keys.add_hashed(role, owner, key_hash, key_id)
+            rec.revoked = revoked
 
     def chain_healthy(self) -> bool:
         """Asked before committing a retirement. If the chain is known to be down, nothing is recorded."""
