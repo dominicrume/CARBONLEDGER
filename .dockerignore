@@ -1,0 +1,17 @@
+.git
+.venv
+.env
+*.key
+id.json
+apps/web/node_modules
+apps/web/test-results
+apps/web/playwright-report
+__pycache__
+.pytest_cache
+target
+docs
+workspaces
+tests
+conformance
+programs
+rules

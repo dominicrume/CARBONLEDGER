@@ -18,6 +18,8 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 
 from carbonledger.agentsig import AgentSigError, check_timestamp, verify_agent
 from carbonledger.auth import ApiKeyStore, AuthError, KeyRecord
@@ -98,9 +100,12 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
         resp.headers["X-Content-Type-Options"] = "nosniff"
         resp.headers["X-Frame-Options"] = "DENY"
         resp.headers["Referrer-Policy"] = "no-referrer"
-        resp.headers["Cache-Control"] = "no-store"
         resp.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains"
-        resp.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
+        if request.url.path.startswith(("/v1/", "/health", "/docs", "/openapi.json")):
+            resp.headers["Cache-Control"] = "no-store"
+            resp.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
+        else:                                    # the app's own pages carry their policy in a meta tag (apps/web/index.html)
+            resp.headers["Content-Security-Policy"] = "frame-ancestors 'none'"
         return resp
 
     @app.get("/health")
@@ -255,6 +260,9 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
         return {"intact": bad is None, "first_bad_index": bad, "count": len(st.receipts.entries()), "head_hash": st.receipts.head_hash(),
                 "anchors": st.outbox.counts()}
 
+    web_dir = Path(os.environ.get("WEB_DIR", "")) if os.environ.get("WEB_DIR") else None
+    if web_dir and web_dir.is_dir():          # one origin for app and API (deploy): no CORS, the page's CSP 'self' covers the API
+        app.mount("/", StaticFiles(directory=str(web_dir), html=True), name="web")
     return app
 
 

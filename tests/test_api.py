@@ -459,3 +459,17 @@ def test_a_422_is_one_plain_sentence_that_names_the_field():
     assert isinstance(d, str) and d.startswith("Invalid request. agent:") and "public key" in d and d.endswith("Nothing was recorded.")
     r = c.post("/v1/retire", json=body(grams="12"))
     assert "grams:" in r.json()["detail"] and "Nothing was recorded" in r.json()["detail"]
+
+
+# ---- one origin for app and API (deploy) ----
+def test_the_api_serves_the_app_when_web_dir_is_set(monkeypatch):
+    from pathlib import Path
+    monkeypatch.setenv("WEB_DIR", str(Path(__file__).resolve().parents[1] / "apps" / "web"))
+    c = make()
+    page = c.get("/")
+    assert page.status_code == 200 and "<title>CarbonLedger</title>" in page.text
+    assert page.headers["content-security-policy"] == "frame-ancestors 'none'"        # the page's own meta CSP governs
+    assert "no-store" not in page.headers.get("cache-control", "")
+    api = c.get("/health")
+    assert api.headers["content-security-policy"].startswith("default-src 'none'") and api.headers["cache-control"] == "no-store"
+    assert c.get("/js/config.js").status_code == 200 and c.get("/nope.js").status_code == 404

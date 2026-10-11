@@ -1,4 +1,11 @@
 // Central settings. Change values here rather than inside modules.
+// True when the page comes from the API itself (any https origin, or a loopback port that is not the 8080 file server).
+function servedByApi() {
+  const l = globalThis.location;
+  if (!l || !l.origin || l.protocol === 'file:') return false;
+  if (l.protocol === 'https:') return true;
+  return (l.hostname === '127.0.0.1' || l.hostname === 'localhost') && l.port !== '8080' && l.port !== '8787';
+}
 function loopbackOverride(name) {
   try {
     const v = new URLSearchParams(globalThis.location?.search || '').get(name);
@@ -14,11 +21,13 @@ export const CONFIG = {
   // 1 CLT = 1 tonne CO2e. 6 decimals = whole grams.
   cltDecimals: 6,
   // Which ledger records retirements: 'local' (this device) now; 'solana-devnet' once the CLT is live.
-  ledger: (globalThis.location && new URLSearchParams(globalThis.location.search).get('ledger')) || 'local',   // ?ledger=solana-devnet overrides for a demo or a test
+  // Served from the API's own origin (a deployment): talk to that origin and use the ledger. Served from a plain file
+  // server on a laptop: records stay on this device unless ?ledger=solana-devnet is given.
+  ledger: (globalThis.location && new URLSearchParams(globalThis.location.search).get('ledger')) || (servedByApi() ? 'solana-devnet' : 'local'),
   // The CarbonLedger API signs and records retirements. Browsers never hold a signing key.
   // ?api=http://127.0.0.1:PORT may override the address for a local demo or test. Loopback only: a link can never
   // point the app at a stranger's server. The timeout sits above the API's worst case (two RPC calls at 15 s each).
-  api: { baseUrl: loopbackOverride('api') || 'http://127.0.0.1:8000', timeoutMs: 40000 },
+  api: { baseUrl: loopbackOverride('api') || (servedByApi() ? globalThis.location.origin : 'http://127.0.0.1:8000'), timeoutMs: 40000 },
   solana: { cluster: 'devnet', rpcUrl: 'https://api.devnet.solana.com', mint: null, explorer: 'https://explorer.solana.com/tx/{sig}?cluster=devnet' },
   // Live product lookup when the browser allows it; the built-in catalogue always works offline.
   openFoodFacts: { enabled: true, timeoutMs: 4000 },
