@@ -8,7 +8,7 @@ export const CONFIG = {
   // Which ledger records offsets: 'local' (this device) now; 'solana-devnet' once the CLT is live.
   ledger: 'local',
   // The CarbonLedger API signs and records retirements. Browsers never hold a signing key.
-  api: { baseUrl: 'http://127.0.0.1:8000', timeoutMs: 8000 },
+  api: { baseUrl: 'http://127.0.0.1:8000', timeoutMs: 40000 },   // above the API's worst case: two RPC calls at 15 s each
   solana: { cluster: 'devnet', rpcUrl: 'https://api.devnet.solana.com', mint: null, explorer: 'https://explorer.solana.com/tx/{sig}?cluster=devnet' },
   // Live product lookup when the browser allows it; the built-in catalogue always works offline.
   openFoodFacts: { enabled: true, timeoutMs: 4000 },

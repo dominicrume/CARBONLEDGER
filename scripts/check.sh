@@ -10,5 +10,5 @@ export PYTHONPATH=packages/core:services/api
 for f in $(find apps/web/js -name '*.js' ! -name 'geo.js'); do node --check "$f"; done
 node scripts/export_estimator.mjs >/dev/null
 git diff --exit-code -- conformance packages/core/carbonledger/data_factors.json
-if [ -f apps/web/package-lock.json ] && [ -d apps/web/node_modules ]; then (cd apps/web && npm test --silent); fi
+node --test apps/web/test/
 echo "check.sh: all green"

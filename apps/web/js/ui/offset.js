@@ -1,7 +1,7 @@
 // Shared "offset" action: shows the confirmation, records on the ledger, then shows the receipt.
 import { settings } from '../core/settings.js';
 import { store } from '../core/store.js';
-import { ledger, gramsToClt, priceGBP } from '../core/ledger.js';
+import { ledger, gramsToClt, priceGBP, ref } from '../core/ledger.js';
 import { badgeBook, countryQueue } from '../core/game.js';
 import { target, resolveTarget } from '../core/target.js';
 import { COUNTRIES } from '../data/countries.js';
@@ -15,6 +15,7 @@ const countryOptions = sel => [...COUNTRIES].sort((a, b) => a.name.localeCompare
 
 export function confirmOffset(entry, onDone) {
   const t = target.get(), front = countryQueue().current;
+  const idempotencyKey = ref();   // one key for this intent; a retry after a timeout reuses it
   sheet(`
     <h2 class="sheet-title">Confirm offset</h2>
     <dl class="kv">
@@ -50,7 +51,7 @@ export function confirmOffset(entry, onDone) {
       const account = entry.account || 'personal', ctx = { employees: store.get('biz', {}).employees };
       const before = new Set(badgeBook(account, ctx).all.map(b => b.id));
       try {
-        const rec = await ledger.retire({ ...entry, countryIso3: dest?.iso3, countryName: dest?.name, mode: dest?.mode, finished: !!dest?.finished });
+        const rec = await ledger.retire({ ...entry, idempotencyKey, countryIso3: dest?.iso3, countryName: dest?.name, mode: dest?.mode, finished: !!dest?.finished });
         const fresh = badgeBook(account, ctx).all.filter(b => !before.has(b.id));
         close(); showReceipt(rec, fresh); onDone?.(rec);
       } catch (err) { e.target.disabled = false; root.querySelector('.note').textContent = err.message; }

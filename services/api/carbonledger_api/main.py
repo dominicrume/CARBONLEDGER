@@ -10,7 +10,7 @@ from typing import Callable, List, Literal, Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from carbonledger.chain import ChainClient, ChainError, DryRunChain, SolanaMemoChain
 from carbonledger.mandate import Mandate, MandateError, authorize, consume, revoke
@@ -43,6 +43,13 @@ class RetireIn(BaseModel):
     idempotency_key: str = Field(min_length=8, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
     mandate_id: Optional[str] = Field(default=None, max_length=64)
     agent: Optional[str] = Field(default=None, max_length=64)
+
+    @model_validator(mode="after")
+    def lines_add_up(self):
+        # A client cannot retire less than its own lines say (first step of D1).
+        if self.lines and sum(l.grams for l in self.lines) != self.grams:
+            raise ValueError("the line grams do not add up to the total; nothing was recorded")
+        return self
 
 
 class MandateIn(BaseModel):

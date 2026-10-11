@@ -13,7 +13,9 @@ import { settings } from './settings.js';
 export const gramsToClt = g => (g / 1e6).toFixed(CONFIG.cltDecimals);
 export const priceGBP = g => Math.max(0.01, (g / 1e6) * settings.pricePerTonne());
 
-function ref() {
+// A fresh id for one intent. The caller makes it once (when the confirm sheet opens) and reuses it on retry,
+// so the API's idempotency rule turns a retry into the same retirement, never a second one.
+export function ref() {
   const a = new Uint8Array(8);
   (globalThis.crypto?.getRandomValues ? crypto.getRandomValues(a) : a.forEach((_, i) => (a[i] = Math.random() * 256)));
   return 'CL-' + Array.from(a, b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
@@ -22,7 +24,7 @@ function ref() {
 const all = () => store.get('ledger', []);
 const filter = (recs, account) => account ? recs.filter(r => (r.account || 'personal') === account) : recs;
 
-class LocalLedger {
+export class LocalLedger {
   info = { name: 'Demo ledger on this device', explorer: false };
   async retire(entry) {
     const rec = { account: 'personal', ...entry, id: ref(), ts: new Date().toISOString(), clt: gramsToClt(entry.grams),
@@ -33,21 +35,24 @@ class LocalLedger {
   history(account) { return filter(all(), account); }
 }
 
-class SolanaLedger {
+export class SolanaLedger {
   info = { name: `Solana ${CONFIG.solana.cluster} (through the CarbonLedger API)`, explorer: true };
   async retire(entry) {
     const body = {
       account: entry.account || 'personal', grams: entry.grams, kind: entry.kind || 'other', label: entry.label || '',
       lines: (entry.lines || []).map(l => ({ name: String(l.name), grams: Math.round(l.grams) })),
-      target_iso3: entry.countryIso3 || null, idempotency_key: ref(),
+      target_iso3: entry.countryIso3 || null, idempotency_key: entry.idempotencyKey || ref(),
     };
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), CONFIG.api.timeoutMs);
     let res;
     try {
       res = await fetch(`${CONFIG.api.baseUrl}/v1/retire`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: ctrl.signal });
-    } catch { throw new Error('Could not reach the CarbonLedger API. Nothing was recorded.'); }
-    finally { clearTimeout(timer); }
+    } catch (err) {
+      // A timeout is not a refusal. The server may have recorded it. Only the server may say "Nothing was recorded."
+      if (err?.name === 'AbortError') throw new Error('We could not confirm whether this was recorded. Check your history before trying again.');
+      throw new Error('Could not reach the CarbonLedger API. Nothing was recorded.');
+    } finally { clearTimeout(timer); }
     if (!res.ok) {
       const d = await res.json().catch(() => ({}));
       throw new Error(typeof d.detail === 'string' ? d.detail : `The ledger refused this retirement (${res.status}). Nothing was recorded.`);

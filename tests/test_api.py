@@ -11,9 +11,10 @@ def make(chain=None, **kw):
 
 
 def body(**kw):
-    b = {"account": "personal", "grams": 1200, "kind": "shop", "label": "Basket", "lines": [{"name": "Beef", "grams": 1200}],
+    b = {"account": "personal", "grams": 1200, "kind": "shop", "label": "Basket",
          "target_iso3": "GBR", "idempotency_key": "key-0000001"}
     b.update(kw)
+    b.setdefault("lines", [{"name": "Beef", "grams": b["grams"]}] if isinstance(b["grams"], int) else [])
     return b
 
 
@@ -74,6 +75,20 @@ def test_a_failed_chain_write_leaves_nothing_behind():
 ])
 def test_hostile_input_is_rejected_loudly(bad):
     assert make().post("/v1/retire", json=body(**bad)).status_code == 422
+
+
+@pytest.mark.parametrize("lines,grams", [([{"name": "Beef", "grams": 1199}], 1200), ([{"name": "a", "grams": 700}, {"name": "b", "grams": 700}], 1200)])
+def test_lines_that_do_not_add_up_are_refused(lines, grams):
+    c = make()
+    r = c.post("/v1/retire", json=body(lines=lines, grams=grams))
+    assert r.status_code == 422 and "add up" in r.text
+    assert c.get("/v1/registry/summary").json()["retired_g"] == 0
+
+
+def test_lines_that_add_up_or_no_lines_are_accepted():
+    c = make()
+    assert c.post("/v1/retire", json=body(lines=[{"name": "a", "grams": 500}, {"name": "b", "grams": 700}])).status_code == 200
+    assert c.post("/v1/retire", json=body(lines=[], idempotency_key="key-0000009")).status_code == 200
 
 
 def test_audit_chain_is_intact_then_detects_tampering():
