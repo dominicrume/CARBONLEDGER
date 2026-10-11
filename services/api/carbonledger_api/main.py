@@ -117,7 +117,7 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
 
     @app.post("/v1/demo/key", status_code=201)
     def demo_key(request: Request, role: str = "personal"):
-        """A self-serve login for the demo (simulated units only). Off unless DEMO_KEYS=1 and APP_ENV=demo: then
+        """A self-serve login for the demo (simulated units only). Off unless DEMO_LOGINS=1 and APP_ENV=demo: then
         a few per hour per client address, personal or business, stored like any other key. The plaintext is
         shown once, to the caller, and never logged."""
         if not st.limits.demo_keys:
