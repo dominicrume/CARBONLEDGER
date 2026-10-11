@@ -58,7 +58,7 @@ export class LocalLedger {
 }
 
 export class SolanaLedger {
-  info = { name: `Solana ${CONFIG.solana.cluster} (through the CarbonLedger API)`, explorer: true, source: 'the ledger' };
+  info = { name: 'the CarbonLedger API (chain mode shown once connected)', explorer: true, source: 'the ledger' };   // main.js sets the real name from /health
 
   // Mirror the server's history for this key into the local cache (T20). Records the server does not have are
   // dropped, so a browser edit is never a score. Game fields (country name, mode, finished) are kept from the

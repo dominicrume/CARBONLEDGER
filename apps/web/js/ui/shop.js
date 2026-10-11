@@ -6,14 +6,18 @@ import { TIERS } from '../core/estimate.js';
 import { ESTIMATE_GROUPS } from '../data/factors.js';
 import { $, esc, mass, toast, sheet } from './dom.js';
 import { confirmRetirement, retireButtonLabel } from './retire.js';
+import { missionHTML } from './hud.js';
+import { countryQueue } from '../core/game.js';
+import { world } from '../core/world.js';
 
 let live = null;
 
 export function mountShop(root) {
   root.innerHTML = `
     <section class="panel scan">
+      <div id="mission-shop"></div>
       <h1 class="h1">Scan your shopping</h1>
-      <p class="lead">Scan each item's barcode. CarbonLedger looks up the product and estimates its carbon footprint.</p>
+      <p class="lead">Scan a barcode or tap the demo shelf. Every gram retired is a point, and every point moves the Frontline.</p>
       <div class="row wrap">
         <button class="btn primary" id="scan-btn">Scan a barcode</button>
         <input type="file" id="photo" accept="image/*" capture="environment" hidden>
@@ -43,6 +47,8 @@ export function mountShop(root) {
   });
   basket.onChange(drawBasket);
   drawBasket();
+  const mission = () => { const el = $('#mission-shop'); if (el) el.innerHTML = missionHTML(countryQueue(), world.get()); };
+  mission(); document.addEventListener('carbonledger:world', mission);
 }
 
 async function startScan() {

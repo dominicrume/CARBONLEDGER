@@ -9,7 +9,8 @@ import { mountBusiness, refreshBusiness } from './ui/business.js';
 import { mountVerify } from './ui/verify.js';
 import { openSettings } from './ui/settings.js';
 import { ledger, apiKey } from './core/ledger.js';
-import { levelFor } from './core/game.js';
+import { levelChip } from './ui/hud.js';
+import { world } from './core/world.js';
 import { $ } from './ui/dom.js';
 
 const VIEWS = {
@@ -25,12 +26,17 @@ let currentView = 'shop';
 
 function updateChip() {
   const total = ledger.history('personal').reduce((s, r) => s + r.grams, 0);
-  $('#level-chip').textContent = `Level ${levelFor(total).n}`;
+  const lv = levelChip(total);
+  $('#level-ring').style.setProperty('--p', lv.ring);
+  $('#level-num').textContent = lv.n;
+  $('#level-text').textContent = lv.text;
+  $('#level-chip').setAttribute('aria-label', `${lv.text}, ${lv.toNext}`);
 }
 
 function show(name) {
   if (!VIEWS[name]) name = 'shop';
   currentView = name;
+  window.scrollTo({ top: 0, behavior: 'instant' });
   for (const [k, v] of Object.entries(VIEWS)) {
     const el = $(`#view-${k}`);
     el.hidden = k !== name;
@@ -50,10 +56,19 @@ async function showConnection() {
     const r = await fetch(`${CONFIG.api.baseUrl}/health`, { signal: AbortSignal.timeout(4000) });
     const h = await r.json();
     el.textContent = `Connected to the ledger (${h.chain})${apiKey.get() ? '' : ', no login yet'}`; el.dataset.state = 'connected';
+    ledger.info.name = h.chain === 'dry-run' ? 'the CarbonLedger API, dry-run chain (nothing is sent to Solana)' : `the CarbonLedger API, Solana ${h.chain}`;
   } catch { el.textContent = 'Ledger not reachable'; el.dataset.state = 'down'; }
 }
 showConnection();
-document.addEventListener('carbonledger:login', async () => { showConnection(); if (await ledger.sync()) { updateChip(); VIEWS[currentView].refresh?.(); } });
+world.refresh().then(() => { updateChip(); VIEWS[currentView].refresh?.(); });
+document.addEventListener('carbonledger:world', () => VIEWS[currentView].refresh?.());
+// Any Frontline strip opens the World tab on that country.
+document.addEventListener('click', (e) => { const m = e.target.closest?.('[data-mission]'); if (m) { location.hash = `countries?pick=${m.dataset.mission}`; show('countries'); } });
+document.addEventListener('carbonledger:login', async () => { showConnection();
+world.refresh().then(() => { updateChip(); VIEWS[currentView].refresh?.(); });
+document.addEventListener('carbonledger:world', () => VIEWS[currentView].refresh?.());
+// Any Frontline strip opens the World tab on that country.
+document.addEventListener('click', (e) => { const m = e.target.closest?.('[data-mission]'); if (m) { location.hash = `countries?pick=${m.dataset.mission}`; show('countries'); } }); if (await ledger.sync()) { updateChip(); VIEWS[currentView].refresh?.(); } });
 window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (VIEWS[h]) show(h); });
 document.querySelectorAll('.tabs [data-tab]').forEach(b => b.addEventListener('click', () => show(b.dataset.tab)));
 $('#level-chip').addEventListener('click', () => show('me'));
@@ -61,7 +76,7 @@ $('#level-chip').addEventListener('click', () => show('me'));
 $('#settings-btn').addEventListener('click', () => openSettings(() => { Object.entries(VIEWS).forEach(([k, v]) => { if (k !== 'countries') v.mounted = false; }); show(currentView); }));
 // Any retirement updates the level chip, after the server's history has been mirrored (T20).
 const retire = ledger.retire.bind(ledger);
-ledger.retire = async (e) => { const r = await retire(e); await ledger.sync(); updateChip(); VIEWS[currentView].refresh?.(); return r; };
+ledger.retire = async (e) => { const r = await retire(e); await ledger.sync(); await world.refresh(); updateChip(); VIEWS[currentView].refresh?.(); return r; };
 ledger.sync().then(fromServer => { if (fromServer) { updateChip(); VIEWS[currentView].refresh?.(); } });
 let start = 'shop';
 try { start = (location.hash.slice(1) || localStorage.getItem('carbonledger.tab') || 'shop'); } catch {}

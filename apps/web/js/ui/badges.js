@@ -1,19 +1,24 @@
 // Renders a badge book: one row per family with its latest badge and progress to the next,
 // then the country badges. Shared by the personal and business pages.
 import { esc } from './dom.js';
+import { icon } from './hud.js';
+
+// One Phosphor icon per badge family (the sprite in vendor/icons.svg).
+export const BADGE_ICON = { retired: 'leaf', retirements: 'receipt', baskets: 'basket', products: 'barcode', journeys: 'airplane-tilt', everyday: 'house-line', partners: 'hand-coins', weeks: 'fire', frontline: 'target', finisher: 'crown', countries: 'globe',
+  'b-retired': 'leaf', 'b-retirements': 'receipt', 'b-per-head': 'users-three', 'b-months': 'fire', 'b-areas': 'buildings', 'b-frontline': 'target', 'b-finisher': 'crown', 'b-countries': 'globe' };
 
 export function badgeBookHTML(book) {
   const fams = book.families.map(f => {
     const latest = f.earned.at(-1);
     return `<li class="fam ${latest ? 'on' : ''}">
-      <div class="fam-top"><span class="fam-name">${esc(f.name)}</span><span class="fam-count">${f.earned.length}</span></div>
+      <div class="fam-top"><span class="fam-name">${icon(BADGE_ICON[f.id] || 'medal')} ${esc(f.name)}</span><span class="fam-count">${f.earned.length}</span></div>
       <div class="fam-latest">${latest ? esc(latest.name) : '<span class="muted">Not started</span>'}</div>
       ${f.next != null ? `<div class="bar thin"><span style="width:${(f.progress * 100).toFixed(1)}%"></span></div>
       <small>Next: ${esc(f.nextLabel)}</small>` : '<small>Complete</small>'}
     </li>`;
   }).join('');
   const cb = book.countryBadges;
-  const chips = cb.slice(0, 12).map(b => `<span class="chip-badge ${b.id.startsWith('cleared') ? 'gold' : ''}">${esc(b.name)}</span>`).join('');
+  const chips = cb.slice(0, 12).map(b => `<span class="chip-badge ${b.id.startsWith('cleared') ? 'gold' : ''}">${icon(b.id.startsWith('cleared') ? 'crown' : 'flag')}${esc(b.name)}</span>`).join('');
   return `
     <p class="badge-total"><strong>${book.total.toLocaleString('en-GB')}</strong> badge${book.total === 1 ? '' : 's'} earned. Every family keeps going, so there is always a next one.</p>
     <ul class="fams">${fams}</ul>

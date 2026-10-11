@@ -3,12 +3,16 @@ import { GROUND, AIRPORTS, TRAVEL_SOURCE } from '../data/travel.js';
 import { flightGrams, groundGrams } from '../core/activities.js';
 import { $, esc, mass } from './dom.js';
 import { confirmRetirement, retireButtonLabel } from './retire.js';
+import { missionHTML } from './hud.js';
+import { countryQueue } from '../core/game.js';
+import { world } from '../core/world.js';
 
 export function mountTravel(root) {
   const opts = AIRPORTS.map(a => `<option value="${a[0]}">${esc(a[1])} (${a[0]})</option>`).join('');
   root.innerHTML = `
     <section class="panel">
-      <h1 class="h1">Retire pilot units for a journey</h1>
+      <div id="mission-travel"></div>
+      <h1 class="h1">Log a journey</h1>
       <div class="seg" role="tablist">
         <button class="on" data-mode="flight" role="tab">Flight</button><button data-mode="ground" role="tab">Car, train, bus</button>
       </div>
@@ -30,6 +34,8 @@ export function mountTravel(root) {
       <p class="note">Factors: ${esc(TRAVEL_SOURCE)}. Flights include the warming effect of high-altitude emissions and an 8% routing uplift.</p>
     </section>`;
   $('#to', root).value = 'BCN';
+  const mission = () => { const el = $('#mission-travel'); if (el) el.innerHTML = missionHTML(countryQueue(), world.get()); };
+  mission(); document.addEventListener('carbonledger:world', mission);
   let mode = 'flight';
   root.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => {
     mode = b.dataset.mode;

@@ -10,7 +10,7 @@
 <title>CarbonLedger</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Serif+Display:ital@0;1&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
@@ -19,8 +19,8 @@
   <div class="wordmark">Carbon<em>Ledger</em><span>Demo: simulated pilot units</span></div>
   <div class="top-actions">
     <span class="conn" id="conn" role="status">Working on this device only</span>
-    <button class="chip" id="level-chip" aria-label="Your level">Level 1</button>
-    <button class="icon-btn" id="settings-btn" aria-label="Settings"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path fill="none" stroke="currentColor" stroke-width="1.6" d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></button>
+    <button class="chip" id="level-chip" aria-label="Your level"><span class="ring" id="level-ring"><b id="level-num">1</b></span><span id="level-text">Level 1</span></button>
+    <button class="icon-btn" id="settings-btn" aria-label="Settings"><svg class="ico" aria-hidden="true"><use href="vendor/icons.svg#i-gear-regular"/></svg></button>
   </div>
 </header>
 
@@ -35,19 +35,19 @@
 </main>
 
 <nav class="tabs" aria-label="Sections">
-  <button data-tab="shop">Shop</button>
-  <button data-tab="travel">Travel</button>
-  <button data-tab="daily">Daily</button>
-  <button data-tab="countries">Countries</button>
-  <button data-tab="me">Me</button>
-  <button data-tab="business">Business</button>
-  <button data-tab="verify">Verify</button>
+  <button data-tab="shop"><svg class="ico" aria-hidden="true"><use href="vendor/icons.svg#i-basket-regular"/></svg>Shop</button>
+  <button data-tab="travel"><svg class="ico" aria-hidden="true"><use href="vendor/icons.svg#i-airplane-tilt-regular"/></svg>Travel</button>
+  <button data-tab="daily"><svg class="ico" aria-hidden="true"><use href="vendor/icons.svg#i-house-line-regular"/></svg>Daily</button>
+  <button data-tab="countries"><svg class="ico" aria-hidden="true"><use href="vendor/icons.svg#i-globe-regular"/></svg>World</button>
+  <button data-tab="me"><svg class="ico" aria-hidden="true"><use href="vendor/icons.svg#i-user-regular"/></svg>Me</button>
+  <button data-tab="business"><svg class="ico" aria-hidden="true"><use href="vendor/icons.svg#i-buildings-regular"/></svg>Business</button>
+  <button data-tab="verify"><svg class="ico" aria-hidden="true"><use href="vendor/icons.svg#i-shield-check-regular"/></svg>Verify</button>
 </nav>
 
 <footer class="credits">
   <p>Simulated pilot units, not verified credits. Nothing here is an offset, a carbon-neutral claim or a verified credit until a named verifier attests a real project.</p>
   <p>Data: food factors from Poore and Nemecek (2018) via Our World in Data (CC BY); Agribalyse (Etalab open licence) via Open Food Facts (ODbL); travel and energy factors from UK Government GHG conversion factors (DESNZ); country shares from the Global Carbon Project via Our World in Data (CC BY); map from Natural Earth (public domain).</p>
-  <p><a href="#verify">Verify a receipt</a></p>
+  <p><a href="#verify">Verify a receipt</a>. Icons: Phosphor (MIT).</p>
 </footer>
 <div id="toast" class="toast" role="status" hidden></div>
 <div id="sheet" class="sheet" hidden></div>

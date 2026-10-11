@@ -4,7 +4,9 @@ import { settings } from '../core/settings.js';
 import { COUNTRIES } from '../data/countries.js';
 import { createGlobe } from './globe.js';
 import { target } from '../core/target.js';
-import { $, esc, tonnes, sheet } from './dom.js';
+import { $, esc, tonnes, sheet, mass } from './dom.js';
+import { icon, confettiHTML } from './hud.js';
+import { world } from '../core/world.js';
 
 const TOTAL_T = COUNTRIES.reduce((s, c) => s + c.tonnes, 0);
 const byIso = new Map(COUNTRIES.map(c => [c.iso3, c]));
@@ -18,12 +20,13 @@ function computeStatus() {
   status = new Map([...queue.byIso.values()].map(c => [c.iso3, GLOBE_STATUS[c.status]]));
 }
 
+let lastCleared = null;   // to notice when a country gets finished while this screen is open
+
 export function mountCountries(root) {
   root.innerHTML = `
-    <section class="panel">
-      <p class="eyebrow">Clearing the historical stock</p>
-      <h1 class="h1">Countries</h1>
-      <p class="lead">Each country carries its share of the ${tonnes(TOTAL_T)} of CO₂ emitted since 1850. Send your retirements to any country, or play the Frontline: clear the world smallest share first. This is a symbolic game: a CLT is a tonne of simulated pilot units retired today, not a tonne of the 1850 stock.</p>
+    <section class="panel plain">
+      <div class="clock" id="clock" aria-live="polite"></div>
+      <p class="lead">Each country carries its share of the ${tonnes(TOTAL_T)} of CO₂ emitted since 1850. Clear the smallest share first, together, then the next. A symbolic game: a CLT is a tonne of simulated pilot units retired today, not a tonne of the 1850 stock.</p>
       <div class="target-box" id="target-box"></div>
       <div class="globe-wrap">
         <canvas id="globe" class="globe" aria-label="Globe showing which countries are cleared, in progress or waiting"></canvas>
@@ -31,14 +34,15 @@ export function mountCountries(root) {
       </div>
       <div class="legend"><span class="sw ok"></span>Cleared <span class="sw warn"></span>In progress <span class="sw bad"></span>Waiting</div>
       <p class="hint muted">Drag to turn the globe. Tap a country for details.</p>
+      <div id="front"></div>
       <div id="picked" class="picked" hidden></div>
       <label class="label" for="sim">Simulate a community total</label>
       <input type="range" id="sim" min="0" max="100" value="0">
       <div id="sim-out" class="sim-out"></div>
-      <div id="front"></div>
     </section>
     <section class="panel">
-      <h2 class="h2">The queue</h2>
+      <h2 class="h2">${icon('path')} The queue</h2>
+      <p class="note">Smallest share first. Finish one and the next becomes the Frontline.</p>
       <ol class="queue" id="queue"></ol>
     </section>
     <section class="panel">
@@ -50,6 +54,32 @@ export function mountCountries(root) {
   if (!globe) { $('#globe', root).hidden = true; $('.globe-fallback', root).hidden = false; }
   $('#sim', root).addEventListener('input', e => { simTonnes = simValue(+e.target.value); refreshCountries(); });
   refreshCountries();
+  const pick = new URLSearchParams(location.hash.split('?')[1] || '').get('pick');
+  if (pick && byIso.has(pick)) { globe?.focus(pick); showPicked(pick); }
+}
+
+function clockHTML(q) {
+  const w = world.get();
+  const clearedT = q.cleared.reduce((s, c) => s + c.tonnes, 0) + (q.current ? q.current.doneGrams / 1e6 : 0);
+  const pct = clearedT / TOTAL_T * 100;
+  return `
+    <div class="clock-big"><em>${q.cleared.length}</em> of ${q.totalCountries} cleared</div>
+    <div class="clock-sub">${tonnes(clearedT)} of the ${tonnes(TOTAL_T)} symbolic stock, ${pct < 0.01 ? 'under 0.01' : pct.toFixed(2)}%</div>
+    <div class="clock-stats">
+      <div class="stat"><b>${w ? w.players.toLocaleString('en-GB') : '1'}</b><small>player${w && w.players === 1 ? '' : 's'}</small></div>
+      <div class="stat"><b>${w ? mass(w.retired_g) : mass(0)}</b><small>retired on the ledger</small></div>
+      <div class="stat"><b>${w ? w.retirements.toLocaleString('en-GB') : '0'}</b><small>receipts</small></div>
+    </div>`;
+}
+
+function celebrate(country) {
+  sheet(`
+    <div class="reward">${confettiHTML(24)}
+      <div class="levelup">${icon('crown')} Country cleared</div>
+      <div class="reward-xp" style="font-size:1.8rem">${esc(country.name)}</div>
+      <div class="reward-sub">Its symbolic share of ${tonnes(country.tonnes)} is done. Everyone who sent retirements there earns the Finisher badge. The Frontline moves to the next smallest country.</div>
+    </div>
+    <div class="row"><button class="btn primary" data-close>On to the next</button></div>`);
 }
 
 function showPicked(iso3, mapName) {
@@ -93,12 +123,18 @@ export function refreshCountries() {
   drawTarget();
   globe?.redraw();
   const q = queue, c = q.current;
+  if ($('#clock')) $('#clock').innerHTML = clockHTML(q);
+  if (!simTonnes) {
+    if (lastCleared !== null && q.cleared.length > lastCleared) celebrate(q.cleared.at(-1));
+    lastCleared = q.cleared.length;
+  }
   $('#sim-out').innerHTML = simTonnes
     ? `<strong>${tonnes(simTonnes)}</strong> retired would clear <strong>${q.cleared.length}</strong> of ${q.totalCountries} countries. Simulation only; the ledger is unchanged.`
     : `<span class="muted">Slide to see how the globe changes as the community grows.</span>`;
+  const players = world.get()?.countries?.[c?.iso3]?.players || 0;
   $('#front').innerHTML = c ? `
     <div class="front">
-      <span class="label">${simTonnes ? 'Frontline (simulated)' : 'The Frontline'}</span>
+      <span class="label">${icon('target')} ${simTonnes ? 'Frontline (simulated)' : 'The Frontline'}${players ? ` · ${players} player${players === 1 ? '' : 's'} on it` : ''}</span>
       <div class="front-name">${esc(c.name)}</div>
       <div class="bar"><span style="width:${Math.max(0.5, c.progress * 100).toFixed(2)}%"></span></div>
       <div class="row between small"><span>${tonnes(c.doneGrams / 1e6)} retired</span><span>${tonnes(c.tonnes)} share</span></div>
@@ -107,8 +143,8 @@ export function refreshCountries() {
       <p class="note">${q.cleared.length} cleared: ${q.cleared.slice(0, 8).map(x => esc(x.name)).join(', ') || 'none yet'}${q.cleared.length > 8 ? ' and more' : ''}.${simTonnes ? '' : ` Includes a simulated community total of ${tonnes(settings.communityTonnes())} for the demo, changeable in Settings.`}</p>
     </div>` : `<p>Every country is cleared.</p>`;
   $('#show-current')?.addEventListener('click', () => { globe?.focus(c.iso3); showPicked(c.iso3); });
-  const show = [...q.cleared.slice(-6).map(x => ({ ...x, s: 'cleared' })), ...(c ? [{ ...c, s: 'current' }] : []), ...q.rest.slice(0, 11).map(x => ({ ...x, s: 'waiting' }))];
-  $('#queue').innerHTML = (q.cleared.length > 6 ? `<li class="q more"><span class="q-name">${q.cleared.length - 6} more cleared</span></li>` : '') +
-    show.map(x => `<li class="q ${x.s}"><span class="q-name">${esc(x.name)}</span><span class="q-t">${tonnes(x.tonnes)}</span></li>`).join('') +
-    (q.rest.length > 11 ? `<li class="q more"><span class="q-name">…and ${q.rest.length - 11} more, ending with ${esc(COUNTRIES.at(-1).name)}</span></li>` : '');
+  const show = [...q.cleared.slice(-4).map(x => ({ ...x, s: 'cleared' })), ...(c ? [{ ...c, s: 'current' }] : []), ...q.rest.slice(0, 8).map(x => ({ ...x, s: 'waiting' }))];
+  $('#queue').innerHTML = (q.cleared.length > 4 ? `<li class="q more"><span class="q-name">${q.cleared.length - 4} more cleared</span></li>` : '') +
+    show.map(x => `<li class="q ${x.s}"><span class="q-num">${x.s === 'cleared' ? icon('check-circle') : COUNTRIES.indexOf(byIso.get(x.iso3)) + 1}</span><span class="q-name">${esc(x.name)}${x.s === 'current' ? ` <small>${Math.floor(x.progress * 100)}% cleared</small>` : ''}</span><span class="q-t">${tonnes(x.tonnes)}</span></li>`).join('') +
+    (q.rest.length > 8 ? `<li class="q more"><span class="q-name">and ${q.rest.length - 8} more, ending with ${esc(COUNTRIES.at(-1).name)}</span></li>` : '');
 }

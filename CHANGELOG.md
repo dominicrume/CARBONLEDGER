@@ -1,6 +1,10 @@
 # Changelog
 
 ## 0.2.0 (2026-10-11)
+- Front end rebuilt around the game loop: level ring, Frontline mission strip, XP on every retire button, reward
+  moment with level-up and badges, Me command centre with quests and a badge shelf, World clock from the public
+  stats endpoint, celebration on a cleared country. New design tokens, Outfit type, Phosphor icon sprite, both
+  themes, axe clean. The ledger's name on screen comes from the server's chain mode.
 - The receipt is the KYA receipt (knowyouragenticai-receipts 1.1.0): refused attempts are sealed into the chain
   with the rule that stopped them, the seal is what is anchored, and GET /v1/audit/receipts.json exports a file the
   package's CLI and verifier page check. The verify screen shows outcome, rule and decider.

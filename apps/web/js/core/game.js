@@ -87,9 +87,14 @@ export function badgeBook(account = 'personal', ctx = {}) {
 // Each country's progress = retirements directed to it + its part of the simulated community total.
 // The simulated total always goes to the Frontline: the smallest country not yet cleared.
 // status: 'cleared' | 'front' (Frontline, in progress) | 'supported' (some progress) | 'waiting'
+// Totals by country from the whole ledger (every player), set by core/world.js. Null = use this device's history.
+let WORLD = null;
+export function setWorldTotals(totals) { WORLD = totals; }
+
 export function countryQueue(extraTonnes = settings.communityTonnes(), history = ledger.history()) {
   const direct = new Map();
-  for (const r of history) if (r.countryIso3) direct.set(r.countryIso3, (direct.get(r.countryIso3) || 0) + r.grams);
+  if (WORLD) for (const [iso, g] of Object.entries(WORLD)) direct.set(iso, g);
+  else for (const r of history) if (r.countryIso3) direct.set(r.countryIso3, (direct.get(r.countryIso3) || 0) + r.grams);
   let pool = extraTonnes * 1e6;
   const byIso = new Map(), cleared = [], rest = [];
   let current = null;

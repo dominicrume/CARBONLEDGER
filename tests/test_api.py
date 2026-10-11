@@ -539,3 +539,17 @@ def test_demo_logins_are_off_unless_enabled_and_then_rate_limited_per_address():
     assert fresh.post("/v1/retire", json=body()).status_code == 200
     nokey = c.anon().post("/v1/retire", json=body()).json()["detail"]
     assert "NO_KEY" in nokey and "demo login" in nokey and "Nothing was recorded" in nokey
+
+
+# ---- the world clock: public totals by country, no personal data ----
+def test_world_stats_are_public_count_only_accepted_and_carry_no_personal_data():
+    c = make()
+    c.post("/v1/retire", json=body(target_iso3="KIR"))
+    c.post("/v1/retire", json=body(grams=300, target_iso3="KIR", idempotency_key="key-0000002"))
+    c.as_("personal", "p2").post("/v1/retire", json=body(grams=50, target_iso3="GBR", idempotency_key="key-0000003"))
+    c.post("/v1/retire", json=body(grams=DEMO_ISSUED_G + 1, target_iso3="KIR", idempotency_key="key-0000004"))     # refused: not counted
+    w = c.anon().get("/v1/stats/world").json()
+    assert w["retired_g"] == 1550 and w["retirements"] == 3 and w["players"] == 2 and "Simulated" in w["units"]
+    assert w["countries"]["KIR"] == {"grams": 1500, "retirements": 2, "players": 1} and w["countries"]["GBR"]["players"] == 1
+    assert w["register"]["remaining_g"] == DEMO_ISSUED_G - 1550
+    assert "p1" not in c.anon().get("/v1/stats/world").text and "owner" not in w

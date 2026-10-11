@@ -115,3 +115,15 @@ exists for agents. A refusal that leaves no trace cannot be audited. One format,
 by anyone, beats a private one.
 Who agreed: Rume asked for it (2026-10-11). Engineering implemented it. Format rule 1 of the package applies: the
 chain proves consistency, not origin; origin comes from the anchored root.
+
+---
+Date: 2026-10-11
+Decision: The front end is rebuilt around the game loop from the partner call: a level ring in the header, a
+Frontline mission strip on every acting screen, XP on the retire button (one gram is one point), a reward moment
+above the receipt, a command centre on Me, a world clock on World fed by a new public GET /v1/stats/world, and a
+celebration when a country is cleared. One accent (emerald), gold only for rewards, Outfit and DM Mono, Phosphor
+icons vendored as a sprite, dark and light themes, motion off under reduced motion. The tab bar keeps the
+partner's seven sections even though the guideline is five, because the demo needs each one reachable in one tap.
+Why: the partner said it plainly: this is a highly gamified project, and the screens were dry. Wording rules,
+the simulated tag and the server as the only source of truth are unchanged.
+Who agreed: Rume asked for it after the call (2026-10-11). Engineering built it. Awaiting the partner's eye.

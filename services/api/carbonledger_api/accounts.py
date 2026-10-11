@@ -5,6 +5,38 @@ from typing import Dict, Literal
 from fastapi import APIRouter, Depends, HTTPException
 
 from .models import UNITS_STATUS
+from .state import DEMO_BATCH
+
+
+def world_router(st) -> APIRouter:
+    """Public, no personal data: the world clock. Totals of accepted retirements by target country, how many
+    accounts took part, and the register's own totals. The app's Countries screen reads this so the line moves
+    on its own as people play, instead of only on one phone."""
+    w = APIRouter(prefix="/v1/stats")
+
+    @w.get("/world")
+    def world():
+        by_country: Dict[str, dict] = {}
+        owners, grams, count = set(), 0, 0
+        for e in st.receipts.entries():
+            rc = e["receipt"]
+            if rc.get("outcome") != "ACCEPTED":
+                continue
+            count += 1
+            grams += rc["grams"]
+            owners.add(rc.get("owner"))
+            iso = rc.get("target_iso3")
+            if iso:
+                c = by_country.setdefault(iso, {"grams": 0, "retirements": 0, "players": set()})
+                c["grams"] += rc["grams"]
+                c["retirements"] += 1
+                c["players"].add(rc.get("owner"))
+        reg = st.registry.batches[DEMO_BATCH]
+        return {"units": UNITS_STATUS, "retired_g": grams, "retirements": count, "players": len(owners),
+                "register": {"issued_g": reg.issued_g, "retired_g": reg.retired_g, "remaining_g": reg.issued_g - reg.retired_g},
+                "countries": {iso: {"grams": c["grams"], "retirements": c["retirements"], "players": len(c["players"])} for iso, c in by_country.items()}}
+
+    return w
 
 
 def account_router(st, require_key) -> APIRouter:

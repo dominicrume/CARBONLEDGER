@@ -7,9 +7,11 @@ import { badgeBook, countryQueue } from '../core/game.js';
 import { target, resolveTarget } from '../core/target.js';
 import { COUNTRIES } from '../data/countries.js';
 import { sheet, esc, mass, gbp } from './dom.js';
+import { icon, rewardHTML, buzz, xp } from './hud.js';
+import { levelFor } from '../core/game.js';
 
 export const SIM_TAG = '<span class="tag">Simulated pilot units</span>';
-export function retireButtonLabel(grams) { return `Retire ${mass(grams)} of pilot units for ${gbp(priceGBP(grams))}`; }
+export function retireButtonLabel(grams) { return `Retire ${mass(grams)} for ${gbp(priceGBP(grams))} <span class="xp">+${xp(grams)}</span>`; }
 
 // entry: { grams, kind, label, lines: [{name, grams}], ...extra }
 const countryOptions = sel => [...COUNTRIES].sort((a, b) => a.name.localeCompare(b.name))
@@ -54,10 +56,13 @@ export function confirmRetirement(entry, onDone) {
       const dest = resolveTarget(choice, entry.grams);
       const account = entry.account || 'personal', ctx = { employees: store.get('biz', {}).employees };
       const before = new Set(badgeBook(account, ctx).all.map(b => b.id));
+      const totalBefore = ledger.history(account).reduce((s, r) => s + r.grams, 0);
       try {
         const rec = await ledger.retire({ ...entry, idempotencyKey, countryIso3: dest?.iso3, countryName: dest?.name, mode: dest?.mode, finished: !!dest?.finished });
         const fresh = badgeBook(account, ctx).all.filter(b => !before.has(b.id));
-        close(); showReceipt(rec, fresh); onDone?.(rec);
+        const totalAfter = ledger.history(account).reduce((s, r) => s + r.grams, 0);
+        buzz();
+        close(); showReceipt(rec, fresh, { before: totalBefore, after: Math.max(totalAfter, totalBefore + rec.grams), account }); onDone?.(rec);
       } catch (err) {
         e.target.disabled = false; root.querySelector('#retire-error').textContent = err.message;
         if (/NO_KEY|BAD_KEY|REVOKED_KEY/.test(err.message)) root.querySelector('#retire-login').hidden = false;
@@ -75,9 +80,11 @@ export function confirmRetirement(entry, onDone) {
   } });
 }
 
-export function showReceipt(rec, newBadges = []) {
+export function showReceipt(rec, newBadges = [], reward = null) {
   const lines = (rec.lines || []).map(l => `<div class="r-line"><span>${esc(l.name)}</span><span>${mass(l.grams)}</span></div>`).join('');
+  const base = reward?.account === 'business' ? 50_000 : 500;
   sheet(`
+    ${reward ? rewardHTML({ grams: rec.grams, before: reward.before, after: reward.after, badges: newBadges, countryName: rec.countryName, finished: rec.finished, base }) : ''}
     <div class="receipt">
       <div class="r-head"><strong>CarbonLedger</strong><span>Retirement receipt</span></div>
       <div class="r-meta mono">${esc(rec.id)}<br>${new Date(rec.ts).toLocaleString('en-GB')}</div>
@@ -90,7 +97,7 @@ export function showReceipt(rec, newBadges = []) {
       ${rec.finished ? `<div class="r-line r-total"><span>This retirement finished clearing the symbolic share of ${esc(rec.countryName)}</span><span></span></div>` : ''}
       <div class="r-foot">${rec.explorerUrl ? `Recorded on Solana devnet, a test network. <a href="${esc(rec.explorerUrl)}" target="_blank" rel="noopener">View on the Solana explorer</a>` : rec.ledger === 'solana-devnet' ? 'Recorded by the CarbonLedger API. Awaiting the Solana devnet record.' : 'Recorded on this device only.'} Simulated pilot units, not verified credits.</div>
     </div>
-    ${newBadges.length ? `<div class="new-badges"><span class="label">New badge${newBadges.length > 1 ? 's' : ''}</span>${newBadges.map(b => `<span class="chip-badge">${esc(b.name)}</span>`).join('')}</div>` : ''}
-    <div class="row"><button class="btn primary" data-close>Done</button></div>
-  `);
+    ${!reward && newBadges.length ? `<div class="new-badges">${newBadges.map((b, i) => `<span class="chip-badge" style="--i:${i}">${icon('medal')}${esc(b.name)}</span>`).join('')}</div>` : ''}
+    <div class="row"><button class="btn ghost" id="receipt-verify" data-close>Verify it</button><button class="btn primary" data-close>Done</button></div>
+  `, { onOpen: (root) => { root.querySelector('#receipt-verify')?.addEventListener('click', () => { location.hash = `verify?id=${encodeURIComponent(rec.id)}`; document.querySelector('[data-tab="verify"]')?.click(); }); } });
 }

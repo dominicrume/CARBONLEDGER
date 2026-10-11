@@ -31,7 +31,7 @@ from carbonledger.receipts import digest, to_json, verify
 from carbonledger.registry import RegistryError
 from carbonledger.units import grams_to_clt
 
-from .accounts import account_router
+from .accounts import account_router, world_router
 from .lookup import ProductLookup
 from .models import STATUS_FOR, UNITS_STATUS, MandateIn, RetireIn
 from .recompute import RecomputeError, compute
@@ -272,6 +272,7 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
         return receipt_id
 
     app.include_router(account_router(st, require_key))
+    app.include_router(world_router(st))
 
     @app.get("/v1/receipts/{receipt_id}")
     def get_receipt(receipt_id: str):

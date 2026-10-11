@@ -4,11 +4,15 @@ import { energyGrams, mealGrams } from '../core/activities.js';
 import { PN_SOURCE } from '../data/factors.js';
 import { $, esc, mass } from './dom.js';
 import { confirmRetirement, retireButtonLabel } from './retire.js';
+import { missionHTML } from './hud.js';
+import { countryQueue } from '../core/game.js';
+import { world } from '../core/world.js';
 
 export function mountDaily(root) {
   root.innerHTML = `
     <section class="panel">
-      <h1 class="h1">Retire pilot units for everyday life</h1>
+      <div id="mission-daily"></div>
+      <h1 class="h1">Add up a day</h1>
       <p class="lead">Add up a day, a week or a month. Meter readings are on your energy bill or app.</p>
       <form class="form" id="daily-form">
         <h2 class="h3">Home energy</h2>
@@ -40,4 +44,6 @@ export function mountDaily(root) {
     $('#retire-daily', out)?.addEventListener('click', () => confirmRetirement({ grams: total, kind: 'daily', label: 'Everyday activities', lines, items }));
   }
   update();
+  const mission = () => { const el = $('#mission-daily'); if (el) el.innerHTML = missionHTML(countryQueue(), world.get()); };
+  mission(); document.addEventListener('carbonledger:world', mission);
 }

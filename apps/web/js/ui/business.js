@@ -1,6 +1,6 @@
 // Business view: a company profile, a footprint calculator across six areas, business badges and league.
 import { ledger } from '../core/ledger.js';
-import { levelFor, badgeBook } from '../core/game.js';
+import { badgeBook } from '../core/game.js';
 import { store } from '../core/store.js';
 import { GROUND, TRAVEL_SOURCE } from '../data/travel.js';
 import { FLIGHT_KM, businessEnergyGrams, businessFleetGrams, businessFlightGrams, commuteGrams, productsSoldGrams, measuredGrams } from '../core/activities.js';
@@ -9,7 +9,7 @@ import { $, esc, mass } from './dom.js';
 import { confirmRetirement, retireButtonLabel, showReceipt } from './retire.js';
 import { badgeBookHTML } from './badges.js';
 import { skillTreeHTML, bindSkillTree } from './skilltree.js';
-import { levelHTML, historyHTML } from './me.js';
+import { heroHTML, historyHTML, questsHTML, leagueHTML } from './me.js';
 import { mandateHTML, bindMandates } from './mandate.js';
 
 const car = id => GROUND.find(g => g.id === id);
@@ -27,7 +27,7 @@ export function mountBusiness(root) {
     <section class="panel">
       <p class="eyebrow">For organisations</p>
       <h1 class="h1">Business</h1>
-      <p class="lead">Work out your organisation's footprint for a period, retire simulated pilot units for it, and earn business badges.</p>
+      <p class="lead">Work out your organisation's footprint for a period and retire simulated pilot units for it. Businesses play their own league.</p>
       <div class="grid2">
         <div><label class="label" for="biz-name">Business name</label><input id="biz-name" maxlength="40" placeholder="Your business" value="${esc(p.name)}"></div>
         <div><label class="label" for="biz-emp">Employees</label><input id="biz-emp" type="number" min="1" value="${p.employees}" class="num"></div>
@@ -71,7 +71,8 @@ export function mountBusiness(root) {
       <div class="result" id="biz-result"></div>
       <p class="note">Factors: ${esc(TRAVEL_SOURCE)}. Flights assume typical one-way distances of ${FLIGHT_KM.domestic} km (UK), ${FLIGHT_KM.short.toLocaleString('en-GB')} km (Europe) and ${FLIGHT_KM.long.toLocaleString('en-GB')} km (long-haul), economy class.</p>
     </section>
-    <section class="panel" id="biz-level"></section>
+    <section class="panel plain" id="biz-level"></section>
+    <section class="panel"><h2 class="h2">Next quests</h2><ul class="quests" id="biz-quests"></ul></section>
     <section class="panel"><h2 class="h2">Business skill tree</h2><div id="biz-skills"></div></section>
     <section class="panel"><h2 class="h2">Business badges</h2><div id="biz-badges"></div></section>
     <section class="panel"><h2 class="h2">Business league</h2><ol class="league" id="biz-league"></ol></section>
@@ -121,13 +122,13 @@ export function mountBusiness(root) {
 
 export function refreshBusiness() {
   const p = profile(), h = ledger.history('business'), total = h.reduce((s, r) => s + r.grams, 0);
-  $('#biz-level').innerHTML = levelHTML(total, levelFor(total, 50_000), '. Business levels are set 100 times higher than personal ones')
-    .replace('Your level', 'Business level');
-  $('#biz-skills').innerHTML = skillTreeHTML('business', { employees: p.employees }); bindSkillTree($('#biz-skills'), 'business', { employees: p.employees });
-  $('#biz-badges').innerHTML = badgeBookHTML(badgeBook('business', { employees: p.employees }));
-  const me = { name: `${p.name || 'Your business'} (you)`, grams: total, employees: p.employees, you: true };
-  $('#biz-league').innerHTML = [...EXAMPLE_BUSINESSES, me].sort((a, b) => b.grams - a.grams)
-    .map(b => `<li class="${b.you ? 'you' : ''}"><span>${esc(b.name)}<small>${b.employees} staff · ${mass(b.grams / b.employees)} per employee</small></span><span>${mass(b.grams)}</span></li>`).join('');
+  const ctx = { employees: p.employees, name: p.name };
+  $('#biz-level').innerHTML = heroHTML('business', h, ctx);
+  $('#biz-quests').innerHTML = questsHTML('business', ctx); bindSkillTree($('#biz-quests'), 'business', ctx);
+  $('#biz-skills').innerHTML = skillTreeHTML('business', ctx); bindSkillTree($('#biz-skills'), 'business', ctx);
+  $('#biz-badges').innerHTML = badgeBookHTML(badgeBook('business', ctx));
+  const me = { name: `${p.name || 'Your business'} (you)`, grams: total, sub: `${p.employees} staff, ${mass(total / Math.max(1, p.employees))} per employee`, you: true };
+  $('#biz-league').innerHTML = leagueHTML(EXAMPLE_BUSINESSES.map(b => ({ ...b, sub: `${b.employees} staff, ${mass(b.grams / b.employees)} per employee` })), me);
   $('#biz-history').innerHTML = historyHTML(h);
   $('#biz-history').querySelectorAll('[data-rec]').forEach(b => b.addEventListener('click', () => showReceipt(h.find(r => r.id === b.dataset.rec))));
 }

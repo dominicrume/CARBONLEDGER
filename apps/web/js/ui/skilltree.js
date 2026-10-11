@@ -1,8 +1,9 @@
 // Skill tree view: Next up goals, the root, one column per branch, and the endless Mastery skill.
 import { skillTree, roman, describe } from '../core/skills.js';
 import { esc, sheet } from './dom.js';
+import { icon } from './hud.js';
 
-const LOCK = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M7 11V8a5 5 0 0 1 10 0v3M5 11h14v10H5z"/></svg>';
+const LOCK = icon('lock-key');
 
 function node(s) {
   const state = !s.unlocked ? 'locked' : s.maxed ? 'maxed' : s.level ? 'active' : 'open';

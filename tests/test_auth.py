@@ -15,7 +15,8 @@ def test_a_key_is_shown_once_and_only_its_hash_is_kept():
 def test_missing_wrong_and_revoked_keys_fail_with_their_own_codes():
     s = ApiKeyStore(PEPPER)
     key, rec = s.issue("personal", "p1")
-    for bad, code in [(None, "NO_KEY"), ("", "NO_KEY"), ("clk_personal_nope", "BAD_KEY"), (key[:-1] + "0", "BAD_KEY")]:
+    flipped = key[:-1] + ("1" if key[-1] == "0" else "0")        # always a different key, whatever the last character was
+    for bad, code in [(None, "NO_KEY"), ("", "NO_KEY"), ("clk_personal_nope", "BAD_KEY"), (flipped, "BAD_KEY")]:
         with pytest.raises(AuthError) as e:
             s.check(bad)
         assert e.value.code == code
