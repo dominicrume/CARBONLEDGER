@@ -50,7 +50,8 @@ One line per step: time (UTC), what changed, the test that proves it, anything s
 - First push to GitHub: create the repository, push, watch the ci workflow. Set the repository variable RECHECK_ENABLED=1 and the secret DATABASE_URL_RECHECK (a read-only role) to turn on the nightly recheck.
 - Install Node 22 (`brew install node@22`) so CI and local match. Node 20 runs everything today.
 - Install the Solana CLI, Rust and Anchor for Block 5 (commands in docs/ENVIRONMENT.md). Without them the memo path is the integration.
-- First devnet call (D14), about 10 minutes once the Solana CLI is installed:
+- First devnet call (D14), what is left after 2026-10-11 evening: the hot key exists at ~/.config/solana/carbonledger-devnet.json (public key 7DQZmWuTomLpBSHD44D3whxjPUja2Rt7Mm3LNGNewiyh), its secret and the RPC settings are set on Railway, CHAIN_MODE is still dry-run. The RPC faucet refused every airdrop today (limit reached or dry). One minute of human work: open https://faucet.solana.com, sign in with GitHub, paste the public key above, request 1 or 2 devnet SOL. Then set CHAIN_MODE=solana-devnet on the Railway service and redeploy (or tell Claude, who will do both and make the first call).
+- The original steps, for reference:
   1. `solana-keygen new --outfile ~/.config/solana/carbonledger-devnet.json` then `solana config set --url devnet` and `solana airdrop 2 ~/.config/solana/carbonledger-devnet.json`.
   2. `cp .env.example .env`, set CHAIN_MODE=solana-devnet and SOLANA_SECRET_KEY_B58 to the base58 secret (one-liner in .env.example). Never paste it anywhere else.
   3. In .env also set APP_ENV=dev and API_DEMO_KEY to any string starting clk_personal_ (a dev-only login). `scripts/dev.sh`, then in another terminal, with that key:
