@@ -19,6 +19,11 @@ Question: how do I get value out or fake value in?
 - F5 OPEN (D6, T4, T5). Authority and verifier keys are not in a multisig yet, because they only exist in the model.
 - Faked issuance without attestation is refused by the model (tested). The program is not yet tested.
 
+- F12 FIXED 2026-10-11 (D16). The browser made a fresh idempotency key per call, so a retry after a timeout retired twice. One key per intent now.
+- F13 FIXED 2026-10-11 (D16). The client timeout (8 s) was below the server's worst case (two RPC calls at 15 s) and the message said "Nothing was recorded" when the server may have recorded. Timeout raised to 40 s and the message now says the outcome is unconfirmed.
+- F14 FIXED 2026-10-11 (D17). Sequential receipt ids in the public memo leaked the run rate. Ids now come from the receipt content.
+- F15 FIXED 2026-10-11 (D1 part). Lines did not have to add up to the total. They must now.
+
 ## Firefighter
 Question: what do we do at 3am?
 - F6 OPEN (D5). The API says "recorded" when a transaction is submitted, not confirmed. A dropped transaction would leave a receipt with no chain record.
@@ -28,7 +33,7 @@ Question: what do we do at 3am?
 ## Doubter
 Question: which of our claims would a hostile reader take apart?
 - F8 OPEN. "Single register." There are about 26 registries and the Climate Action Data Trust links their data. The claim must be about the retirement layer and the anti double-count rule. PITCH-FACTS.md bans the false version.
-- F9 OPEN. The app says "Offset" and "Confirm offset". Until a verifier attests real units, that is a claim we cannot back (D10).
+- F9 FIXED 2026-10-11 (D10). Every screen now says retire pilot units, with a simulated tag, and tests/test_web_wording.py fails if a banned word returns.
 - F10 OPEN (D7). Three CDN scripts load without integrity hashes and the page has no Content-Security-Policy.
 - F11 POSITIVE. Product names from the lookup are escaped before they reach the page.
 

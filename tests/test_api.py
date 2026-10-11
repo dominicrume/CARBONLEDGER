@@ -103,6 +103,19 @@ def test_audit_chain_is_intact_then_detects_tampering():
     assert not v["intact"] and v["first_bad_index"] == 1
 
 
+def test_receipt_ids_are_not_sequential_and_come_from_content():
+    c = make()
+    a = c.post("/v1/retire", json=body()).json()
+    b = c.post("/v1/retire", json=body(idempotency_key="key-0000002")).json()
+    import re
+    assert re.fullmatch(r"CL-[0-9A-F]{12}", a["receipt_id"]) and re.fullmatch(r"CL-[0-9A-F]{12}", b["receipt_id"])
+    assert a["receipt_id"] != b["receipt_id"]
+    assert not any(a["receipt_id"].endswith(s) for s in ("0001", "0000001"))   # no counter leaks into the public id
+    entry = c.get(f"/v1/receipts/{a['receipt_id']}").json()["entry"]
+    from carbonledger_api.main import public_receipt_id
+    assert public_receipt_id({k: v for k, v in entry["receipt"].items() if k != "receipt_id"}) == a["receipt_id"]
+
+
 def test_receipts_can_be_looked_up():
     c = make()
     r = c.post("/v1/retire", json=body()).json()

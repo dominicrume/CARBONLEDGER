@@ -22,6 +22,11 @@ UNITS_STATUS = "Simulated pilot units. Not verified credits."
 DEMO_PROJECT, DEMO_BATCH = "demo-pilot-1", "pilot-2026"
 DEMO_ISSUED_G = 1_000_000_000          # 1,000 tonnes, simulated (ASSUMPTION for the demo)
 MAX_RETIRE_G = 10**12                  # ASSUMPTION: a request above 1,000,000 tonnes is a mistake or an attack
+def public_receipt_id(receipt_body: dict) -> str:
+    """CL- plus 12 hex characters of the receipt's content digest. Not sequential: the explorer learns no volume."""
+    return "CL-" + digest(receipt_body)[:12].upper()
+
+
 STATUS_FOR = {"UNAUTHORISED": 403, "OVER_RETIREMENT": 409, "OVER_ISSUANCE": 409, "SUSPENDED": 409,
               "UNKNOWN_BATCH": 404, "UNKNOWN_PROJECT": 404, "BAD_AMOUNT": 422, "DUPLICATE_LINK": 409, "EXISTS": 409, "NOT_ATTESTED": 409}
 
@@ -165,11 +170,14 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
                 ret = reg.retire(retiree, DEMO_BATCH, body.grams, body.target_iso3, lines_digest)
             except RegistryError as exc:
                 raise HTTPException(STATUS_FOR.get(exc.code, 409), "Not enough pilot units left." if exc.code == "OVER_RETIREMENT" else str(exc))
-            receipt_id = f"CL-{ret.receipt_no:08d}"
-            receipt = {"receipt_id": receipt_id, "ts": datetime.fromtimestamp(now, timezone.utc).isoformat(), "account": body.account,
+            receipt = {"ts": datetime.fromtimestamp(now, timezone.utc).isoformat(), "account": body.account,
                        "grams": body.grams, "clt": grams_to_clt(body.grams), "kind": body.kind, "label": body.label,
                        "lines_digest": lines_digest, "target_iso3": body.target_iso3, "project_id": DEMO_PROJECT, "batch_id": DEMO_BATCH,
                        "serial_start": ret.serial_start, "serial_end": ret.serial_end, "units": UNITS_STATUS}
+            # The public id comes from the receipt's own content, so the memo never exposes a running count (F14).
+            # The sequential receipt_no stays inside the registry, off-chain.
+            receipt_id = public_receipt_id(receipt)
+            receipt["receipt_id"] = receipt_id
             preview = {"index": st.receipts.next_index(), "receipt": receipt, "prev_hash": st.receipts.head_hash()}
             receipt_hash = digest(preview)
             try:
