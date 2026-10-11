@@ -13,7 +13,7 @@ export function mountMe(root) {
     <section class="panel" id="me-level"></section>
     <section class="panel"><h2 class="h2">Skill tree</h2><div id="skills"></div></section>
     <section class="panel"><h2 class="h2">Badges</h2><div id="badges"></div></section>
-    <section class="panel"><h2 class="h2">League</h2><ol class="league" id="league"></ol></section>
+    <section class="panel"><h2 class="h2">League</h2><p class="note">Example entries beside your own total from ${esc(ledger.info.source)}. A browser total is never a score.</p><ol class="league" id="league"></ol></section>
     <section class="panel">
       <h2 class="h2">Earn with partners</h2>
       <p class="note">Partners pay for simulated pilot units retired in your name. These partners are examples.</p>
@@ -35,7 +35,7 @@ export function mountMe(root) {
 }
 
 export function levelHTML(total, lv, unitNote) {
-  return `<p class="eyebrow">Your level</p>
+  return `<p class="eyebrow">Your level <span class="muted">(totals from ${esc(ledger.info.source)})</span></p>
     <div class="level"><span class="level-id">${lv.n}</span><div><strong>${mass(total)} CO₂e retired</strong>
       <small class="muted">${mass(lv.toNext)} to level ${lv.n + 1}</small></div></div>
     <div class="bar"><span style="width:${(lv.progress * 100).toFixed(1)}%"></span></div>

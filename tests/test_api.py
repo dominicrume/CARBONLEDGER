@@ -398,3 +398,21 @@ def test_activities_and_partners_are_priced_from_the_tables():
                                    [{"type": "measured", "kg": 1, "extra": 1}]])
 def test_bad_items_are_refused_at_the_edge(items):
     assert make().post("/v1/retire", json=body(items=items)).status_code == 422
+
+
+# ---- server totals and history (T20) ----
+def test_totals_and_history_come_from_the_server_and_are_the_owners_own():
+    c = make()
+    assert c.anon().get("/v1/accounts/me/totals").status_code == 401
+    c.post("/v1/retire", json=body())
+    c.post("/v1/retire", json=body(grams=300, kind="travel", label="Journey", idempotency_key="key-0000002"))
+    c.as_("personal", "someone-else").post("/v1/retire", json=body(grams=999, idempotency_key="key-0000003"))
+    t = c.get("/v1/accounts/me/totals").json()
+    assert t["owner"] == "p1" and t["source"] == "ledger" and t["personal"] == {"grams": 1500, "count": 2, "by_kind": {"shop": 1200, "travel": 300}}
+    assert t["business"]["count"] == 0 and "Simulated" in t["units"]
+    h = c.get("/v1/accounts/me/history").json()["records"]
+    assert [r["grams"] for r in h] == [300, 1200] and all(r["anchor_status"] == "anchored" for r in h)
+    assert h[0]["id"].startswith("CL-") and h[0]["receipt_hash"] and "note" not in h[0]
+    assert c.get("/v1/accounts/me/history?account=business").json()["records"] == []
+    assert c.get("/v1/accounts/me/history?limit=0").status_code == 422
+    assert c.as_("personal", "someone-else").get("/v1/accounts/me/totals").json()["personal"]["grams"] == 999

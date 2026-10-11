@@ -9,6 +9,9 @@
 import { CONFIG } from '../config.js';
 import { store } from './store.js';
 import { settings } from './settings.js';
+import { COUNTRIES } from '../data/countries.js';
+
+const countryName = iso3 => COUNTRIES.find(c => c.iso3 === iso3)?.name || '';
 
 export const gramsToClt = g => (g / 1e6).toFixed(CONFIG.cltDecimals);
 export const priceGBP = g => Math.max(0.01, (g / 1e6) * settings.pricePerTonne());
@@ -35,7 +38,8 @@ export function apiHeaders() {
 const filter = (recs, account) => account ? recs.filter(r => (r.account || 'personal') === account) : recs;
 
 export class LocalLedger {
-  info = { name: 'Demo ledger on this device', explorer: false };
+  info = { name: 'Demo ledger on this device', explorer: false, source: 'this device only' };
+  async sync() { return false; }
   async retire(entry) {
     const rec = { account: 'personal', ...entry, id: ref(), ts: new Date().toISOString(), clt: gramsToClt(entry.grams),
       priceGBP: priceGBP(entry.grams), pricePerTonne: settings.pricePerTonne(), ledger: 'local', explorerUrl: null };
@@ -46,7 +50,29 @@ export class LocalLedger {
 }
 
 export class SolanaLedger {
-  info = { name: `Solana ${CONFIG.solana.cluster} (through the CarbonLedger API)`, explorer: true };
+  info = { name: `Solana ${CONFIG.solana.cluster} (through the CarbonLedger API)`, explorer: true, source: 'the ledger' };
+
+  // Mirror the server's history for this key into the local cache (T20). Records the server does not have are
+  // dropped, so a browser edit is never a score. Game fields (country name, mode, finished) are kept from the
+  // local copy when the server record matches by id. Returns true when the mirror came from the server.
+  async sync() {
+    if (!apiKey.get()) return false;
+    let res;
+    try { res = await fetch(`${CONFIG.api.baseUrl}/v1/accounts/me/history`, { headers: apiHeaders(), signal: AbortSignal.timeout(CONFIG.api.timeoutMs) }); }
+    catch { return false; }
+    if (!res.ok) return false;
+    const { records } = await res.json();
+    const local = new Map(all().map(r => [r.id, r]));
+    const merged = records.map(s => {
+      const l = local.get(s.id) || {};
+      return { account: s.account, grams: s.grams, kind: s.kind, label: s.label, id: s.id, ts: s.ts, clt: s.clt, ledger: 'solana-devnet',
+        priceGBP: priceGBP(s.grams), pricePerTonne: settings.pricePerTonne(), countryIso3: s.target_iso3, countryName: l.countryName || countryName(s.target_iso3),
+        mode: l.mode, finished: l.finished, note: l.note, lines: l.lines, codes: l.codes, itemCount: l.itemCount, areas: l.areas, travelMode: l.travelMode, longHaul: l.longHaul,
+        paidBy: l.paidBy, explorerUrl: s.explorer_url, receiptHash: s.receipt_hash, serialStart: s.serial_start, serialEnd: s.serial_end, signature: s.signature, anchorStatus: s.anchor_status };
+    });
+    store.set('ledger', merged);
+    return true;
+  }
   async retire(entry) {
     const body = {
       account: entry.account || 'personal', grams: entry.grams, kind: entry.kind || 'other', label: entry.label || 'Shopping basket',

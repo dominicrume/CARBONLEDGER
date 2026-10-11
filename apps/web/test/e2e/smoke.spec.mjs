@@ -42,6 +42,25 @@ test('retire pilot units from the demo shelf, see the receipt, verify the chain'
   expect(v.count).toBeGreaterThanOrEqual(1);
 });
 
+test('history is mirrored from the ledger and a browser edit is never a score', async ({ page }) => {
+  await page.goto(`${APP}/?ledger=solana-devnet&api=${encodeURIComponent(API)}#shop`);
+  await page.click('#shelf-btn');
+  await page.locator('.shelf-item').first().click();
+  await page.click('.sheet-body button[data-close]');
+  await page.click('#retire-basket');
+  await page.click('#confirm-retire');
+  await expect(page.locator('.receipt')).toBeVisible();
+  await page.click('.sheet-body button[data-close]');
+  // forge a huge local record, then reload: the mirror drops it
+  await page.evaluate(() => { const k = 'carbonledger.ledger'; const l = JSON.parse(localStorage.getItem(k) || '[]'); l.unshift({ id: 'CL-FORGED', ts: new Date().toISOString(), grams: 9e12, kind: 'shop', label: 'Shopping basket', account: 'personal' }); localStorage.setItem(k, JSON.stringify(l)); });
+  await page.goto(`${APP}/?ledger=solana-devnet&api=${encodeURIComponent(API)}#me`);
+  await page.reload();     // a hash change alone is not a reload; the mirror runs at load
+  await expect(page.locator('#me-level')).toContainText('totals from the ledger');
+  await expect.poll(async () => page.evaluate(() => JSON.parse(localStorage.getItem('carbonledger.ledger') || '[]').some(r => r.id === 'CL-FORGED'))).toBe(false);
+  await expect(page.locator('#history')).not.toContainText('CL-FORGED');
+  await expect(page.locator('#history li').first()).toContainText('Shopping basket');
+});
+
 test('no banned claim words on any screen', async ({ page }) => {
   await page.goto(`${APP}/?ledger=solana-devnet&api=${encodeURIComponent(API)}#shop`);
   for (const tab of ['shop', 'travel', 'daily', 'countries', 'me', 'business', 'verify']) {

@@ -26,6 +26,7 @@ from carbonledger.receipts import digest, verify
 from carbonledger.registry import RegistryError
 from carbonledger.units import grams_to_clt
 
+from .accounts import account_router
 from .lookup import ProductLookup
 from .models import STATUS_FOR, UNITS_STATUS, MandateIn, RetireIn
 from .recompute import RecomputeError, compute
@@ -200,6 +201,8 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
         st.outbox.enqueue(receipt_id, entry["hash"])
         st.idem[body.idempotency_key] = (payload_digest, receipt_id)
         return receipt_id
+
+    app.include_router(account_router(st, require_key))
 
     @app.get("/v1/receipts/{receipt_id}")
     def get_receipt(receipt_id: str):

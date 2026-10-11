@@ -58,9 +58,10 @@ document.querySelectorAll('.tabs [data-tab]').forEach(b => b.addEventListener('c
 $('#level-chip').addEventListener('click', () => show('me'));
 // Settings changes (price, community total) redraw the open view; price labels refresh on next render.
 $('#settings-btn').addEventListener('click', () => openSettings(() => { Object.entries(VIEWS).forEach(([k, v]) => { if (k !== 'countries') v.mounted = false; }); show(currentView); }));
-// Any retirement updates the level chip.
+// Any retirement updates the level chip, after the server's history has been mirrored (T20).
 const retire = ledger.retire.bind(ledger);
-ledger.retire = async (e) => { const r = await retire(e); updateChip(); return r; };
+ledger.retire = async (e) => { const r = await retire(e); await ledger.sync(); updateChip(); VIEWS[currentView].refresh?.(); return r; };
+ledger.sync().then(fromServer => { if (fromServer) { updateChip(); VIEWS[currentView].refresh?.(); } });
 let start = 'shop';
 try { start = (location.hash.slice(1) || localStorage.getItem('carbonledger.tab') || 'shop'); } catch {}
 show(start);
