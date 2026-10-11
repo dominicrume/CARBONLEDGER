@@ -17,10 +17,9 @@ OPEN IT IN VS CODE
      source .venv/bin/activate        (on Windows: .venv\Scripts\activate)
      pip install -r requirements.txt
      python -m pytest
-   You should see all tests pass (203 when this was written).
-3. Run the two gates:
-     python rules/roots/check_roots.py .
-     python scripts/scan_secrets.py .
+   You should see all tests pass (about 2,100 when this was written, more with a Postgres scratch database).
+3. Run the one gate (tests, ROOTS, secrets, web checks, exported data, browser test when Playwright is installed):
+     scripts/check.sh
 4. Start the API:
      PYTHONPATH=packages/core:services/api WEB_ORIGIN=http://127.0.0.1:8080 uvicorn carbonledger_api.main:create_app --factory --port 8000
 5. In a second terminal, serve the app:
@@ -42,10 +41,10 @@ the Anchor program, the Postgres schema, CI.
 Not built: login, server recomputation of footprints, real verification, payments.
 The full list is in DEBT.md. The honest score is in ROOTS-SCORE.md.
 
-FIRST THING TO DO WITH CLAUDE CODE
-Open the root folder and say: "Read CLAUDE.md, then DEBT.md. Work on D5, then D1. Write the failing test first. Stop and
-tell me when python -m pytest and the two gates are green."
-Then in order: D14 (first devnet call), D13 (browser check), D10 (wording), D3 (Anchor build and the registry vectors).
+WHERE THE WORK STANDS
+An autonomous run on 2026-10-11 finished Blocks 0 to 8 of docs/AUTONOMOUS-RUN.md. Read docs/RUN-LOG.md: the Human
+gates section lists what only a person can do next (devnet key, toolchain for the Anchor program, first push, counsel).
+D1, D2, D4, D5, D7, D8, D9, D10, D13, D15 are paid. D3, D11, D14 and the first CI run wait on you.
 
 BEFORE YOU PUBLISH OR SUBMIT
 Settle who owns the baseline app and write it into the founders' agreement. Decide the licence with a patent attorney.

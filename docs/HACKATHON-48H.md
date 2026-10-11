@@ -17,7 +17,7 @@ Functionality, potential impact, novelty, user experience, open source and compo
 
 | Criterion | What we show |
 |---|---|
-| Functionality | The full path works with a real devnet signature. 203 tests, shared vectors, a random attack. |
+| Functionality | The full path works end to end (dry-run chain; devnet once the key exists). 2,081 tests, shared vectors, a random attack, 10 drills, a browser suite. |
 | Potential impact | The retirement and receipt layer for consumers and businesses. Cite a market size only after looking it up. |
 | Novelty | An anti double-count rule at the register, agent mandates, a consumer layer. Not a new registry claim. |
 | UX | The imported app, with honest wording and a verify screen. |
@@ -51,8 +51,8 @@ volume? What happens when a verifier is wrong? Answers live in COMPLIANCE, MRV-L
 - [ ] Both founders registered, Team Leader named, heads of terms signed
 - [ ] Employer and contract confirmation made by each founder
 - [ ] Public repo, licence chosen after the patent question, third-party code disclosed
-- [ ] No key, token or seed in the repo (python scripts/scan_secrets.py)
+- [x] No key, token or seed in the repo (python scripts/scan_secrets.py, clean 2026-10-11)
 - [ ] Demo records a real devnet signature, or the pitch says plainly that it uses a dry run
-- [ ] Screens say "pilot units", never "offset" or "carbon neutral"
+- [x] Screens say "pilot units", never "offset" or "carbon neutral" (tests/test_web_wording.py and the browser test fail otherwise)
 - [ ] Video under the form's limit (CHECK the submission form for video and deck rules)
 - [ ] Submitted at least six hours early

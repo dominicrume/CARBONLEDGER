@@ -1,7 +1,8 @@
 # Changelog
 
-## 0.2.0 (in progress, started 2026-10-11)
-- Dependencies pinned. scripts/dev.sh and scripts/check.sh. docs/RUN-LOG.md tracks the autonomous run.
+## 0.2.0 (2026-10-11)
+- Dependencies pinned. scripts/dev.sh, check.sh, e2e.sh, drills.py, migrate.py, recheck.py, make_api_key.py, vendor_hashes.sh. docs/RUN-LOG.md tracks the autonomous run. README.md added.
+- Drills run (BREAK.md): 10 of 10 pass. ROOTS re-scored: 10 ROOTED, 3 SEEDLING.
 - Browser: one idempotency key per intent, honest timeout message, timeout above the server's worst case (F12, F13).
 - API: lines must add up to the total (F15). Public receipt ids derive from content, not a counter (F14).
 - Merkle anchoring (D15): one root per interval, a proof per receipt, memo v2, proof endpoint, browser verifier.

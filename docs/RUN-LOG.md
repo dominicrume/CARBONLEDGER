@@ -35,6 +35,11 @@ One line per step: time (UTC), what changed, the test that proves it, anything s
 - 2026-10-11 Block 6 step 26: mandate screen (apps/web/js/ui/mandate.js) in the Business view: agent public key, cap, expiry, allowed projects, used against cap, revoke; refusal codes in plain words; GET /v1/accounts/me/mandates. 422 answers are now one plain sentence naming the field. Proof: tests/test_api.py mandate listing and 422 tests, e2e mandate tests.
 - 2026-10-11 Block 6 step 27: connection state in the header (built in Block 2).
 - 2026-10-11 Block 6 step 28: axe-core (WCAG 2.1 AA) on every tab, the shelf, the confirm sheet and the receipt, plus a keyboard-reach test and reduced motion (apps/web/test/e2e/a11y.spec.mjs). Fixed: muted text and inactive tabs at 4.0 to 1 raised to 5.6 to 1; the simulated tag raised to 6.9 to 1; the globe exposes data-autorotate and stops under reduced motion; the queue list is the globe's text alternative. Test output folders ignored by git. Found while running: a stale web server from the interrupted run held the test port (stopped).
+- 2026-10-11 Block 7 step 29: .github/workflows/recheck.yml runs scripts/recheck.py nightly when RECHECK_ENABLED=1 and DATABASE_URL_RECHECK is set; it fails loudly. recheck.py exits 1 on a broken invariant or chain, 2 when failed anchors exist.
+- 2026-10-11 Block 7 step 30: scripts/drills.py runs every drill against a live API. 10 of 10 pass. Results under the findings in BREAK.md. F2, F3, F4, F6, F7, F10 marked fixed with their tests; F16 and F17 added.
+- 2026-10-11 Block 8 step 31: README.md written: what it is, what is simulated, how to run, verify a receipt, architecture, honest limits, third-party code and data.
+- 2026-10-11 Block 8 step 32: DEBT.md reviewed (paid and new), ROOTS-SCORE.md re-scored (10 ROOTED, 3 SEEDLING), CHANGELOG.md 0.2.0, docs/PITCH-FACTS.md, docs/HACKATHON-48H.md checklist, START-HERE.txt.
+- 2026-10-11 Block 8 step 33: final scripts/check.sh with the database and the browser suite, final commit.
 
 ## Human gates
 - First push to GitHub: create the repository, push, watch the ci workflow. Set the repository variable RECHECK_ENABLED=1 and the secret DATABASE_URL_RECHECK (a read-only role) to turn on the nightly recheck.
@@ -47,3 +52,7 @@ One line per step: time (UTC), what changed, the test that proves it, anything s
      `curl -s -X POST http://127.0.0.1:8000/v1/retire -H 'content-type: application/json' -d '{"account":"personal","grams":1200,"kind":"shop","label":"Shopping basket","lines":[{"name":"Beef","grams":1200}],"target_iso3":"GBR","idempotency_key":"devnet-first-call-0001"}'`
   4. The response carries anchor_status, signature, slot and explorer_url. If anchor_status is pending, `curl http://127.0.0.1:8000/v1/receipts/<receipt_id>` until it says anchored. Expect to fix small things on the first call.
   5. Paste the explorer link into docs/RUN-LOG.md and docs/PITCH-FACTS.md.
+- The partner meeting and the open decisions in CONTEXT.md (backing, price, trust, licence, ownership of the baseline app). Nothing in the code decides these.
+- Counsel: the items in rules/COMPLIANCE.md, and the Open Food Facts ODbL share-alike question next to the patent and licence choice (C12, C13).
+- Before any public URL: TLS termination and a reverse proxy in front of uvicorn (D19), the real API origin in the page's Content-Security-Policy (D21), the authority and verifier keys in a multisig (D6).
+- After the first anchor build: replay the registry vectors (programs/carbon_registry/tests/conformance.ts), deploy to devnet, then switch the chain client from the memo to anchor_root.
