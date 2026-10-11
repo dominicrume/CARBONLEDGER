@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- Content-Security-Policy (D7, T17). Scripts only from this origin. Styles from this origin and Google Fonts, plus
+     style attributes the templates set for bar widths. Connections only to a loopback API and Open Food Facts.
+     A deployed copy must replace the loopback entries with the real API origin (see README). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' http://127.0.0.1:* http://localhost:* https://world.openfoodfacts.org; worker-src 'self' blob:; base-uri 'none'; form-action 'self'; object-src 'none'">
 <title>CarbonLedger</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -48,9 +52,10 @@
 <div id="toast" class="toast" role="status" hidden></div>
 <div id="sheet" class="sheet" hidden></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<!-- Self-hosted at exact pinned versions with integrity hashes (D7). scripts/vendor_hashes.sh prints the values. -->
+<script src="vendor/zxing-library-0.21.3.umd.min.js" integrity="sha384-BzBxP10ZE72aitqj5UMmUsbKFliP/DZqA8Wq+BNNhlIJDGoEd1tpkMYXOg9+n6sB" crossorigin="anonymous"></script>
+<script src="vendor/d3-7.9.0.min.js" integrity="sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i" crossorigin="anonymous"></script>
+<script src="vendor/topojson-client-3.1.0.min.js" integrity="sha384-Ukv1p/xTma6P4/2bY5KzWBw+ydSpXmhCMtyciIQVDJ1RmOxtCYNMF1uXT9T63H67" crossorigin="anonymous"></script>
 <script type="module" src="js/main.js"></script>
 
 </body></html>
