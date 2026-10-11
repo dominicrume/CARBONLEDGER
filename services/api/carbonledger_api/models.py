@@ -1,7 +1,9 @@
 """Request models. Strict: unknown fields refused, every number bounded, every string capped (ENGINEERING rule 3)."""
 from typing import List, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+from carbonledger.agentsig import is_pubkey
 
 UNITS_STATUS = "Simulated pilot units. Not verified credits."
 # Receipt labels are a closed vocabulary (D8, T18). Free text goes in `note`, which is hashed and never stored.
@@ -29,7 +31,9 @@ class RetireIn(BaseModel):
     target_iso3: Optional[str] = Field(default=None, pattern=r"^[A-Z]{3}$")
     idempotency_key: str = Field(min_length=8, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
     mandate_id: Optional[str] = Field(default=None, max_length=64)
-    agent: Optional[str] = Field(default=None, max_length=64)
+    agent: Optional[str] = Field(default=None, max_length=64)        # the agent's base58 ed25519 public key
+    agent_ts: Optional[int] = Field(default=None, ge=0, le=10**11)     # unix seconds when the agent signed
+    agent_sig: Optional[str] = Field(default=None, max_length=128)    # base58 ed25519 signature, see agentsig.py
 
     @model_validator(mode="after")
     def lines_add_up(self):
@@ -40,9 +44,17 @@ class RetireIn(BaseModel):
 
 
 class MandateIn(BaseModel):
-    """The owner is the caller's key, never a field: a stranger cannot write a mandate in someone else's name."""
+    """The owner is the caller's key, never a field: a stranger cannot write a mandate in someone else's name.
+    The agent is a public key, never a name (KYA)."""
     model_config = ConfigDict(extra="forbid", strict=True)
-    agent: str = Field(min_length=1, max_length=64)
+    agent: str = Field(min_length=32, max_length=44)
+
+    @field_validator("agent")
+    @classmethod
+    def agent_is_a_key(cls, v):
+        if not is_pubkey(v):
+            raise ValueError("agent must be a base58 ed25519 public key, not a name")
+        return v
     cap_g: int = Field(gt=0, le=MAX_RETIRE_G)
     ttl_seconds: int = Field(gt=0, le=31_536_000)
     allow_projects: Optional[List[str]] = Field(default=None, max_length=50)

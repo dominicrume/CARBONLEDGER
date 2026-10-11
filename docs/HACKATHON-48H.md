@@ -21,7 +21,7 @@ Functionality, potential impact, novelty, user experience, open source and compo
 | Potential impact | The retirement and receipt layer for consumers and businesses. Cite a market size only after looking it up. |
 | Novelty | An anti double-count rule at the register, agent mandates, a consumer layer. Not a new registry claim. |
 | UX | The imported app, with honest wording and a verify screen. |
-| Open source and composability | Public repo. Memo program now. Map mandate agents to the Solana Agent Registry (a solana.com page describes identity and validation for agents). Token-2022 non-transferable receipts next. |
+| Open source and composability | Public repo. Memo program now. Mandates name an agent by its ed25519 public key and every agent request is signed (packages/core/carbonledger/agentsig.py), which is the same key shape the Solana Agent Registry uses for identity, so a mandate can later point at a registered agent. Token-2022 non-transferable receipts next. |
 | Business plan | App users, business footprints, partner-funded retirements. Price set by the trust, basis still open (CONTEXT item 6). |
 
 ## Blocks (UK time, ASSUMPTION: you start now)

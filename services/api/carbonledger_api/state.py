@@ -20,14 +20,16 @@ HEALTH_CACHE_S = 10.0                  # how long one chain health answer is tru
 
 class Limits:
     """Edge limits, from the environment or a test."""
-    def __init__(self, rate_per_minute: int = 60, burst: int = 20, max_request_bytes: int = 65536, request_timeout_s: float = 40.0):
+    def __init__(self, rate_per_minute: int = 60, burst: int = 20, max_request_bytes: int = 65536, request_timeout_s: float = 40.0,
+                 agent_sig_max_age_s: int = 120):
         self.rate_per_minute, self.burst, self.max_request_bytes, self.request_timeout_s = rate_per_minute, burst, max_request_bytes, request_timeout_s
+        self.agent_sig_max_age_s = agent_sig_max_age_s
 
     @classmethod
     def from_env(cls) -> "Limits":
         e = os.environ.get
         return cls(int(e("RATE_LIMIT_PER_MINUTE", "60")), int(e("RATE_LIMIT_BURST", "20")), int(e("MAX_REQUEST_BYTES", "65536")),
-                   float(e("REQUEST_TIMEOUT_SECONDS", "40")))
+                   float(e("REQUEST_TIMEOUT_SECONDS", "40")), int(e("AGENT_SIGNATURE_MAX_AGE_SECONDS", "120")))
 
 
 class State:

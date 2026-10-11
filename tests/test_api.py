@@ -2,6 +2,8 @@ import time
 
 import pytest
 from fastapi.testclient import TestClient
+from solders.keypair import Keypair
+from carbonledger.agentsig import sign_request
 from carbonledger.auth import ApiKeyStore
 from carbonledger.chain import ChainError, DryRunChain
 from carbonledger_api.main import DEMO_BATCH, DEMO_ISSUED_G, create_app
@@ -30,6 +32,13 @@ class Client(TestClient):
 def make(chain=None, role="personal", owner="p1", limits=None, **kw):
     keys = ApiKeyStore(PEPPER)
     return Client(create_app(chain or DryRunChain(), now=lambda: CLOCK["t"], keys=keys, limits=limits or Limits(), **kw), keys, role, owner)
+
+
+def signed(kp, **kw):
+    """A retire request signed by agent keypair `kp`, dated now."""
+    b = body(agent=str(kp.pubkey()), agent_ts=CLOCK["t"], **kw)
+    b["agent_sig"] = sign_request(kp, b)
+    return b
 
 
 def body(**kw):
@@ -199,31 +208,57 @@ def test_receipts_can_be_looked_up():
 
 
 def test_mandate_caps_expiry_revocation_and_agent():
+    agent, other = Keypair(), Keypair()
     c = make(role="business", owner="acme")
-    mid = c.post("/v1/mandates", json={"agent": "agent-1", "cap_g": 1000, "ttl_seconds": 3600}).json()["mandate_id"]
-    ok = c.post("/v1/retire", json=body(grams=600, idempotency_key="key-1000001", mandate_id=mid, agent="agent-1", account="business"))
+    mid = c.post("/v1/mandates", json={"agent": str(agent.pubkey()), "cap_g": 1000, "ttl_seconds": 3600}).json()["mandate_id"]
+    ok = c.post("/v1/retire", json=signed(agent, grams=600, idempotency_key="key-1000001", mandate_id=mid, account="business"))
     assert ok.status_code == 200
-    over = c.post("/v1/retire", json=body(grams=401, idempotency_key="key-1000002", mandate_id=mid, agent="agent-1", account="business"))
+    over = c.post("/v1/retire", json=signed(agent, grams=401, idempotency_key="key-1000002", mandate_id=mid, account="business"))
     assert over.status_code == 403 and "OVER_CAP" in over.json()["detail"]
-    wrong = c.post("/v1/retire", json=body(grams=1, idempotency_key="key-1000003", mandate_id=mid, agent="agent-2", account="business"))
+    wrong = c.post("/v1/retire", json=signed(other, grams=1, idempotency_key="key-1000003", mandate_id=mid, account="business"))
     assert wrong.status_code == 403 and "WRONG_AGENT" in wrong.json()["detail"]
     assert c.as_("business", "mallory").post(f"/v1/mandates/{mid}/revoke").status_code == 403
     assert c.post(f"/v1/mandates/{mid}/revoke").status_code == 200
-    gone = c.post("/v1/retire", json=body(grams=1, idempotency_key="key-1000004", mandate_id=mid, agent="agent-1", account="business"))
+    gone = c.post("/v1/retire", json=signed(agent, grams=1, idempotency_key="key-1000004", mandate_id=mid, account="business"))
     assert gone.status_code == 403 and "REVOKED" in gone.json()["detail"]
     assert c.get("/v1/registry/summary").json()["retired_g"] == 600       # the refused ones changed nothing
     CLOCK["t"] += 10_000
-    mid2 = c.post("/v1/mandates", json={"agent": "agent-1", "cap_g": 10, "ttl_seconds": 5}).json()["mandate_id"]
+    mid2 = c.post("/v1/mandates", json={"agent": str(agent.pubkey()), "cap_g": 10, "ttl_seconds": 5}).json()["mandate_id"]
     CLOCK["t"] += 6
-    late = c.post("/v1/retire", json=body(grams=1, idempotency_key="key-1000005", mandate_id=mid2, agent="agent-1", account="business"))
+    late = c.post("/v1/retire", json=signed(agent, grams=1, idempotency_key="key-1000005", mandate_id=mid2, account="business"))
     assert late.status_code == 403 and "EXPIRED" in late.json()["detail"]
 
 
-def test_a_mandate_needs_a_named_agent():
+def test_a_mandate_needs_a_key_not_a_name():
+    agent = Keypair()
     c = make(role="business", owner="acme")
-    mid = c.post("/v1/mandates", json={"agent": "agent-1", "cap_g": 1000, "ttl_seconds": 3600}).json()["mandate_id"]
+    assert c.post("/v1/mandates", json={"agent": "agent-1", "cap_g": 1000, "ttl_seconds": 3600}).status_code == 422
+    mid = c.post("/v1/mandates", json={"agent": str(agent.pubkey()), "cap_g": 1000, "ttl_seconds": 3600}).json()["mandate_id"]
     assert c.post("/v1/retire", json=body(mandate_id=mid)).status_code == 422
     assert c.post("/v1/retire", json=body(mandate_id="mnd-nope", agent="a")).status_code == 404
+
+
+def test_agent_signatures_are_checked_before_the_mandate():
+    agent, other = Keypair(), Keypair()
+    c = make(role="business", owner="acme")
+    mid = c.post("/v1/mandates", json={"agent": str(agent.pubkey()), "cap_g": 1000, "ttl_seconds": 3600}).json()["mandate_id"]
+    unsigned = body(mandate_id=mid, agent=str(agent.pubkey()), agent_ts=CLOCK["t"], account="business")
+    r = c.post("/v1/retire", json=unsigned)
+    assert r.status_code == 403 and "NO_SIGNATURE" in r.json()["detail"]
+    forged = signed(other, mandate_id=mid, account="business"); forged["agent"] = str(agent.pubkey())
+    assert "BAD_SIGNATURE" in c.post("/v1/retire", json=forged).json()["detail"]
+    tampered = signed(agent, grams=100, mandate_id=mid, account="business"); tampered["grams"] = 1; tampered["lines"] = [{"name": "Beef", "grams": 1}]
+    assert "BAD_SIGNATURE" in c.post("/v1/retire", json=tampered).json()["detail"]
+    stale = signed(agent, mandate_id=mid, account="business"); CLOCK["t"] += 121
+    try:
+        assert "EXPIRED_SIGNATURE" in c.post("/v1/retire", json=stale).json()["detail"]
+    finally:
+        CLOCK["t"] -= 121
+    assert c.get("/v1/registry/summary").json()["retired_g"] == 0
+    good = signed(agent, grams=100, mandate_id=mid, account="business")
+    assert c.post("/v1/retire", json=good).status_code == 200
+    assert c.post("/v1/retire", json=good).status_code == 200            # same signed request again: idempotent, not a second retirement
+    assert c.get("/v1/registry/summary").json()["retirements"] == 1
 
 
 def test_cors_is_closed_unless_an_origin_is_named():
@@ -258,7 +293,7 @@ def test_wrong_and_revoked_keys_are_refused_by_name():
 
 def test_a_personal_key_cannot_write_a_mandate_or_retire_for_a_business():
     c = make()
-    assert c.post("/v1/mandates", json={"agent": "x", "cap_g": 1, "ttl_seconds": 1}).status_code == 403
+    assert c.post("/v1/mandates", json={"agent": str(Keypair().pubkey()), "cap_g": 1, "ttl_seconds": 1}).status_code == 403
     assert c.post("/v1/retire", json=body(account="business")).status_code == 403
 
 

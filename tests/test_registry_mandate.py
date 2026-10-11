@@ -3,12 +3,15 @@ import json
 import random
 from pathlib import Path
 import pytest
+from carbonledger.agentsig import AgentSigError, check_timestamp, verify_agent
 from carbonledger.mandate import Mandate, MandateError, authorize, consume, revoke
 from carbonledger.registry import Registry, RegistryError
 
 ROOT = Path(__file__).resolve().parents[1] / "conformance"
 REG = json.loads((ROOT / "registry_vectors.json").read_text())
-MAN = json.loads((ROOT / "mandate_vectors.json").read_text())
+ALL_MAN = json.loads((ROOT / "mandate_vectors.json").read_text())
+MAN = [v for v in ALL_MAN if v.get("kind") != "signature"]
+SIG = [v for v in ALL_MAN if v.get("kind") == "signature"]
 
 
 @pytest.mark.parametrize("v", REG, ids=[v["name"] for v in REG])
@@ -72,3 +75,26 @@ def test_random_attack_never_breaks_the_invariants():
             pass
         r.check_invariants()
     assert len(r.retirements) > 0, "the attack never got a retirement through, so the test proved little"
+
+
+def _agent_gate(v):
+    """The order the API uses: timestamp window, then the signature, then the mandate's agent key."""
+    check_timestamp(v["request"]["agent_ts"], v["now"], v["max_age"])
+    verify_agent(v["request"]["agent"], v["agent_sig"], v["request"])
+    m = Mandate("m1", "acme", v["mandate_agent"], 10**9, 10**9)
+    authorize(m, v["request"]["agent"], v["request"]["grams"], "p1", v["now"])
+
+
+@pytest.mark.parametrize("v", SIG, ids=[v["name"] for v in SIG])
+def test_agent_signature_vector(v):
+    """Only public keys and signatures live in the vectors. No private key is in the repo."""
+    if v["expect"] == "ok":
+        _agent_gate(v)
+    else:
+        with pytest.raises((AgentSigError, MandateError)) as e:
+            _agent_gate(v)
+        assert e.value.code == v["expect"], v["name"]
+
+
+def test_signature_vectors_cover_every_refusal():
+    assert {v["expect"] for v in SIG} >= {"ok", "WRONG_AGENT", "BAD_SIGNATURE", "EXPIRED_SIGNATURE", "FUTURE_TIMESTAMP", "NO_SIGNATURE", "BAD_AGENT_KEY"}

@@ -18,6 +18,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from carbonledger.agentsig import AgentSigError, check_timestamp, verify_agent
 from carbonledger.auth import ApiKeyStore, AuthError, KeyRecord
 from carbonledger.chain import ChainClient
 from carbonledger.mandate import Mandate, MandateError, authorize, consume, revoke
@@ -156,7 +157,12 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
             if mandate is None:
                 raise HTTPException(404, "No such mandate.")
             if not body.agent:
-                raise HTTPException(422, "An agent name is required when a mandate is used.")
+                raise HTTPException(422, "An agent key is required when a mandate is used.")
+            try:
+                check_timestamp(body.agent_ts, now, st.limits.agent_sig_max_age_s)
+                verify_agent(body.agent, body.agent_sig, body.model_dump(exclude={"agent_sig"}))
+            except AgentSigError as exc:
+                raise HTTPException(403, f"The agent signature was refused: {exc.code}. Nothing was recorded.")
             try:
                 authorize(mandate, body.agent, body.grams, DEMO_PROJECT, now)
             except MandateError as exc:
