@@ -98,3 +98,14 @@ def test_agent_signature_vector(v):
 
 def test_signature_vectors_cover_every_refusal():
     assert {v["expect"] for v in SIG} >= {"ok", "WRONG_AGENT", "BAD_SIGNATURE", "EXPIRED_SIGNATURE", "FUTURE_TIMESTAMP", "NO_SIGNATURE", "BAD_AGENT_KEY"}
+
+
+def test_a_broken_invariant_raises_explicitly_not_by_assert():
+    """bandit B101: an assert vanishes under python -O. The check must not."""
+    from carbonledger.registry import InvariantError
+    r = Registry("auth", {"ver"})
+    r.register_project("auth", "p1", "GBR", "x"); r.attest_project("ver", "p1", 100); r.issue_batch("auth", "p1", "b1", 2026, 100)
+    r.batches["b1"].retired_g = 101                       # an insider edits the counter
+    with pytest.raises(InvariantError, match="retired more than issued"):
+        r.check_invariants()
+    assert issubclass(InvariantError, AssertionError)     # callers that catch AssertionError still catch it

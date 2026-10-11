@@ -11,6 +11,11 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set, Tuple
 
 
+class InvariantError(AssertionError):
+    """A registry rule is broken in stored state. Raised explicitly, never by `assert`, so the check survives
+    python -O (bandit B101) and the nightly recheck can never be blinded by a flag."""
+
+
 class RegistryError(ValueError):
     def __init__(self, code: str, message: str = ""):
         super().__init__(f"{code}: {message}" if message else code)
@@ -137,15 +142,19 @@ class Registry:
         return r
 
     def check_invariants(self) -> None:
-        """Raise if any rule above is broken. Called by tests after every random step."""
+        """Raise InvariantError if any rule above is broken. Called by tests after every random step, at startup
+        when state is rebuilt from the database, and by scripts/recheck.py."""
+        def need(cond: bool, what: str) -> None:
+            if not cond:
+                raise InvariantError(what)
         per_project: Dict[str, int] = {}
         for b in self.batches.values():
-            assert 0 <= b.retired_g <= b.issued_g, "retired more than issued"
+            need(0 <= b.retired_g <= b.issued_g, f"batch {b.id}: retired more than issued")
             per_project[b.project_id] = per_project.get(b.project_id, 0) + b.issued_g
             ranges = sorted((r.serial_start, r.serial_end) for r in self.retirements if r.batch_id == b.id)
             for (s1, e1), (s2, e2) in zip(ranges, ranges[1:]):
-                assert e1 <= s2, "serial ranges overlap"
-            assert (ranges[-1][1] if ranges else 0) <= b.issued_g, "serial beyond issued"
+                need(e1 <= s2, f"batch {b.id}: serial ranges overlap at {s2}")
+            need((ranges[-1][1] if ranges else 0) <= b.issued_g, f"batch {b.id}: serial beyond issued")
         for pid, total in per_project.items():
-            assert total == self.projects[pid].issued_g, "project issued total drifted"
-            assert total <= self.projects[pid].attested_g, "issued beyond attested"
+            need(total == self.projects[pid].issued_g, f"project {pid}: issued total drifted")
+            need(total <= self.projects[pid].attested_g, f"project {pid}: issued beyond attested")

@@ -223,7 +223,8 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
         except StoreError as exc:
             raise HTTPException(409, f"{exc}. Nothing was recorded.")
         entry = st.receipts.append(receipt)
-        assert entry["hash"] == preview["hash"]
+        if entry["hash"] != preview["hash"]:          # cannot happen under the lock; if it does, say so loudly, never silently
+            raise RuntimeError(f"receipt hash drifted between preview and append for {receipt_id}")
         st.registry = reg
         if mandate is not None:
             consume(mandate, body.grams)

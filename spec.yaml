@@ -1,0 +1,32 @@
+# What was asked for (the "spec box"). Read by ai-code-quality-auditor for the scope-drift check:
+#   auditor scan . --spec spec.yaml
+# A route or command with no feature here counts as drift. Sources: CLAUDE.md, docs/AUTONOMOUS-RUN.md, docs/ux/FLOWS.md.
+name: carbonledger
+description: >
+  A register for simulated pilot carbon units: estimate a footprint, retire units once with a fresh serial range,
+  anchor hash-chained receipts on Solana, verify any receipt, let an agent retire only under a signed mandate.
+features:
+  - id: health.check
+    description: GET /health says the chain mode, the unit status and the anchor counts.
+  - id: registry.summary
+    description: GET /v1/registry/summary shows issued, retired and remaining pilot units.
+  - id: retire.units
+    description: POST /v1/retire retires pilot units with a fresh serial range, priced by the server, idempotent.
+  - id: receipts.get
+    description: GET /v1/receipts/{id} returns a receipt entry and its anchor state.
+  - id: receipts.proof
+    description: GET /v1/receipts/{id}/proof returns the Merkle path to the anchored root.
+  - id: audit.verify
+    description: GET /v1/audit/verify checks the whole receipt chain and names the first bad index.
+  - id: mandates.create
+    description: POST /v1/mandates lets a business key set a cap, allow-list, expiry and agent public key.
+  - id: mandates.revoke
+    description: POST /v1/mandates/{id}/revoke lets the owner revoke a mandate.
+  - id: accounts.totals
+    description: GET /v1/accounts/me/totals gives an owner's own totals from server records.
+  - id: accounts.history
+    description: GET /v1/accounts/me/history gives an owner's own receipts.
+  - id: accounts.mandates
+    description: GET /v1/accounts/me/mandates lists an owner's mandates with use against cap.
+  - id: web.app
+    description: The static app served from the API's origin (shop, travel, daily, countries, me, business, verify).

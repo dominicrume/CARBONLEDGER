@@ -37,6 +37,8 @@ Question: which of our claims would a hostile reader take apart?
 - F10 FIXED 2026-10-11 (D7). Scripts are self-hosted at pinned versions with SHA-384 integrity, and the page carries a Content-Security-Policy. tests/test_web_supply_chain.py.
 - F11 POSITIVE. Product names from the lookup are escaped before they reach the page.
 - F16 FOUND 2026-10-11, operational. A web server from a browser-test run interrupted by a folder rename kept the test port and served 404s, so every browser test failed until it was found. scripts/e2e.sh now checks that the API on its port is ours before testing; the stale-port case needs the same check for the web port (D25).
+- F18 FIXED 2026-10-11, found by ai-code-quality-auditor (bandit B101). The registry invariant checks were `assert` statements, which python -O strips, so the startup check and the nightly recheck could have been blinded by a flag. Now an explicit InvariantError; tests/test_registry_mandate.py proves it under -O.
+- F19 REVIEWED 2026-10-11, not a fault. The auditor flags 44 innerHTML assignments (JS102, CWE-79). Every interpolation on those lines is either passed through esc(), a number, a constant from the factor tables or a status word (rule 17), and the server refuses free text. Kept as is; the tool scores the pattern, not the escaping.
 - F17 FOUND 2026-10-11, supply chain. npm audit flagged Playwright 1.49.1 (browser downloads without certificate verification). Moved to 1.64.0. CI runs npm audit at the high level.
 
 ## Drills, run 2026-10-11 with scripts/drills.py against a live API (dry-run chain)
