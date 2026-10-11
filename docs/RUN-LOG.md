@@ -18,6 +18,12 @@ One line per step: time (UTC), what changed, the test that proves it, anything s
 - 2026-10-11 Block 2 step 12: SKIPPED, no .env and no devnet key on this machine. Steps under Human gates. Dry-run path proven.
 - 2026-10-11 Block 2 step 13: Playwright 1.49.1 and Chromium installed as a web dev dependency. apps/web/test/e2e/smoke.spec.mjs: retire from the demo shelf, receipt, verify screen intact, API-down path, banned words. 3 passed. Verify screen and connection state built early (Block 6 steps 25 and 27 partly done). Found: port 8000 on this machine belongs to an unrelated process (scripts/dev_demo.py, not this repo), so e2e.sh uses 8765 and 8787 and the app accepts a loopback-only ?api= override. check.sh runs e2e when Playwright is installed (SKIP_E2E=1 to skip).
 - 2026-10-11 Block 2 done. ROOTS-SCORE: check 7 (contain failure) stays SEEDLING until Postgres triggers run; check 12 (CI) stays SEEDLING until the first push.
+- 2026-10-11 Block 3 step 14: API keys (packages/core/carbonledger/auth.py), roles, token bucket, size limit, deadline; scripts/make_api_key.py; key field in Settings. Proof: tests/test_auth.py, tests/test_api.py login tests, e2e no-key test.
+- 2026-10-11 Block 3 step 15: agent identity by ed25519 key, signed and time-boxed requests (agentsig.py); 8 signature vectors with public keys only. Proof: tests/test_registry_mandate.py signature vectors, tests/test_api.py signature tests.
+- 2026-10-11 Block 3 step 16: label vocabulary, hashed note. Proof: tests/test_api.py note test.
+- 2026-10-11 Block 3 step 17: apps/web/js/core/activities.js shared by every view; scripts/export_activities.mjs; activities.py port; typed items; recompute.py; server-side catalogue and Open Food Facts lookup. Proof: tests/test_activity_parity.py (1,789), tests/test_api.py recomputation tests. check.sh diffs the exported data.
+- 2026-10-11 Block 3 step 18: /v1/accounts/me/totals and /history; the browser mirrors the ledger at load and after each retirement. Proof: tests/test_api.py totals test, e2e forged-record test.
+- 2026-10-11 Block 3 done. 2,043 Python tests, 4 Node tests, 5 browser tests. ROOTS-SCORE check 9 and 11 pointers updated.
 
 ## Human gates
 - Install Node 22 (`brew install node@22`) so CI and local match. Node 20 runs everything today.

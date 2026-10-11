@@ -1,0 +1,20 @@
+# Local Postgres for D4 and D9. No password here: it comes from POSTGRES_PASSWORD in your environment or .env.
+# Start: docker compose up -d db      Stop: docker compose down      Data lives in the named volume.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: carbonledger
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in the environment or .env}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - carbonledger_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d carbonledger"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+volumes:
+  carbonledger_pg:

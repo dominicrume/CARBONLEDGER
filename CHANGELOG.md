@@ -4,6 +4,12 @@
 - Dependencies pinned. scripts/dev.sh and scripts/check.sh. docs/RUN-LOG.md tracks the autonomous run.
 - Browser: one idempotency key per intent, honest timeout message, timeout above the server's worst case (F12, F13).
 - API: lines must add up to the total (F15). Public receipt ids derive from content, not a counter (F14).
+- Login (D2): API keys with hashed storage and roles, per-key rate limit, request size limit, server deadline.
+  Agents are ed25519 keys and every agent request is signed and time-boxed (KYA), with 8 signature vectors.
+- Server recomputation (D1): typed items on every retire request, priced by the server from its own tables and its
+  own product lookup; 1,787 golden vectors from the app's activity functions; a lower total is refused.
+- Labels are a closed vocabulary; free text is a hashed note (D8). Owner totals and history endpoints (T20); the
+  browser mirrors the ledger and drops records the server does not have.
 - Chain: confirm before claiming (D5). Anchor outbox with a worker, retries and a failed state. RPC fallback URL,
   per-call timeout, backoff, failure rate (T21). API split into models, state and app. Rule 6 refined.
 - Browser: verify screen, connection state, loopback-only ?api= and ?ledger= overrides, dedicated error line on the

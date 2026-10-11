@@ -13,9 +13,9 @@ ROOTED carries a dated waiver with an owner. Re-score after every phase.
 | 6 | Context management | ROOTED | every workspace CLAUDE.md has a What NOT to load table, checked by test | |
 | 7 | Sandboxing [HV] | SEEDLING | rollback on chain failure, tests/test_api.py | 2026-10-11 owner Rume: code-level rollback is proven. No process isolation, no database triggers run, no kill switch. Review by 2026-10-18. |
 | 8 | Trajectory [HV] | ROOTED | packages/core/carbonledger/receipts.py, tests/test_chain_receipts.py, GET /v1/audit/verify | |
-| 9 | Guardrails | ROOTED | registry.py, mandate.py, API request models, tests/test_registry_mandate.py, tests/test_api.py | |
-| 10 | Verification | ROOTED | 203 tests, shared vectors, random attack, BREAK.md | |
-| 11 | Grounding [HV] | SEEDLING | estimator cites tier and source, parity-tested against the app | 2026-10-11 owner Rume and partner: no real MRV evidence exists and attestation is simulated. Units are labelled simulated. Review by 2026-10-25. |
+| 9 | Guardrails | ROOTED | registry.py, mandate.py, agentsig.py, auth.py, recompute.py, API request models, tests/test_registry_mandate.py, tests/test_auth.py, tests/test_api.py | |
+| 10 | Verification | ROOTED | 2,043 Python tests, 4 Node tests, 5 browser tests, shared vectors (registry, mandate, signature, estimate, activity), random attack, BREAK.md | |
+| 11 | Grounding [HV] | SEEDLING | estimator and activities cite tier and source, parity-tested against the app; the server prices every request itself | 2026-10-11 owner Rume and partner: no real MRV evidence exists and attestation is simulated. Units are labelled simulated. Review by 2026-10-25. |
 | 12 | CI/CD [HV] | SEEDLING | .github/workflows/ci.yml | 2026-10-11 owner Rume: written, never run on a real runner. Review at first push, by 2026-10-13. |
 | 13 | Feedback [HV] | SEEDLING | BREAK.md, DEBT.md, CHANGELOG.md | 2026-10-11 owner Rume: one finding found, fixed and recorded (F1). The loop has not yet turned over time. Review by 2026-10-18. |
 
