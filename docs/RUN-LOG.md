@@ -48,8 +48,8 @@ One line per step: time (UTC), what changed, the test that proves it, anything s
 - First devnet call (D14), about 10 minutes once the Solana CLI is installed:
   1. `solana-keygen new --outfile ~/.config/solana/carbonledger-devnet.json` then `solana config set --url devnet` and `solana airdrop 2 ~/.config/solana/carbonledger-devnet.json`.
   2. `cp .env.example .env`, set CHAIN_MODE=solana-devnet and SOLANA_SECRET_KEY_B58 to the base58 secret (one-liner in .env.example). Never paste it anywhere else.
-  3. `scripts/dev.sh`, then in another terminal:
-     `curl -s -X POST http://127.0.0.1:8000/v1/retire -H 'content-type: application/json' -d '{"account":"personal","grams":1200,"kind":"shop","label":"Shopping basket","lines":[{"name":"Beef","grams":1200}],"target_iso3":"GBR","idempotency_key":"devnet-first-call-0001"}'`
+  3. In .env also set APP_ENV=dev and API_DEMO_KEY to any string starting clk_personal_ (a dev-only login). `scripts/dev.sh`, then in another terminal, with that key:
+     `curl -s -X POST http://127.0.0.1:8000/v1/retire -H 'content-type: application/json' -H "authorization: Bearer $API_DEMO_KEY" -d '{"account":"personal","grams":1200,"kind":"shop","label":"Shopping basket","lines":[{"name":"Beef","grams":1200}],"items":[{"type":"products_sold","gPerUnit":1200,"n":1}],"target_iso3":"GBR","idempotency_key":"devnet-first-call-0001"}'`
   4. The response carries anchor_status, signature, slot and explorer_url. If anchor_status is pending, `curl http://127.0.0.1:8000/v1/receipts/<receipt_id>` until it says anchored. Expect to fix small things on the first call.
   5. Paste the explorer link into docs/RUN-LOG.md and docs/PITCH-FACTS.md.
 - The partner meeting and the open decisions in CONTEXT.md (backing, price, trust, licence, ownership of the baseline app). Nothing in the code decides these.
