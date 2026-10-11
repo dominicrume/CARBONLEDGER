@@ -3,11 +3,11 @@ name = "carbonledger"
 version = "0.1.0"
 description = "CarbonLedger: a single register for carbon units, with human-safe controls. Solana first."
 requires-python = ">=3.11"
-dependencies = ["fastapi>=0.110", "pydantic>=2.6", "uvicorn>=0.29", "httpx>=0.27"]
+dependencies = ["fastapi==0.143.0", "pydantic==2.14.1", "uvicorn==0.54.0", "httpx==0.28.1"]
 
 [project.optional-dependencies]
-solana = ["solders>=0.21"]
-dev = ["pytest>=8.0", "pip-audit>=2.7", "solders>=0.21"]
+solana = ["solders==0.29.0"]
+dev = ["pytest==9.1.1", "pip-audit", "solders==0.29.0"]
 
 [tool.pytest.ini_options]
 pythonpath = ["packages/core", "services/api"]

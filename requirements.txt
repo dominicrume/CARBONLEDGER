@@ -1,7 +1,8 @@
-fastapi>=0.110
-uvicorn>=0.29
-pydantic>=2.6
-httpx>=0.27
-solders>=0.21
-pytest>=8.0
-# Pin exact versions after the first green run on your machine, then commit the pins (DEBT D6).
+# Pinned 2026-10-11 to the versions installed on the first green run (ENGINEERING rule 9). Bump on purpose, with pip-audit.
+fastapi==0.143.0
+uvicorn==0.54.0
+pydantic==2.14.1
+httpx==0.28.1
+solders==0.29.0
+pytest==9.1.1
+pip-audit==

@@ -58,7 +58,7 @@ def test_env_example_holds_placeholders_only():
 
 def test_our_documents_have_no_em_or_en_dashes():
     """House style: nothing may read as machine-written. Imported app files are excluded."""
-    skip = {"apps", "node_modules", ".git"}
+    skip = {"apps", "node_modules", ".git", ".venv", ".pytest_cache", "target"}
     for p in ROOT.rglob("*"):
         if p.suffix in {".md", ".txt"} and p.is_file() and not (set(p.relative_to(ROOT).parts) & skip):
             t = p.read_text()
