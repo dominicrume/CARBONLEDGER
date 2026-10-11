@@ -1,3 +1,5 @@
+import time
+
 import pytest
 from fastapi.testclient import TestClient
 from carbonledger.chain import ChainError, DryRunChain
@@ -32,7 +34,7 @@ def test_retire_gives_a_receipt_with_a_fresh_serial_range():
     b = c.post("/v1/retire", json=body(idempotency_key="key-0000002", grams=500)).json()
     assert (a["serial_start"], a["serial_end"]) == (0, 1200)
     assert (b["serial_start"], b["serial_end"]) == (1200, 1700)         # a gram is never retired twice
-    assert a["signature"].startswith("dryrun-") and "Simulated" in a["units_status"]
+    assert a["signature"].startswith("dryrun-") and "Simulated" in a["units_status"] and a["anchor_status"] == "anchored"
     s = c.get("/v1/registry/summary").json()
     assert s["retired_g"] == 1700 and s["remaining_g"] == DEMO_ISSUED_G - 1700
 
@@ -57,16 +59,67 @@ def test_cannot_retire_more_than_exists():
     assert c.get("/v1/registry/summary").json()["retired_g"] == 0
 
 
-def test_a_failed_chain_write_leaves_nothing_behind():
-    class Down:
-        cluster = "down"
-        def record(self, rid, h):
-            raise ChainError("down")
+class Down:
+    cluster = "down"
+    def health(self):
+        return False
+    def record(self, rid, h):
+        raise ChainError("down")
+    def confirm(self, rec):
+        raise ChainError("down")
+
+
+class HealthyButDropping(DryRunChain):
+    """Says it is up, accepts the submission, never confirms it. The outbox must show the truth."""
+    def confirm(self, rec):
+        raise ChainError("blockhash expired before the transaction was confirmed")
+
+
+class FlakyThenFine(DryRunChain):
+    """Fails the first two submissions, then works. The worker must retry and end anchored."""
+    def __init__(self):
+        self.calls = 0
+    def record(self, rid, h):
+        self.calls += 1
+        if self.calls <= 2:
+            raise ChainError("transient")
+        return super().record(rid, h)
+
+
+def test_a_chain_that_is_down_records_nothing():
     c = make(Down())
     r = c.post("/v1/retire", json=body())
     assert r.status_code == 502 and "Nothing was recorded" in r.json()["detail"]
     assert c.get("/v1/registry/summary").json()["retired_g"] == 0
     assert c.get("/v1/audit/verify").json()["count"] == 0
+
+
+def test_nothing_claims_recorded_on_solana_until_confirmed():
+    c = make(HealthyButDropping())
+    r = c.post("/v1/retire", json=body()).json()
+    assert r["anchor_status"] == "failed" and r["attempts"] == 5 and "expired" in r["error"]
+    got = c.get(f"/v1/receipts/{r['receipt_id']}").json()
+    assert got["chain"]["anchor_status"] == "failed"
+    assert c.get("/health").json()["anchors"] == {"pending": 0, "anchored": 0, "failed": 1}
+    assert c.get("/v1/audit/verify").json()["intact"]         # the receipt itself is intact and visible as unanchored
+
+
+def test_a_dropped_submission_is_retried_until_anchored():
+    c = make(FlakyThenFine())
+    r = c.post("/v1/retire", json=body()).json()
+    assert r["anchor_status"] == "anchored" and r["attempts"] == 3 and r["signature"].startswith("dryrun-") and r["slot"] == 0
+
+
+def test_the_response_does_not_wait_forever_for_an_anchor():
+    class Slow(DryRunChain):
+        def confirm(self, rec):
+            time.sleep(0.5)
+            return super().confirm(rec)
+    c = make(Slow(), anchor_wait_s=0.05)
+    r = c.post("/v1/retire", json=body()).json()
+    assert r["anchor_status"] == "pending" and r["slot"] is None     # submitted, not yet confirmed: no slot, no claim
+    time.sleep(0.8)
+    assert c.get(f"/v1/receipts/{r['receipt_id']}").json()["chain"]["anchor_status"] == "anchored"
 
 
 @pytest.mark.parametrize("bad", [
