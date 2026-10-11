@@ -26,8 +26,11 @@ One line per step: time (UTC), what changed, the test that proves it, anything s
 - 2026-10-11 Block 3 done. 2,043 Python tests, 4 Node tests, 5 browser tests. ROOTS-SCORE check 9 and 11 pointers updated.
 - 2026-10-11 Block 4 step 19: docker-compose.yml (Postgres 16 on 127.0.0.1:5433), db/migrations/0002_phase1.sql, scripts/migrate.py, services/api/carbonledger_api/store.py (write-through, rebuild at start), scripts/recheck.py. Proof: tests/test_db_migrations.py (7), tests/test_db_store.py (5), run against a local container. DATABASE_URL_TEST makes them run; CI provides it.
 - 2026-10-11 Block 4 step 20: vendored ZXing, D3, topojson-client with SHA-384 integrity, CSP meta, scripts/vendor_hashes.sh. Proof: tests/test_web_supply_chain.py, browser test green under the CSP.
+- 2026-10-11 Block 4 step 21: .github/workflows/ci.yml rewritten: actions pinned to commit hashes, Postgres service, Node 22, npm ci and npm audit, Playwright with deps, scripts/check.sh, migrations twice, recheck; an anchor job allowed to fail. .github/workflows/recheck.yml nightly (Block 7 step 29). Playwright moved from 1.49.1 to 1.64.0 after npm audit flagged a high advisory. apps/web/package-lock.json added. packages/core/carbonledger/merkle.py with 14 tests (start of step 23).
+- 2026-10-11 Block 4 done.
 
 ## Human gates
+- First push to GitHub: create the repository, push, watch the ci workflow. Set the repository variable RECHECK_ENABLED=1 and the secret DATABASE_URL_RECHECK (a read-only role) to turn on the nightly recheck.
 - Install Node 22 (`brew install node@22`) so CI and local match. Node 20 runs everything today.
 - Install the Solana CLI, Rust and Anchor for Block 5 (commands in docs/ENVIRONMENT.md). Without them the memo path is the integration.
 - First devnet call (D14), about 10 minutes once the Solana CLI is installed:

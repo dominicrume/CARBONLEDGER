@@ -1,23 +1,74 @@
 name: ci
+# Every action is pinned to a commit hash (ENGINEERING rule 9, D6). Tags resolved 2026-10-11:
+#   actions/checkout v4     = 11d5960a326750d5838078e36cf38b85af677262
+#   actions/setup-python v5 = a26af69be951a213d495a4c3e4e4022e16d87065
+#   actions/setup-node v4   = 49933ea5288caeca8642d1e84afbd3f7d6820020
 on: [push, pull_request]
+permissions:
+  contents: read
 jobs:
-  test:
+  check:
+    name: tests, gates, web checks, database, browser
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: carbonledger_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci-only-throwaway
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d carbonledger_test"
+          --health-interval 2s --health-timeout 2s --health-retries 30
+    env:
+      APP_ENV: test
+      API_KEY_PEPPER: ci-only-pepper-0000000000000000
+      DATABASE_URL_TEST: postgresql://postgres:ci-only-throwaway@127.0.0.1:5432/carbonledger_test
     steps:
-      # Pin these actions to commit hashes before relying on them (CHECK).
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with: { python-version: "3.12" }
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with: { node-version: "22" }
-      - run: pip install -r requirements.txt pip-audit
-      - run: python -m pytest -q
-      - run: python rules/roots/check_roots.py .
-      - run: python scripts/scan_secrets.py .
-      - run: node --check apps/web/js/config.js && node --check apps/web/js/core/ledger.js && node --check apps/web/js/core/estimate.js
-      - name: estimator vectors are not stale
+      - name: python dependencies (pinned)
         run: |
-          node scripts/export_estimator.mjs
-          git diff --exit-code conformance packages/core/carbonledger/data_factors.json
-      - run: pip-audit -r requirements.txt
-  # Add an Anchor job here once the program compiles (DEBT D3).
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -r requirements.txt
+      - name: dependency audit
+        run: .venv/bin/pip-audit -r requirements.txt
+      - name: web dev dependencies and browser
+        run: |
+          cd apps/web
+          npm ci
+          npm audit --audit-level=high
+          npx playwright install --with-deps chromium
+      - name: the one gate (tests, ROOTS, secrets, node checks, exported data, database tests, browser test)
+        run: scripts/check.sh
+      - name: migrations apply cleanly twice
+        run: |
+          DATABASE_URL_MIGRATOR="$DATABASE_URL_TEST" .venv/bin/python scripts/migrate.py --reset
+          DATABASE_URL_MIGRATOR="$DATABASE_URL_TEST" .venv/bin/python scripts/migrate.py
+      - name: recheck on the test database
+        run: DATABASE_URL="$DATABASE_URL_TEST" .venv/bin/python scripts/recheck.py
+  anchor:
+    name: anchor program (allowed to fail until Block 5 lands, D3)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: toolchain
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+      - name: anchor
+        run: |
+          cargo install --git https://github.com/coral-xyz/anchor avm --force
+          avm install 0.31.1 && avm use 0.31.1
+      - name: build and replay the registry vectors
+        run: |
+          anchor build
+          test -f programs/carbon_registry/tests/conformance.ts && anchor test || echo "conformance harness not written yet (Block 5)"
