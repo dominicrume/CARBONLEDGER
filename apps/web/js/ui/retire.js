@@ -35,6 +35,7 @@ export function confirmRetirement(entry, onDone) {
     </fieldset>
     <p class="note" id="tgt-note"></p>
     <p class="note">Demo only. No payment is taken. These are simulated pilot units, not verified credits.</p>
+    <p class="note bad" id="retire-error" role="alert"></p>
     <div class="row"><button class="btn ghost" data-close>Cancel</button><button class="btn primary" id="confirm-retire">Confirm retirement</button></div>
   `, { onOpen: (root, close) => {
     const pick = () => ({ mode: root.querySelector('[name=tgt]:checked').value, iso3: root.querySelector('#tgt-country').value });
@@ -56,7 +57,7 @@ export function confirmRetirement(entry, onDone) {
         const rec = await ledger.retire({ ...entry, idempotencyKey, countryIso3: dest?.iso3, countryName: dest?.name, mode: dest?.mode, finished: !!dest?.finished });
         const fresh = badgeBook(account, ctx).all.filter(b => !before.has(b.id));
         close(); showReceipt(rec, fresh); onDone?.(rec);
-      } catch (err) { e.target.disabled = false; root.querySelector('.note').textContent = err.message; }
+      } catch (err) { e.target.disabled = false; root.querySelector('#retire-error').textContent = err.message; }
     });
   } });
 }

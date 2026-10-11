@@ -261,3 +261,8 @@ input[type=range] { padding: 0; border: 0; accent-color: var(--green); backgroun
 .tag { display: inline-block; font: 500 .68rem/1.4 DM Sans, sans-serif; letter-spacing: .02em; text-transform: uppercase; color: var(--amber, #8a5a00); background: var(--amber-bg, #fff4dc); border-radius: 999px; padding: 1px 7px; margin-left: 6px; vertical-align: middle; white-space: nowrap; }
 .credits { padding: 18px 16px 90px; font-size: .78rem; color: var(--muted, #666); line-height: 1.5; }
 .credits p { margin: 0 0 8px; }
+.conn { font-size: .72rem; color: var(--ink-55, #666); margin-right: 8px; white-space: nowrap; }
+.conn[data-state="connected"] { color: var(--green, #1a7f4b); }
+.conn[data-state="down"] { color: var(--bad, #a33); }
+.mono.wrap { word-break: break-all; }
+.ok { color: var(--green, #1a7f4b); } .bad { color: var(--bad, #a33); }

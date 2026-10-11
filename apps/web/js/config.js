@@ -1,4 +1,12 @@
 // Central settings. Change values here rather than inside modules.
+function loopbackOverride(name) {
+  try {
+    const v = new URLSearchParams(globalThis.location?.search || '').get(name);
+    if (!v) return null;
+    const u = new URL(v);
+    return (u.hostname === '127.0.0.1' || u.hostname === 'localhost') && u.protocol === 'http:' ? u.origin : null;
+  } catch { return null; }
+}
 export const CONFIG = {
   appName: 'CarbonLedger',
   // Trustee-set price (demo, no payment taken).
@@ -6,9 +14,11 @@ export const CONFIG = {
   // 1 CLT = 1 tonne CO2e. 6 decimals = whole grams.
   cltDecimals: 6,
   // Which ledger records retirements: 'local' (this device) now; 'solana-devnet' once the CLT is live.
-  ledger: 'local',
+  ledger: (globalThis.location && new URLSearchParams(globalThis.location.search).get('ledger')) || 'local',   // ?ledger=solana-devnet overrides for a demo or a test
   // The CarbonLedger API signs and records retirements. Browsers never hold a signing key.
-  api: { baseUrl: 'http://127.0.0.1:8000', timeoutMs: 40000 },   // above the API's worst case: two RPC calls at 15 s each
+  // ?api=http://127.0.0.1:PORT may override the address for a local demo or test. Loopback only: a link can never
+  // point the app at a stranger's server. The timeout sits above the API's worst case (two RPC calls at 15 s each).
+  api: { baseUrl: loopbackOverride('api') || 'http://127.0.0.1:8000', timeoutMs: 40000 },
   solana: { cluster: 'devnet', rpcUrl: 'https://api.devnet.solana.com', mint: null, explorer: 'https://explorer.solana.com/tx/{sig}?cluster=devnet' },
   // Live product lookup when the browser allows it; the built-in catalogue always works offline.
   openFoodFacts: { enabled: true, timeoutMs: 4000 },

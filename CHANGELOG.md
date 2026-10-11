@@ -4,6 +4,10 @@
 - Dependencies pinned. scripts/dev.sh and scripts/check.sh. docs/RUN-LOG.md tracks the autonomous run.
 - Browser: one idempotency key per intent, honest timeout message, timeout above the server's worst case (F12, F13).
 - API: lines must add up to the total (F15). Public receipt ids derive from content, not a counter (F14).
+- Chain: confirm before claiming (D5). Anchor outbox with a worker, retries and a failed state. RPC fallback URL,
+  per-call timeout, backoff, failure rate (T21). API split into models, state and app. Rule 6 refined.
+- Browser: verify screen, connection state, loopback-only ?api= and ?ledger= overrides, dedicated error line on the
+  confirm sheet. Playwright smoke test in headless Chromium (D13), run by scripts/e2e.sh and check.sh.
 - Screens: "Retire pilot units" everywhere, simulated tag beside every unit count, data credits and a verify link
   in the footer, the Countries game labelled symbolic (D10, F9). tests/test_web_wording.py guards the words.
 

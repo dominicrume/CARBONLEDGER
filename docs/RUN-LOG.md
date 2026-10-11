@@ -16,6 +16,8 @@ One line per step: time (UTC), what changed, the test that proves it, anything s
 - 2026-10-11 Block 2 step 10: chain.confirm polls getSignatureStatuses until confirmed or the blockhash expires; anchor outbox (packages/core/carbonledger/outbox.py) with a worker, retries and failed state; API split into models.py, state.py, main.py. Proof: tests/test_api.py anchor tests, tests/test_chain_receipts.py fake RPC tests. Rule 6 refined, CLAUDE.md updated, decision recorded.
 - 2026-10-11 Block 2 step 11: SOLANA_RPC_URL_FALLBACK, per-call timeout, retries with backoff, RpcStats failure rate. Proof: fallback and every-endpoint-down tests.
 - 2026-10-11 Block 2 step 12: SKIPPED, no .env and no devnet key on this machine. Steps under Human gates. Dry-run path proven.
+- 2026-10-11 Block 2 step 13: Playwright 1.49.1 and Chromium installed as a web dev dependency. apps/web/test/e2e/smoke.spec.mjs: retire from the demo shelf, receipt, verify screen intact, API-down path, banned words. 3 passed. Verify screen and connection state built early (Block 6 steps 25 and 27 partly done). Found: port 8000 on this machine belongs to an unrelated process (scripts/dev_demo.py, not this repo), so e2e.sh uses 8765 and 8787 and the app accepts a loopback-only ?api= override. check.sh runs e2e when Playwright is installed (SKIP_E2E=1 to skip).
+- 2026-10-11 Block 2 done. ROOTS-SCORE: check 7 (contain failure) stays SEEDLING until Postgres triggers run; check 12 (CI) stays SEEDLING until the first push.
 
 ## Human gates
 - Install Node 22 (`brew install node@22`) so CI and local match. Node 20 runs everything today.
