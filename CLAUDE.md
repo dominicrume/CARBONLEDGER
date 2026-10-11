@@ -23,7 +23,7 @@ unit definition, what backs a unit, or adds a payment is a new brief. Write a de
 - The registry rules live in the reference model and the on-chain program, and both pass the same vectors.
 - An agent retires only under a mandate: cap, allow-list, expiry, revoke.
 - A verifier (a person or institution) attests projects. Software never does.
-- The browser holds no key and decides nothing.
+- The browser holds no signing key and decides nothing. An API key in the browser is a login, like a password.
 
 ## Routing table
 | Job slug            | Workspace              | Entry stage     |

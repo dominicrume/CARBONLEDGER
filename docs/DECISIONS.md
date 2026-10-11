@@ -54,3 +54,13 @@ Why: Holding the lock across a network call serialised every retirement behind o
 flow said "recorded" on submission, before confirmation (D5). Merkle batch anchoring (SCALING item 2) needs
 receipts to commit before the anchor anyway. The health check keeps the honest behaviour when the chain is down.
 Who agreed: Engineering, during the autonomous run. Awaiting Rume.
+
+---
+Date: 2026-10-11
+Decision: Every write endpoint needs an API key sent as a bearer header. The server stores only a salted hash. A
+key carries a role (personal, business, agent, verifier, authority) and an owner id. Mandate owners come from the
+key, never from a field. Reads stay public so anyone can verify a receipt. The browser may hold an API key: it is
+a login, like a password, kept in browser storage. It signs nothing and decides nothing. "The browser holds no
+key" in CLAUDE.md means no signing key.
+Why: D2 and T12. An open API lets anyone retire pilot units and spam the chain. Public reads keep receipts verifiable.
+Who agreed: Engineering, during the autonomous run. Awaiting Rume.

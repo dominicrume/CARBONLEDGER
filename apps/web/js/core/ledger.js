@@ -22,6 +22,16 @@ export function ref() {
 }
 
 const all = () => store.get('ledger', []);
+
+// The API key is a login, like a password. It signs nothing and decides nothing. It lives in this browser's storage
+// like any session and is sent as a bearer header. It is never a wallet key. Set it in Settings.
+export const apiKey = { get: () => store.get('apiKey', ''), set: v => store.set('apiKey', String(v || '').trim()) };
+export function apiHeaders() {
+  const h = { 'content-type': 'application/json' };
+  const k = apiKey.get();
+  if (k) h.authorization = `Bearer ${k}`;
+  return h;
+}
 const filter = (recs, account) => account ? recs.filter(r => (r.account || 'personal') === account) : recs;
 
 export class LocalLedger {
@@ -47,7 +57,7 @@ export class SolanaLedger {
     const timer = setTimeout(() => ctrl.abort(), CONFIG.api.timeoutMs);
     let res;
     try {
-      res = await fetch(`${CONFIG.api.baseUrl}/v1/retire`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: ctrl.signal });
+      res = await fetch(`${CONFIG.api.baseUrl}/v1/retire`, { method: 'POST', headers: apiHeaders(), body: JSON.stringify(body), signal: ctrl.signal });
     } catch (err) {
       // A timeout is not a refusal. The server may have recorded it. Only the server may say "Nothing was recorded."
       if (err?.name === 'AbortError') throw new Error('We could not confirm whether this was recorded. Check your history before trying again.');

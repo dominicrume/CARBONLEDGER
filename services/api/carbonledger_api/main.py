@@ -7,23 +7,26 @@ The retire flow (rule 6 as refined on 2026-10-11):
   2. Under the lock: retire on a copy of the register, append the receipt, commit, enqueue the anchor.
   3. Outside the lock: the anchor worker submits and confirms. The response waits up to ANCHOR_WAIT_SECONDS for it.
   4. Nothing is called "recorded on Solana" until the chain confirmed it. A failed anchor is shown as failed."""
+import asyncio
 import copy
 import os
 import time
 from datetime import datetime, timezone
 from typing import Callable, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
+from carbonledger.auth import ApiKeyStore, AuthError, KeyRecord
 from carbonledger.chain import ChainClient
 from carbonledger.mandate import Mandate, MandateError, authorize, consume, revoke
 from carbonledger.receipts import digest, verify
 from carbonledger.registry import RegistryError
 from carbonledger.units import grams_to_clt
 
-from .models import STATUS_FOR, UNITS_STATUS, MandateIn, RetireIn, RevokeIn
-from .state import DEMO_BATCH, DEMO_ISSUED_G, DEMO_PROJECT, State, anchor_wait_from_env, chain_from_env
+from .models import STATUS_FOR, UNITS_STATUS, MandateIn, RetireIn
+from .state import DEMO_BATCH, DEMO_ISSUED_G, DEMO_PROJECT, Limits, State, anchor_wait_from_env, chain_from_env
 
 __all__ = ["create_app", "public_receipt_id", "DEMO_BATCH", "DEMO_ISSUED_G", "DEMO_PROJECT", "UNITS_STATUS"]
 
@@ -34,16 +37,41 @@ def public_receipt_id(receipt_body: dict) -> str:
 
 
 def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = time.time, web_origin: Optional[str] = None,
-               anchor_wait_s: Optional[float] = None, start_worker: bool = True) -> FastAPI:
-    st = State(chain or chain_from_env(), now, anchor_wait_from_env() if anchor_wait_s is None else anchor_wait_s)
+               anchor_wait_s: Optional[float] = None, start_worker: bool = True, keys: Optional[ApiKeyStore] = None,
+               limits: Optional[Limits] = None) -> FastAPI:
+    st = State(chain or chain_from_env(), now, anchor_wait_from_env() if anchor_wait_s is None else anchor_wait_s,
+               keys=keys, limits=limits or Limits.from_env())
     dev = os.environ.get("APP_ENV") == "dev"
     app = FastAPI(title="CarbonLedger API", docs_url="/docs" if dev else None, redoc_url=None, openapi_url="/openapi.json" if dev else None)
     app.state.st = st
     origin = web_origin or os.environ.get("WEB_ORIGIN")
     if origin:
-        app.add_middleware(CORSMiddleware, allow_origins=[origin], allow_methods=["GET", "POST"], allow_headers=["content-type"])
+        app.add_middleware(CORSMiddleware, allow_origins=[origin], allow_methods=["GET", "POST"], allow_headers=["content-type", "authorization"])
     if start_worker:
         st.worker.start()
+
+    def require_key(request: Request) -> KeyRecord:
+        """Every write needs a key (D2). Then the key's bucket must have a token (rate limit)."""
+        auth = request.headers.get("authorization", "")
+        token = auth[7:].strip() if auth.lower().startswith("bearer ") else ""
+        try:
+            rec = st.keys.check(token)
+        except AuthError as exc:
+            raise HTTPException(401, f"Not allowed: {exc.code}. Nothing was recorded.", headers={"WWW-Authenticate": "Bearer"})
+        if not st.bucket.take(rec.key_id):
+            raise HTTPException(429, "Too many requests for this key. Wait a minute. Nothing was recorded.", headers={"Retry-After": "60"})
+        return rec
+
+    @app.middleware("http")
+    async def edge_limits(request: Request, call_next):
+        """Request size and a server-side deadline. A timed-out request answers 504 and says to check history."""
+        length = request.headers.get("content-length")
+        if length and length.isdigit() and int(length) > st.limits.max_request_bytes:
+            return JSONResponse({"detail": "Request too large. Nothing was recorded."}, status_code=413)
+        try:
+            return await asyncio.wait_for(call_next(request), timeout=st.limits.request_timeout_s)
+        except asyncio.TimeoutError:
+            return JSONResponse({"detail": "The server took too long. The outcome is unconfirmed: check your history before retrying."}, status_code=504)
 
     @app.middleware("http")
     async def security_headers(request, call_next):
@@ -68,21 +96,23 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
                 "retirements": len(st.registry.retirements)}
 
     @app.post("/v1/mandates", status_code=201)
-    def create_mandate(body: MandateIn):
+    def create_mandate(body: MandateIn, caller: KeyRecord = Depends(require_key)):
+        if caller.role not in ("business", "authority"):
+            raise HTTPException(403, "Only a business key can write a mandate. Nothing was recorded.")
         with st.lock:
-            mid = "mnd-" + digest({"n": len(st.mandates), "o": body.owner, "a": body.agent})[:12]
-            st.mandates[mid] = Mandate(mid, body.owner, body.agent, body.cap_g, int(st.now()) + body.ttl_seconds,
+            mid = "mnd-" + digest({"n": len(st.mandates), "o": caller.owner, "a": body.agent})[:12]
+            st.mandates[mid] = Mandate(mid, caller.owner, body.agent, body.cap_g, int(st.now()) + body.ttl_seconds,
                                        tuple(body.allow_projects) if body.allow_projects is not None else None)
-        return {"mandate_id": mid}
+        return {"mandate_id": mid, "owner": caller.owner}
 
     @app.post("/v1/mandates/{mandate_id}/revoke")
-    def revoke_mandate(mandate_id: str, body: RevokeIn):
+    def revoke_mandate(mandate_id: str, caller: KeyRecord = Depends(require_key)):
         with st.lock:
             m = st.mandates.get(mandate_id)
             if m is None:
                 raise HTTPException(404, "No such mandate.")
             try:
-                revoke(m, body.owner)
+                revoke(m, caller.owner)
             except MandateError as exc:
                 raise HTTPException(403, str(exc))
         return {"revoked": True}
@@ -92,8 +122,10 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
                 "serial_start": receipt["serial_start"], "serial_end": receipt["serial_end"], "units_status": UNITS_STATUS, **anchor}
 
     @app.post("/v1/retire")
-    def retire(body: RetireIn):
-        payload_digest = digest(body.model_dump(exclude={"idempotency_key"}))
+    def retire(body: RetireIn, caller: KeyRecord = Depends(require_key)):
+        if body.account == "business" and caller.role not in ("business", "agent", "authority"):
+            raise HTTPException(403, "This key cannot retire for a business. Nothing was recorded.")
+        payload_digest = digest({**body.model_dump(exclude={"idempotency_key"}), "caller": caller.owner})
         with st.lock:
             prior = st.idem.get(body.idempotency_key)
             if prior is not None:
@@ -110,12 +142,12 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
                 if prior is not None:
                     receipt_id = prior[1]
                 else:
-                    receipt_id = _commit(body, payload_digest)
+                    receipt_id = _commit(body, payload_digest, caller)
         entry = st.outbox.wait_settled(receipt_id, st.anchor_wait_s)
         e = st.receipts.find(receipt_id)
         return _response(e["receipt"], e["hash"], entry.public())
 
-    def _commit(body: RetireIn, payload_digest: str) -> str:
+    def _commit(body: RetireIn, payload_digest: str, caller: KeyRecord) -> str:
         """Called under the lock. Retires on a copy, commits, enqueues the anchor. Returns the receipt id."""
         now = int(st.now())
         mandate = None
@@ -130,13 +162,13 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
             except MandateError as exc:
                 raise HTTPException(403, f"The mandate does not allow this: {exc.code}.")
         reg = copy.deepcopy(st.registry)            # work on a copy; commit only if everything succeeds
-        retiree = f"{body.account}:{body.agent or 'self'}"
+        retiree = f"{body.account}:{caller.owner}:{body.agent or 'self'}"
         lines_digest = digest({"lines": [l.model_dump() for l in body.lines]})
         try:
             ret = reg.retire(retiree, DEMO_BATCH, body.grams, body.target_iso3, lines_digest)
         except RegistryError as exc:
             raise HTTPException(STATUS_FOR.get(exc.code, 409), "Not enough pilot units left." if exc.code == "OVER_RETIREMENT" else str(exc))
-        receipt = {"ts": datetime.fromtimestamp(now, timezone.utc).isoformat(), "account": body.account,
+        receipt = {"ts": datetime.fromtimestamp(now, timezone.utc).isoformat(), "account": body.account, "owner": caller.owner,
                    "grams": body.grams, "clt": grams_to_clt(body.grams), "kind": body.kind, "label": body.label,
                    "lines_digest": lines_digest, "target_iso3": body.target_iso3, "project_id": DEMO_PROJECT, "batch_id": DEMO_BATCH,
                    "serial_start": ret.serial_start, "serial_end": ret.serial_end, "units": UNITS_STATUS}

@@ -2,7 +2,7 @@
 import { CONFIG } from '../config.js';
 import { settings } from '../core/settings.js';
 import { store } from '../core/store.js';
-import { ledger } from '../core/ledger.js';
+import { ledger, apiKey } from '../core/ledger.js';
 import { TIERS } from '../core/estimate.js';
 import { sheet, esc, gbp, toast } from './dom.js';
 
@@ -16,6 +16,9 @@ export function openSettings(onChange) {
       <label class="label" for="s-community">Simulated community total (tonnes)</label>
       <input id="s-community" type="number" min="0" step="any" value="${settings.communityTonnes()}" class="num">
       <small>Added to your own retirements so the Countries view shows progress during demos. Set to 0 to show your own retirements only.</small>
+      <label class="label" for="s-apikey">API key (login for the ledger)</label>
+      <input id="s-apikey" type="password" autocomplete="off" spellcheck="false" value="${esc(apiKey.get())}" placeholder="clk_...">
+      <small>Given to you once by whoever runs the API. It is a login, not a wallet: it signs nothing. Kept in this browser only.</small>
       <div class="row"><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn primary" type="submit">Save</button></div>
     </form>
     <h3 class="h3">About the figures</h3>
@@ -28,6 +31,7 @@ export function openSettings(onChange) {
       e.preventDefault();
       settings.setPricePerTonne(+root.querySelector('#s-price').value);
       settings.setCommunityTonnes(+root.querySelector('#s-community').value);
+      apiKey.set(root.querySelector('#s-apikey').value);
       close(); toast(`Saved. CLT price ${gbp(settings.pricePerTonne())} per tonne.`); onChange?.();
     });
     root.querySelector('#s-reset').addEventListener('click', () => { root.querySelector('#s-reset-confirm').hidden = false; });

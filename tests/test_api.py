@@ -2,14 +2,34 @@ import time
 
 import pytest
 from fastapi.testclient import TestClient
+from carbonledger.auth import ApiKeyStore
 from carbonledger.chain import ChainError, DryRunChain
 from carbonledger_api.main import DEMO_BATCH, DEMO_ISSUED_G, create_app
+from carbonledger_api.state import Limits
 
 CLOCK = {"t": 1_800_000_000}
+PEPPER = "test-pepper-" + "0" * 24
 
 
-def make(chain=None, **kw):
-    return TestClient(create_app(chain or DryRunChain(), now=lambda: CLOCK["t"], **kw))
+class Client(TestClient):
+    """A test client that carries a key. `as_(role, owner)` issues another key and returns a client for it."""
+    def __init__(self, app, keys, role="personal", owner="p1"):
+        super().__init__(app)
+        self.keys = keys
+        self.key, self.rec = keys.issue(role, owner)
+        self.headers["authorization"] = f"Bearer {self.key}"
+
+    def as_(self, role, owner):
+        return Client(self.app, self.keys, role, owner)
+
+    def anon(self):
+        c = TestClient(self.app)
+        return c
+
+
+def make(chain=None, role="personal", owner="p1", limits=None, **kw):
+    keys = ApiKeyStore(PEPPER)
+    return Client(create_app(chain or DryRunChain(), now=lambda: CLOCK["t"], keys=keys, limits=limits or Limits(), **kw), keys, role, owner)
 
 
 def body(**kw):
@@ -145,8 +165,8 @@ def test_lines_that_add_up_or_no_lines_are_accepted():
 
 
 def test_audit_chain_is_intact_then_detects_tampering():
-    app = create_app(DryRunChain(), now=lambda: CLOCK["t"])
-    c = TestClient(app)
+    c = make()
+    app = c.app
     for i in range(3):
         c.post("/v1/retire", json=body(idempotency_key=f"key-000000{i}"))
     v = c.get("/v1/audit/verify").json()
@@ -178,29 +198,29 @@ def test_receipts_can_be_looked_up():
 
 
 def test_mandate_caps_expiry_revocation_and_agent():
-    c = make()
-    mid = c.post("/v1/mandates", json={"owner": "acme", "agent": "agent-1", "cap_g": 1000, "ttl_seconds": 3600}).json()["mandate_id"]
+    c = make(role="business", owner="acme")
+    mid = c.post("/v1/mandates", json={"agent": "agent-1", "cap_g": 1000, "ttl_seconds": 3600}).json()["mandate_id"]
     ok = c.post("/v1/retire", json=body(grams=600, idempotency_key="key-1000001", mandate_id=mid, agent="agent-1", account="business"))
     assert ok.status_code == 200
     over = c.post("/v1/retire", json=body(grams=401, idempotency_key="key-1000002", mandate_id=mid, agent="agent-1", account="business"))
     assert over.status_code == 403 and "OVER_CAP" in over.json()["detail"]
     wrong = c.post("/v1/retire", json=body(grams=1, idempotency_key="key-1000003", mandate_id=mid, agent="agent-2", account="business"))
     assert wrong.status_code == 403 and "WRONG_AGENT" in wrong.json()["detail"]
-    assert c.post(f"/v1/mandates/{mid}/revoke", json={"owner": "mallory"}).status_code == 403
-    assert c.post(f"/v1/mandates/{mid}/revoke", json={"owner": "acme"}).status_code == 200
+    assert c.as_("business", "mallory").post(f"/v1/mandates/{mid}/revoke").status_code == 403
+    assert c.post(f"/v1/mandates/{mid}/revoke").status_code == 200
     gone = c.post("/v1/retire", json=body(grams=1, idempotency_key="key-1000004", mandate_id=mid, agent="agent-1", account="business"))
     assert gone.status_code == 403 and "REVOKED" in gone.json()["detail"]
     assert c.get("/v1/registry/summary").json()["retired_g"] == 600       # the refused ones changed nothing
     CLOCK["t"] += 10_000
-    mid2 = c.post("/v1/mandates", json={"owner": "acme", "agent": "agent-1", "cap_g": 10, "ttl_seconds": 5}).json()["mandate_id"]
+    mid2 = c.post("/v1/mandates", json={"agent": "agent-1", "cap_g": 10, "ttl_seconds": 5}).json()["mandate_id"]
     CLOCK["t"] += 6
     late = c.post("/v1/retire", json=body(grams=1, idempotency_key="key-1000005", mandate_id=mid2, agent="agent-1", account="business"))
     assert late.status_code == 403 and "EXPIRED" in late.json()["detail"]
 
 
 def test_a_mandate_needs_a_named_agent():
-    c = make()
-    mid = c.post("/v1/mandates", json={"owner": "acme", "agent": "agent-1", "cap_g": 1000, "ttl_seconds": 3600}).json()["mandate_id"]
+    c = make(role="business", owner="acme")
+    mid = c.post("/v1/mandates", json={"agent": "agent-1", "cap_g": 1000, "ttl_seconds": 3600}).json()["mandate_id"]
     assert c.post("/v1/retire", json=body(mandate_id=mid)).status_code == 422
     assert c.post("/v1/retire", json=body(mandate_id="mnd-nope", agent="a")).status_code == 404
 
@@ -213,3 +233,54 @@ def test_cors_is_closed_unless_an_origin_is_named():
     assert ok.headers.get("access-control-allow-origin") == "http://127.0.0.1:8080"
     bad = opened.options("/v1/retire", headers={"origin": "https://evil.example", "access-control-request-method": "POST"})
     assert "access-control-allow-origin" not in bad.headers
+
+
+# ---- login and limits (D2, T12) ----
+def test_every_write_needs_a_key_and_reads_stay_public():
+    c = make()
+    a = c.anon()
+    r = a.post("/v1/retire", json=body())
+    assert r.status_code == 401 and "NO_KEY" in r.json()["detail"] and "Nothing was recorded" in r.json()["detail"]
+    assert a.post("/v1/mandates", json={"agent": "x", "cap_g": 1, "ttl_seconds": 1}).status_code == 401
+    assert a.get("/health").status_code == 200 and a.get("/v1/audit/verify").status_code == 200
+    assert c.get("/v1/registry/summary").json()["retired_g"] == 0
+
+
+def test_wrong_and_revoked_keys_are_refused_by_name():
+    c = make()
+    bad = c.anon(); bad.headers["authorization"] = "Bearer clk_personal_" + "f" * 48
+    assert "BAD_KEY" in bad.post("/v1/retire", json=body()).json()["detail"]
+    c.keys.revoke(c.rec.key_id)
+    r = c.post("/v1/retire", json=body())
+    assert r.status_code == 401 and "REVOKED_KEY" in r.json()["detail"]
+
+
+def test_a_personal_key_cannot_write_a_mandate_or_retire_for_a_business():
+    c = make()
+    assert c.post("/v1/mandates", json={"agent": "x", "cap_g": 1, "ttl_seconds": 1}).status_code == 403
+    assert c.post("/v1/retire", json=body(account="business")).status_code == 403
+
+
+def test_rate_limit_is_per_key_and_says_so():
+    c = make(limits=Limits(rate_per_minute=60, burst=2))
+    assert c.post("/v1/retire", json=body(idempotency_key="key-0000001")).status_code == 200
+    assert c.post("/v1/retire", json=body(idempotency_key="key-0000002")).status_code == 200
+    r = c.post("/v1/retire", json=body(idempotency_key="key-0000003"))
+    assert r.status_code == 429 and r.headers["retry-after"] == "60" and "Nothing was recorded" in r.json()["detail"]
+    assert c.as_("personal", "p2").post("/v1/retire", json=body(idempotency_key="key-0000004")).status_code == 200
+    assert c.get("/v1/registry/summary").json()["retirements"] == 3
+
+
+def test_oversized_requests_are_refused_before_parsing():
+    c = make(limits=Limits(max_request_bytes=200))
+    r = c.post("/v1/retire", json=body(label="x" * 100))
+    assert r.status_code == 413 and "Nothing was recorded" in r.json()["detail"]
+
+
+def test_a_slow_request_answers_504_with_an_unconfirmed_outcome():
+    class Slow(DryRunChain):
+        def health(self):
+            time.sleep(0.3); return True
+    c = make(Slow(), limits=Limits(request_timeout_s=0.05))
+    r = c.post("/v1/retire", json=body())
+    assert r.status_code == 504 and "unconfirmed" in r.json()["detail"]

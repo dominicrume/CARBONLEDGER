@@ -4,6 +4,12 @@ import { test, expect } from '@playwright/test';
 
 const APP = process.env.APP_URL || 'http://127.0.0.1:8080';
 const API = process.env.API_URL || 'http://127.0.0.1:8000';
+const KEY = process.env.E2E_API_KEY || '';
+
+// The key is a login. The test puts it where Settings would: this browser's storage.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(k => { try { localStorage.setItem('carbonledger.apiKey', JSON.stringify(k)); } catch {} }, KEY);
+});
 
 test('retire pilot units from the demo shelf, see the receipt, verify the chain', async ({ page }) => {
   await page.goto(`${APP}/?ledger=solana-devnet&api=${encodeURIComponent(API)}#shop`);
@@ -43,6 +49,18 @@ test('no banned claim words on any screen', async ({ page }) => {
     const text = await page.locator('main').innerText();
     expect(text, tab).not.toMatch(/\boffsets?\b|carbon[ -]neutral|net[ -]zero|verified credits?(?! until)/i);
   }
+});
+
+test('without a key the ledger refuses and says nothing was recorded', async ({ page }) => {
+  await page.addInitScript(() => { try { localStorage.removeItem('carbonledger.apiKey'); } catch {} });
+  await page.goto(`${APP}/?ledger=solana-devnet&api=${encodeURIComponent(API)}#shop`);
+  await page.click('#shelf-btn');
+  await page.locator('.shelf-item').first().click();
+  await page.click('.sheet-body button[data-close]');
+  await page.click('#retire-basket');
+  await page.click('#confirm-retire');
+  await expect(page.locator('#retire-error')).toContainText('NO_KEY');
+  await expect(page.locator('#retire-error')).toContainText('Nothing was recorded');
 });
 
 test('when the API is down the app says so and records nothing', async ({ page }) => {

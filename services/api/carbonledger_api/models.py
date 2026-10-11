@@ -36,14 +36,9 @@ class RetireIn(BaseModel):
 
 
 class MandateIn(BaseModel):
+    """The owner is the caller's key, never a field: a stranger cannot write a mandate in someone else's name."""
     model_config = ConfigDict(extra="forbid", strict=True)
-    owner: str = Field(min_length=1, max_length=64)
     agent: str = Field(min_length=1, max_length=64)
     cap_g: int = Field(gt=0, le=MAX_RETIRE_G)
     ttl_seconds: int = Field(gt=0, le=31_536_000)
     allow_projects: Optional[List[str]] = Field(default=None, max_length=50)
-
-
-class RevokeIn(BaseModel):
-    model_config = ConfigDict(extra="forbid", strict=True)
-    owner: str = Field(min_length=1, max_length=64)
