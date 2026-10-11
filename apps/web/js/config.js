@@ -28,7 +28,7 @@ export const CONFIG = {
   // ?api=http://127.0.0.1:PORT may override the address for a local demo or test. Loopback only: a link can never
   // point the app at a stranger's server. The timeout sits above the API's worst case (two RPC calls at 15 s each).
   api: { baseUrl: loopbackOverride('api') || (servedByApi() ? globalThis.location.origin : 'http://127.0.0.1:8000'), timeoutMs: 40000 },
-  solana: { cluster: 'devnet', rpcUrl: 'https://api.devnet.solana.com', mint: null, explorer: 'https://explorer.solana.com/tx/{sig}?cluster=devnet' },
+  solana: { cluster: 'devnet', rpcUrl: 'https://api.devnet.solana.com', mint: null, programId: '3dGd2V1ykcmahyCQvhri4R2WhabT83hmm2WNz2r788Zj', explorer: 'https://explorer.solana.com/tx/{sig}?cluster=devnet' },
   // Live product lookup when the browser allows it; the built-in catalogue always works offline.
   openFoodFacts: { enabled: true, timeoutMs: 4000 },
   // Pack weight assumed when a product has none recorded (high on purpose).

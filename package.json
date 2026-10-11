@@ -2,13 +2,19 @@
   "name": "carbonledger-anchor-tests",
   "private": true,
   "description": "TypeScript harness that replays conformance/registry_vectors.json against the Anchor program (anchor test).",
-  "scripts": { "test": "ts-mocha -p ./tsconfig.json -t 1000000 programs/carbon_registry/tests/**/*.ts" },
+  "scripts": {
+    "build": "anchor build -- --arch v0",
+    "test": "ts-mocha -p ./tsconfig.json -t 300000 programs/carbon_registry/tests/**/*.ts",
+    "vectors": "npm run build && npm test"
+  },
   "devDependencies": {
     "@coral-xyz/anchor": "0.31.1",
     "@solana/web3.js": "1.98.0",
     "@types/chai": "4.3.20",
     "@types/mocha": "10.0.10",
+    "anchor-litesvm": "0.2.1",
     "chai": "4.5.0",
+    "litesvm": "1.6.0",
     "mocha": "11.1.0",
     "ts-mocha": "11.1.0",
     "typescript": "5.7.3"

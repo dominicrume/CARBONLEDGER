@@ -11,7 +11,7 @@
 // external credit (the anti double-count rule, which must be unique across parties) and each anchor.
 use anchor_lang::prelude::*;
 
-declare_id!("11111111111111111111111111111111"); // replace with the real id from `anchor keys list`
+declare_id!("3dGd2V1ykcmahyCQvhri4R2WhabT83hmm2WNz2r788Zj"); // replace with the real id from `anchor keys list`
 
 pub const MAX_VERIFIERS: usize = 3;
 
@@ -34,7 +34,8 @@ pub mod carbon_registry {
         let r = &mut ctx.accounts.registry;
         require!((r.verifier_count as usize) < MAX_VERIFIERS, RegistryError::TooManyVerifiers);
         require!(!r.verifiers.contains(&verifier), RegistryError::Exists);
-        r.verifiers[r.verifier_count as usize] = verifier;
+        let slot = r.verifier_count as usize;
+        r.verifiers[slot] = verifier;
         r.verifier_count += 1;
         Ok(())
     }

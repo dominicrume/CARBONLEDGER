@@ -46,6 +46,7 @@ One line per step: time (UTC), what changed, the test that proves it, anything s
 
 - 2026-10-11 D27: silent demo login at load and on a refused key (main.js, retire.js). Proof: e2e tests 'demo makes one for you' and 'revoked login is replaced'.
 - 2026-10-11 evening, stage 2 toolchain: Rust (rustup, minimal) and Anchor 0.31.1 via avm are installed in the user's home. The arm64 Solana CLI needs a Homebrew library at /opt/homebrew that this machine does not have (its Homebrew lives at /usr/local under Rosetta), so the x86_64 Agave 4.3.0 CLI is installed and runs under Rosetta; Anchor.toml pins that toolchain. Root Cargo.toml workspace, package.json and tsconfig.json added for the vector replay (programs/carbon_registry/tests/conformance.ts). First `anchor build` started.
+- 2026-10-11 night, stage 2: `anchor build` green after one borrow fix in add_verifier; program id 3dGd2V1ykcmahyCQvhri4R2WhabT83hmm2WNz2r788Zj set in lib.rs, Anchor.toml and config.js. The x86 solana-test-validator crashes under Rosetta (SIGILL in mulx_mont_sparse_256, BLST), so the vector replay runs in-process with LiteSVM via anchor-litesvm on a v0 build: 10 of 10 registry vectors pass plus a link-key test. CI anchor job runs `npm run vectors`. Devnet deploy waits on the funded key.
 
 ## Human gates
 - First push to GitHub: create the repository, push, watch the ci workflow. Set the repository variable RECHECK_ENABLED=1 and the secret DATABASE_URL_RECHECK (a read-only role) to turn on the nightly recheck.

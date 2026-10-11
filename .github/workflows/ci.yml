@@ -69,10 +69,12 @@ jobs:
         run: |
           cargo install --git https://github.com/coral-xyz/anchor avm --force
           avm install 0.31.1 && avm use 0.31.1
-      - name: build and replay the registry vectors
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with: { node-version: "22" }
+      - name: build (SBPF v0, the format the in-process runtime loads) and replay the registry vectors in LiteSVM
         run: |
-          anchor build
-          test -f programs/carbon_registry/tests/conformance.ts && anchor test || echo "conformance harness not written yet (Block 5)"
+          npm ci
+          npm run vectors
   audit:
     name: ai-code-quality-auditor (security density, complexity, duplication, scope drift)
     runs-on: ubuntu-latest

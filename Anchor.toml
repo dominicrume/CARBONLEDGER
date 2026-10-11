@@ -3,14 +3,18 @@ anchor_version = "0.31.1"
 solana_version = "4.3.0"     # the Agave CLI installed on this machine (x86 build under Rosetta); Anchor would otherwise fetch its own
 
 [programs.localnet]
-carbon_registry = "11111111111111111111111111111111"   # replace with `anchor keys list` after the first build
+carbon_registry = "3dGd2V1ykcmahyCQvhri4R2WhabT83hmm2WNz2r788Zj"   # replace with `anchor keys list` after the first build
 
 [programs.devnet]
-carbon_registry = "11111111111111111111111111111111"   # replace after `anchor deploy --provider.cluster devnet`
+carbon_registry = "3dGd2V1ykcmahyCQvhri4R2WhabT83hmm2WNz2r788Zj"   # replace after `anchor deploy --provider.cluster devnet`
 
 [provider]
-cluster = "devnet"
-wallet = "~/.config/solana/id.json"     # your own local devnet key. Never commit a key.
+cluster = "localnet"                                    # `anchor test` replays the vectors on a local validator
+wallet = "~/.config/solana/carbonledger-devnet.json"   # your own key, outside the repo. Devnet: `anchor deploy --provider.cluster devnet`
 
 [scripts]
-test = "npx ts-mocha -p ./tsconfig.json -t 1000000 programs/carbon_registry/tests/**/*.ts"
+test = "npm test"
+
+[test]
+startup_wait = 90000            # the x86 validator under Rosetta takes a while to start
+shutdown_wait = 5000

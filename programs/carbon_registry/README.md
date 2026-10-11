@@ -1,6 +1,6 @@
 # carbon_registry (Anchor program)
 
-STATUS: source written and revised 2026-10-11, NOT compiled and NOT tested. No Rust toolchain existed where it was written.
+STATUS 2026-10-11 night: COMPILES (Anchor 0.31.1, Agave 4.3.0 tools) and PASSES all 10 registry vectors, replayed in-process with LiteSVM (programs/carbon_registry/tests/conformance.ts). Program id 3dGd2V1ykcmahyCQvhri4R2WhabT83hmm2WNz2r788Zj (its keypair lives in target/deploy, outside git). NOT yet deployed to devnet (the hot key has no SOL yet) and NOT independently reviewed.
 
 Source of truth for behaviour: packages/core/carbonledger/registry.py (tested) and conformance/registry_vectors.json.
 
@@ -23,8 +23,15 @@ anchor). On-chain per entity: registry, project, batch, linked external credit, 
 Error names in `RegistryError` match the codes in the vectors. DUPLICATE_LINK and EXISTS surface as Anchor's
 "account already in use" error; tests/conformance.ts maps that error to those codes.
 
+## How to build and replay the vectors
+```
+npm ci
+npm run vectors        # anchor build -- --arch v0, then ts-mocha replays conformance/registry_vectors.json in LiteSVM
+```
+Why SBPF v0 and LiteSVM: the x86 test validator crashes under Rosetta on Apple silicon (SIGILL in BLST), and the
+Anchor LiteSVM bridge loads v0 programs. Devnet accepts v0 programs. Rebuild without `--arch v0` for a v3 deploy.
+
 ## To do, in order
-1. Install the toolchain (docs/ENVIRONMENT.md), `anchor build`, fix compile errors, `anchor keys list`, put the id in declare_id!, Anchor.toml and apps/web/js/config.js.
-2. `anchor test` runs tests/conformance.ts against every registry vector on a local validator.
-3. Deploy to devnet. Switch the API's chain client from the memo to `anchor_root` (chain.py, a second ChainClient).
-4. Independent review before any mainnet use. Authority and verifier keys belong in a multisig, not a laptop.
+1. Fund the hot key (docs/RUN-LOG.md), then `anchor deploy --provider.cluster devnet`.
+2. A second ChainClient in packages/core/carbonledger/chain.py that calls `anchor_root` instead of the memo, with the same confirm-before-claiming rule.
+3. Independent review before any mainnet use. Authority and verifier keys belong in a multisig, not a laptop.
