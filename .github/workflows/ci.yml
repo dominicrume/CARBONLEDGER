@@ -1,0 +1,23 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      # Pin these actions to commit hashes before relying on them (CHECK).
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: pip install -r requirements.txt pip-audit
+      - run: python -m pytest -q
+      - run: python rules/roots/check_roots.py .
+      - run: python scripts/scan_secrets.py .
+      - run: node --check apps/web/js/config.js && node --check apps/web/js/core/ledger.js && node --check apps/web/js/core/estimate.js
+      - name: estimator vectors are not stale
+        run: |
+          node scripts/export_estimator.mjs
+          git diff --exit-code conformance packages/core/carbonledger/data_factors.json
+      - run: pip-audit -r requirements.txt
+  # Add an Anchor job here once the program compiles (DEBT D3).

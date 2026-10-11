@@ -1,0 +1,18 @@
+[
+ {"name": "within cap, agent, project and time", "mandate": {"id": "m1", "owner": "acme", "agent": "agent-1", "cap_g": 1000, "expires_at": 2000, "allow_projects": ["p1"], "used_g": 0, "revoked": false},
+  "request": {"agent": "agent-1", "grams": 400, "project_id": "p1", "now": 1000}, "expect": "ok"},
+ {"name": "exactly the cap is allowed", "mandate": {"id": "m1", "owner": "acme", "agent": "agent-1", "cap_g": 1000, "expires_at": 2000, "allow_projects": null, "used_g": 600, "revoked": false},
+  "request": {"agent": "agent-1", "grams": 400, "project_id": "p9", "now": 1000}, "expect": "ok"},
+ {"name": "one gram over the cap", "mandate": {"id": "m1", "owner": "acme", "agent": "agent-1", "cap_g": 1000, "expires_at": 2000, "allow_projects": null, "used_g": 600, "revoked": false},
+  "request": {"agent": "agent-1", "grams": 401, "project_id": "p1", "now": 1000}, "expect": "OVER_CAP"},
+ {"name": "expired exactly at the expiry time", "mandate": {"id": "m1", "owner": "acme", "agent": "agent-1", "cap_g": 1000, "expires_at": 2000, "allow_projects": null, "used_g": 0, "revoked": false},
+  "request": {"agent": "agent-1", "grams": 1, "project_id": "p1", "now": 2000}, "expect": "EXPIRED"},
+ {"name": "revoked", "mandate": {"id": "m1", "owner": "acme", "agent": "agent-1", "cap_g": 1000, "expires_at": 2000, "allow_projects": null, "used_g": 0, "revoked": true},
+  "request": {"agent": "agent-1", "grams": 1, "project_id": "p1", "now": 1000}, "expect": "REVOKED"},
+ {"name": "a different agent", "mandate": {"id": "m1", "owner": "acme", "agent": "agent-1", "cap_g": 1000, "expires_at": 2000, "allow_projects": null, "used_g": 0, "revoked": false},
+  "request": {"agent": "agent-2", "grams": 1, "project_id": "p1", "now": 1000}, "expect": "WRONG_AGENT"},
+ {"name": "a project outside the allow-list", "mandate": {"id": "m1", "owner": "acme", "agent": "agent-1", "cap_g": 1000, "expires_at": 2000, "allow_projects": ["p1"], "used_g": 0, "revoked": false},
+  "request": {"agent": "agent-1", "grams": 1, "project_id": "p2", "now": 1000}, "expect": "PROJECT_NOT_ALLOWED"},
+ {"name": "zero grams", "mandate": {"id": "m1", "owner": "acme", "agent": "agent-1", "cap_g": 1000, "expires_at": 2000, "allow_projects": null, "used_g": 0, "revoked": false},
+  "request": {"agent": "agent-1", "grams": 0, "project_id": "p1", "now": 1000}, "expect": "BAD_AMOUNT"}
+]

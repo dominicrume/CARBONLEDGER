@@ -1,0 +1,14 @@
+[toolchain]
+
+[programs.localnet]
+carbon_registry = "11111111111111111111111111111111"   # replace with `anchor keys list` after the first build
+
+[programs.devnet]
+carbon_registry = "11111111111111111111111111111111"   # replace after `anchor deploy --provider.cluster devnet`
+
+[provider]
+cluster = "devnet"
+wallet = "~/.config/solana/id.json"     # your own local devnet key. Never commit a key.
+
+[scripts]
+test = "yarn ts-mocha -p ./tsconfig.json -t 1000000 programs/carbon_registry/tests/**/*.ts"

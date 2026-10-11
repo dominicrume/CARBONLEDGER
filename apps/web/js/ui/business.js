@@ -1,0 +1,130 @@
+// Business view: a company profile, a footprint calculator across six areas, business badges and league.
+import { ledger } from '../core/ledger.js';
+import { levelFor, badgeBook } from '../core/game.js';
+import { store } from '../core/store.js';
+import { ENERGY, GROUND, FLIGHT, FLIGHT_UPLIFT, TRAVEL_SOURCE } from '../data/travel.js';
+import { EXAMPLE_BUSINESSES } from '../data/partners.js';
+import { $, esc, mass } from './dom.js';
+import { confirmOffset, offsetButtonLabel, showReceipt } from './offset.js';
+import { badgeBookHTML } from './badges.js';
+import { skillTreeHTML, bindSkillTree } from './skilltree.js';
+import { levelHTML, historyHTML } from './me.js';
+
+// Typical one-way distances used when a business counts flights rather than routes (assumption, shown on screen).
+const FLIGHT_KM = { domestic: 500, short: 1800, long: 7000 };
+const car = id => GROUND.find(g => g.id === id);
+
+const AREAS = [
+  { id: 'energy', label: 'Energy' }, { id: 'fleet', label: 'Vehicles' }, { id: 'flights', label: 'Business flights' },
+  { id: 'commute', label: 'Staff commuting' }, { id: 'products', label: 'Products sold' }, { id: 'other', label: 'Other' },
+];
+
+const profile = () => store.get('biz', { name: '', employees: 10 });
+
+export function mountBusiness(root) {
+  const p = profile();
+  root.innerHTML = `
+    <section class="panel">
+      <p class="eyebrow">For organisations</p>
+      <h1 class="h1">Business</h1>
+      <p class="lead">Work out your organisation's footprint for a period, offset it, and earn business badges.</p>
+      <div class="grid2">
+        <div><label class="label" for="biz-name">Business name</label><input id="biz-name" maxlength="40" placeholder="Your business" value="${esc(p.name)}"></div>
+        <div><label class="label" for="biz-emp">Employees</label><input id="biz-emp" type="number" min="1" value="${p.employees}" class="num"></div>
+      </div>
+    </section>
+    <section class="panel">
+      <h2 class="h2">Footprint for a period</h2>
+      <form class="form" id="biz-form">
+        <label class="label" for="b-period">Period</label>
+        <select id="b-period"><option>This month</option><option>This quarter</option><option>This year</option></select>
+        <h3 class="h3">Energy</h3>
+        <div class="grid2">
+          <div><label class="label" for="b-elec">Electricity (kWh)</label><input id="b-elec" type="number" min="0" value="2400" class="num"></div>
+          <div><label class="label" for="b-gas">Gas (kWh)</label><input id="b-gas" type="number" min="0" value="3000" class="num"></div>
+        </div>
+        <h3 class="h3">Vehicles</h3>
+        <div class="grid2">
+          <div><label class="label" for="b-fleet">Fuel type</label><select id="b-fleet"><option value="diesel">Diesel</option><option value="petrol">Petrol</option><option value="ev">Electric</option></select></div>
+          <div><label class="label" for="b-fleetkm">Distance (km)</label><input id="b-fleetkm" type="number" min="0" value="1500" class="num"></div>
+        </div>
+        <h3 class="h3">Business flights (return trips)</h3>
+        <div class="grid3">
+          <div><label class="label" for="b-fdom">UK</label><input id="b-fdom" type="number" min="0" value="2" class="num small"></div>
+          <div><label class="label" for="b-fshort">Europe</label><input id="b-fshort" type="number" min="0" value="1" class="num small"></div>
+          <div><label class="label" for="b-flong">Long-haul</label><input id="b-flong" type="number" min="0" value="0" class="num small"></div>
+        </div>
+        <h3 class="h3">Staff commuting</h3>
+        <div class="grid2">
+          <div><label class="label" for="b-cmode">Main way staff travel</label><select id="b-cmode">${GROUND.map(g => `<option value="${g.id}">${esc(g.label)}</option>`).join('')}</select></div>
+          <div><label class="label" for="b-ckm">Round trip per person (km)</label><input id="b-ckm" type="number" min="0" value="20" class="num"></div>
+        </div>
+        <label class="label" for="b-days">Working days in the period</label><input id="b-days" type="number" min="0" value="20" class="num">
+        <h3 class="h3">Products sold</h3>
+        <div class="grid2">
+          <div><label class="label" for="b-pg">Footprint per unit (g)</label><input id="b-pg" type="number" min="0" value="0" class="num"></div>
+          <div><label class="label" for="b-pn">Units sold</label><input id="b-pn" type="number" min="0" value="0" class="num"></div>
+        </div>
+        <h3 class="h3">Other</h3>
+        <label class="label" for="b-other">Other emissions you have measured (kg CO₂e)</label><input id="b-other" type="number" min="0" value="0" class="num">
+      </form>
+      <div class="result" id="biz-result"></div>
+      <p class="note">Factors: ${esc(TRAVEL_SOURCE)}. Flights assume typical one-way distances of ${FLIGHT_KM.domestic} km (UK), ${FLIGHT_KM.short.toLocaleString('en-GB')} km (Europe) and ${FLIGHT_KM.long.toLocaleString('en-GB')} km (long-haul), economy class.</p>
+    </section>
+    <section class="panel" id="biz-level"></section>
+    <section class="panel"><h2 class="h2">Business skill tree</h2><div id="biz-skills"></div></section>
+    <section class="panel"><h2 class="h2">Business badges</h2><div id="biz-badges"></div></section>
+    <section class="panel"><h2 class="h2">Business league</h2><ol class="league" id="biz-league"></ol></section>
+    <section class="panel"><h2 class="h2">Business history</h2><ul class="history" id="biz-history"></ul></section>`;
+
+  const saveProfile = () => { store.set('biz', { name: $('#biz-name').value.trim(), employees: Math.max(1, +$('#biz-emp').value || 1) }); refreshBusiness(); };
+  $('#biz-name', root).addEventListener('change', saveProfile);
+  $('#biz-emp', root).addEventListener('change', saveProfile);
+  const form = $('#biz-form', root);
+  form.addEventListener('submit', e => e.preventDefault());
+  form.addEventListener('input', update);
+
+  function lines() {
+    const v = id => Math.max(0, +$(id).value || 0), out = [];
+    const add = (area, name, kg) => { if (kg > 0) out.push({ area, name, grams: Math.ceil(kg * 1000) }); };
+    add('energy', `Electricity ${v('#b-elec').toLocaleString('en-GB')} kWh`, v('#b-elec') * ENERGY.electricity);
+    add('energy', `Gas ${v('#b-gas').toLocaleString('en-GB')} kWh`, v('#b-gas') * ENERGY.gas);
+    const f = car($('#b-fleet').value);
+    add('fleet', `${f.label}s, ${v('#b-fleetkm').toLocaleString('en-GB')} km`, v('#b-fleetkm') * f.perKm);
+    for (const [band, id, name] of [['domestic', '#b-fdom', 'UK'], ['short', '#b-fshort', 'Europe'], ['long', '#b-flong', 'Long-haul']])
+      add('flights', `${v(id)} × ${name} return flight`, v(id) * 2 * FLIGHT_KM[band] * FLIGHT_UPLIFT * FLIGHT[band].economy);
+    const c = car($('#b-cmode').value), emp = profile().employees;
+    add('commute', `Commuting: ${emp} staff, ${v('#b-days')} days`, emp * v('#b-ckm') * v('#b-days') * c.perKm);
+    add('products', `${v('#b-pn').toLocaleString('en-GB')} units sold`, v('#b-pg') * v('#b-pn') / 1000);
+    add('other', 'Other measured emissions', v('#b-other'));
+    return out;
+  }
+
+  function update() {
+    const ls = lines(), total = ls.reduce((s, l) => s + l.grams, 0), out = $('#biz-result', root);
+    const byArea = AREAS.map(a => ({ ...a, g: ls.filter(l => l.area === a.id).reduce((s, l) => s + l.grams, 0) })).filter(a => a.g);
+    out.innerHTML = total ? `
+      <ul class="split">${byArea.map(a => `<li><span>${a.label}</span><span class="split-bar"><span style="width:${(a.g / total * 100).toFixed(1)}%"></span></span><span class="mono">${mass(a.g)}</span></li>`).join('')}</ul>
+      <div class="total-row"><span>${esc($('#b-period').value)}</span><strong>${mass(total)} CO₂e</strong></div>
+      <button class="btn primary block" id="offset-biz">${offsetButtonLabel(total)}</button>` : `<p class="muted">Enter some activity to see the footprint.</p>`;
+    $('#offset-biz', out)?.addEventListener('click', () => confirmOffset({
+      grams: total, kind: 'business', account: 'business', label: `${profile().name || 'Business'}: ${$('#b-period').value.toLowerCase()}`,
+      areas: [...new Set(ls.map(l => l.area))], lines: ls.map(({ name, grams }) => ({ name, grams })),
+    }, refreshBusiness));
+  }
+  update();
+  refreshBusiness();
+}
+
+export function refreshBusiness() {
+  const p = profile(), h = ledger.history('business'), total = h.reduce((s, r) => s + r.grams, 0);
+  $('#biz-level').innerHTML = levelHTML(total, levelFor(total, 50_000), '. Business levels are set 100 times higher than personal ones')
+    .replace('Your level', 'Business level');
+  $('#biz-skills').innerHTML = skillTreeHTML('business', { employees: p.employees }); bindSkillTree($('#biz-skills'), 'business', { employees: p.employees });
+  $('#biz-badges').innerHTML = badgeBookHTML(badgeBook('business', { employees: p.employees }));
+  const me = { name: `${p.name || 'Your business'} (you)`, grams: total, employees: p.employees, you: true };
+  $('#biz-league').innerHTML = [...EXAMPLE_BUSINESSES, me].sort((a, b) => b.grams - a.grams)
+    .map(b => `<li class="${b.you ? 'you' : ''}"><span>${esc(b.name)}<small>${b.employees} staff · ${mass(b.grams / b.employees)} per employee</small></span><span>${mass(b.grams)}</span></li>`).join('');
+  $('#biz-history').innerHTML = historyHTML(h);
+  $('#biz-history').querySelectorAll('[data-rec]').forEach(b => b.addEventListener('click', () => showReceipt(h.find(r => r.id === b.dataset.rec))));
+}

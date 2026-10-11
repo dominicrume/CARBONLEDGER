@@ -1,0 +1,52 @@
+CARBONLEDGER: START HERE
+
+WHAT THIS IS
+A build-ready repository for CarbonLedger on Solana. It holds your partner's app, a server that decides and records,
+a registry that cannot count a tonne twice, agent limits, and a hash-chained receipt log whose hash goes on Solana.
+Units are simulated pilot units until a verifier attests real ones. Nothing here claims otherwise.
+
+THE ANSWER TO "SHOULD WE FORK SOLANA"
+No, not now. Build on Solana. The hackathon's Solana track pays products that integrate with Solana, and a fork is not
+Solana. About 53 hours remained when this was written. A chain also does not fix the real problem, which is verifying
+real projects. The design stays portable so an own chain remains possible. Read docs/DECISION-CHAIN.md.
+
+OPEN IT IN VS CODE
+1. Unzip, then open the carbonledger folder in VS Code.
+2. Open a terminal in VS Code and run:
+     python -m venv .venv
+     source .venv/bin/activate        (on Windows: .venv\Scripts\activate)
+     pip install -r requirements.txt
+     python -m pytest
+   You should see all tests pass (203 when this was written).
+3. Run the two gates:
+     python rules/roots/check_roots.py .
+     python scripts/scan_secrets.py .
+4. Start the API:
+     PYTHONPATH=packages/core:services/api WEB_ORIGIN=http://127.0.0.1:8080 uvicorn carbonledger_api.main:create_app --factory --port 8000
+5. In a second terminal, serve the app:
+     cd apps/web && python -m http.server 8080
+   Then open http://127.0.0.1:8080
+6. To use the API from the app, open apps/web/js/config.js and change ledger: 'local' to ledger: 'solana-devnet'.
+   Until you set CHAIN_MODE=solana-devnet and a key, the API signs nothing and says "dry run" in every signature.
+
+TO RECORD A REAL DEVNET TRANSACTION
+Create a devnet key on your own machine with the Solana tools, fund it from the free faucet, and put its base58 secret
+in your own .env as SOLANA_SECRET_KEY_B58. Set CHAIN_MODE=solana-devnet. Never paste the key into a chat.
+That send path has never touched a network. Expect to fix small things on the first call (DEBT D14).
+
+WHAT IS REAL AND WHAT IS NOT
+Built and tested: estimator (matches your partner's app on 140 vectors), registry rules, agent mandates, receipt chain,
+API with rollback and idempotency, signed Solana memo built offline.
+Proven in Node against the live API: the web ledger change. Written, never run: sending to devnet, the web ledger in a browser,
+the Anchor program, the Postgres schema, CI.
+Not built: login, server recomputation of footprints, real verification, payments.
+The full list is in DEBT.md. The honest score is in ROOTS-SCORE.md.
+
+FIRST THING TO DO WITH CLAUDE CODE
+Open the root folder and say: "Read CLAUDE.md, then DEBT.md. Work on D5, then D1. Write the failing test first. Stop and
+tell me when python -m pytest and the two gates are green."
+Then in order: D14 (first devnet call), D13 (browser check), D10 (wording), D3 (Anchor build and the registry vectors).
+
+BEFORE YOU PUBLISH OR SUBMIT
+Settle who owns the baseline app and write it into the founders' agreement. Decide the licence with a patent attorney.
+Change the "Offset" wording. Read docs/HACKATHON-48H.md and tick its checklist.

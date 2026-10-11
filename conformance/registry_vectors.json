@@ -1,0 +1,61 @@
+[
+ {"name": "attest then issue then retire", "steps": [
+   {"op": "register_project", "args": ["auth", "p1", "GBR", "ARR-demo"], "expect": "ok"},
+   {"op": "attest_project", "args": ["ver", "p1", 1000], "expect": "ok"},
+   {"op": "issue_batch", "args": ["auth", "p1", "b1", 2026, 600], "expect": "ok"},
+   {"op": "retire", "args": ["alice", "b1", 250, "GBR", "m1"], "expect": "ok"}]},
+ {"name": "no issuance before attestation", "steps": [
+   {"op": "register_project", "args": ["auth", "p1", "GBR", "ARR-demo"], "expect": "ok"},
+   {"op": "issue_batch", "args": ["auth", "p1", "b1", 2026, 10], "expect": "NOT_ATTESTED"}]},
+ {"name": "a stranger cannot attest", "steps": [
+   {"op": "register_project", "args": ["auth", "p1", "GBR", "ARR-demo"], "expect": "ok"},
+   {"op": "attest_project", "args": ["mallory", "p1", 1000], "expect": "UNAUTHORISED"}]},
+ {"name": "a stranger cannot register or issue", "steps": [
+   {"op": "register_project", "args": ["mallory", "p1", "GBR", "ARR-demo"], "expect": "UNAUTHORISED"},
+   {"op": "register_project", "args": ["auth", "p1", "GBR", "ARR-demo"], "expect": "ok"},
+   {"op": "attest_project", "args": ["ver", "p1", 1000], "expect": "ok"},
+   {"op": "issue_batch", "args": ["mallory", "p1", "b1", 2026, 10], "expect": "UNAUTHORISED"}]},
+ {"name": "issuance cannot exceed attestation across batches", "steps": [
+   {"op": "register_project", "args": ["auth", "p1", "GBR", "ARR-demo"], "expect": "ok"},
+   {"op": "attest_project", "args": ["ver", "p1", 1000], "expect": "ok"},
+   {"op": "issue_batch", "args": ["auth", "p1", "b1", 2026, 700], "expect": "ok"},
+   {"op": "issue_batch", "args": ["auth", "p1", "b2", 2026, 301], "expect": "OVER_ISSUANCE"},
+   {"op": "issue_batch", "args": ["auth", "p1", "b2", 2026, 300], "expect": "ok"}]},
+ {"name": "cannot retire more than is left", "steps": [
+   {"op": "register_project", "args": ["auth", "p1", "GBR", "ARR-demo"], "expect": "ok"},
+   {"op": "attest_project", "args": ["ver", "p1", 100], "expect": "ok"},
+   {"op": "issue_batch", "args": ["auth", "p1", "b1", 2026, 100], "expect": "ok"},
+   {"op": "retire", "args": ["alice", "b1", 60, "GBR", "m1"], "expect": "ok"},
+   {"op": "retire", "args": ["bob", "b1", 41, "GBR", "m2"], "expect": "OVER_RETIREMENT"},
+   {"op": "retire", "args": ["bob", "b1", 40, "GBR", "m3"], "expect": "ok"},
+   {"op": "retire", "args": ["carol", "b1", 1, "GBR", "m4"], "expect": "OVER_RETIREMENT"}]},
+ {"name": "zero and negative amounts are refused", "steps": [
+   {"op": "register_project", "args": ["auth", "p1", "GBR", "ARR-demo"], "expect": "ok"},
+   {"op": "attest_project", "args": ["ver", "p1", 0], "expect": "BAD_AMOUNT"},
+   {"op": "attest_project", "args": ["ver", "p1", 100], "expect": "ok"},
+   {"op": "issue_batch", "args": ["auth", "p1", "b1", 2026, 0], "expect": "BAD_AMOUNT"},
+   {"op": "issue_batch", "args": ["auth", "p1", "b1", 2026, 100], "expect": "ok"},
+   {"op": "retire", "args": ["alice", "b1", 0, "GBR", "m1"], "expect": "BAD_AMOUNT"},
+   {"op": "retire", "args": ["alice", "b1", -5, "GBR", "m1"], "expect": "BAD_AMOUNT"}]},
+ {"name": "an external credit can be linked once only", "steps": [
+   {"op": "register_project", "args": ["auth", "p1", "GBR", "ARR-demo"], "expect": "ok"},
+   {"op": "attest_project", "args": ["ver", "p1", 100], "expect": "ok"},
+   {"op": "issue_batch", "args": ["auth", "p1", "b1", 2026, 50], "expect": "ok"},
+   {"op": "issue_batch", "args": ["auth", "p1", "b2", 2026, 50], "expect": "ok"},
+   {"op": "link_external", "args": ["auth", "RegistryX", "SER-0001", "b1"], "expect": "ok"},
+   {"op": "link_external", "args": ["auth", "RegistryX", "SER-0001", "b2"], "expect": "DUPLICATE_LINK"},
+   {"op": "link_external", "args": ["auth", "RegistryY", "SER-0001", "b2"], "expect": "ok"}]},
+ {"name": "a suspended project stops issuing and retiring", "steps": [
+   {"op": "register_project", "args": ["auth", "p1", "GBR", "ARR-demo"], "expect": "ok"},
+   {"op": "attest_project", "args": ["ver", "p1", 100], "expect": "ok"},
+   {"op": "issue_batch", "args": ["auth", "p1", "b1", 2026, 50], "expect": "ok"},
+   {"op": "suspend_project", "args": ["auth", "p1"], "expect": "ok"},
+   {"op": "retire", "args": ["alice", "b1", 10, "GBR", "m1"], "expect": "SUSPENDED"},
+   {"op": "issue_batch", "args": ["auth", "p1", "b2", 2026, 10], "expect": "SUSPENDED"}]},
+ {"name": "attestation cannot fall below what is issued", "steps": [
+   {"op": "register_project", "args": ["auth", "p1", "GBR", "ARR-demo"], "expect": "ok"},
+   {"op": "attest_project", "args": ["ver", "p1", 100], "expect": "ok"},
+   {"op": "issue_batch", "args": ["auth", "p1", "b1", 2026, 80], "expect": "ok"},
+   {"op": "attest_project", "args": ["ver", "p1", 79], "expect": "OVER_ISSUANCE"},
+   {"op": "attest_project", "args": ["ver", "p1", 150], "expect": "ok"}]}
+]

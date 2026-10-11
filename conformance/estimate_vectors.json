@@ -1,0 +1,2158 @@
+[
+ {
+  "product": {
+   "name": "v1",
+   "grams": null,
+   "hint": "beef",
+   "cats": []
+  },
+  "expected": {
+   "grams": 99480,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "beef 99.48 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v2",
+   "grams": 100,
+   "hint": "beef",
+   "cats": []
+  },
+  "expected": {
+   "grams": 9948,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "beef 99.48 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v3",
+   "grams": 750,
+   "hint": "beef",
+   "cats": []
+  },
+  "expected": {
+   "grams": 74610,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "beef 99.48 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v4",
+   "grams": null,
+   "hint": "lamb",
+   "cats": []
+  },
+  "expected": {
+   "grams": 39720,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "lamb 39.72 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v5",
+   "grams": 100,
+   "hint": "lamb",
+   "cats": []
+  },
+  "expected": {
+   "grams": 3972,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "lamb 39.72 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v6",
+   "grams": 750,
+   "hint": "lamb",
+   "cats": []
+  },
+  "expected": {
+   "grams": 29790,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "lamb 39.72 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v7",
+   "grams": null,
+   "hint": "instant-coffee",
+   "cats": []
+  },
+  "expected": {
+   "grams": 74179,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "coffee 74.18 kg CO₂e per kg (×2.6 for concentrate) (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v8",
+   "grams": 100,
+   "hint": "instant-coffee",
+   "cats": []
+  },
+  "expected": {
+   "grams": 7418,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "coffee 74.18 kg CO₂e per kg (×2.6 for concentrate)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v9",
+   "grams": 750,
+   "hint": "instant-coffee",
+   "cats": []
+  },
+  "expected": {
+   "grams": 55634,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "coffee 74.18 kg CO₂e per kg (×2.6 for concentrate)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v10",
+   "grams": null,
+   "hint": "coffee",
+   "cats": []
+  },
+  "expected": {
+   "grams": 28530,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "coffee 28.53 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v11",
+   "grams": 100,
+   "hint": "coffee",
+   "cats": []
+  },
+  "expected": {
+   "grams": 2853,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "coffee 28.53 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v12",
+   "grams": 750,
+   "hint": "coffee",
+   "cats": []
+  },
+  "expected": {
+   "grams": 21398,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "coffee 28.53 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v13",
+   "grams": null,
+   "hint": "chocolate",
+   "cats": []
+  },
+  "expected": {
+   "grams": 46650,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "chocolate 46.65 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v14",
+   "grams": 100,
+   "hint": "chocolate",
+   "cats": []
+  },
+  "expected": {
+   "grams": 4665,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "chocolate 46.65 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v15",
+   "grams": 750,
+   "hint": "chocolate",
+   "cats": []
+  },
+  "expected": {
+   "grams": 34988,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "chocolate 46.65 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v16",
+   "grams": null,
+   "hint": "prawns",
+   "cats": []
+  },
+  "expected": {
+   "grams": 26870,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "prawns 26.87 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v17",
+   "grams": 100,
+   "hint": "prawns",
+   "cats": []
+  },
+  "expected": {
+   "grams": 2688,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "prawns 26.87 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v18",
+   "grams": 750,
+   "hint": "prawns",
+   "cats": []
+  },
+  "expected": {
+   "grams": 20153,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "prawns 26.87 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v19",
+   "grams": null,
+   "hint": "salmon",
+   "cats": []
+  },
+  "expected": {
+   "grams": 13630,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "fish 13.63 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v20",
+   "grams": 100,
+   "hint": "salmon",
+   "cats": []
+  },
+  "expected": {
+   "grams": 1364,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "fish 13.63 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v21",
+   "grams": 750,
+   "hint": "salmon",
+   "cats": []
+  },
+  "expected": {
+   "grams": 10223,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "fish 13.63 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v22",
+   "grams": null,
+   "hint": "bacon",
+   "cats": []
+  },
+  "expected": {
+   "grams": 12310,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "pork 12.31 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v23",
+   "grams": 100,
+   "hint": "bacon",
+   "cats": []
+  },
+  "expected": {
+   "grams": 1231,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "pork 12.31 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v24",
+   "grams": 750,
+   "hint": "bacon",
+   "cats": []
+  },
+  "expected": {
+   "grams": 9233,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "pork 12.31 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v25",
+   "grams": null,
+   "hint": "chicken",
+   "cats": []
+  },
+  "expected": {
+   "grams": 9870,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "poultry 9.87 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v26",
+   "grams": 100,
+   "hint": "chicken",
+   "cats": []
+  },
+  "expected": {
+   "grams": 987,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "poultry 9.87 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v27",
+   "grams": 750,
+   "hint": "chicken",
+   "cats": []
+  },
+  "expected": {
+   "grams": 7403,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "poultry 9.87 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v28",
+   "grams": null,
+   "hint": "cheddar",
+   "cats": []
+  },
+  "expected": {
+   "grams": 23880,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "cheese 23.88 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v29",
+   "grams": 100,
+   "hint": "cheddar",
+   "cats": []
+  },
+  "expected": {
+   "grams": 2388,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "cheese 23.88 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v30",
+   "grams": 750,
+   "hint": "cheddar",
+   "cats": []
+  },
+  "expected": {
+   "grams": 17910,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "cheese 23.88 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v31",
+   "grams": null,
+   "hint": "yoghurt",
+   "cats": []
+  },
+  "expected": {
+   "grams": 3780,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "milk 3.78 kg CO₂e per kg (×1.2 for concentrate) (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v32",
+   "grams": 100,
+   "hint": "yoghurt",
+   "cats": []
+  },
+  "expected": {
+   "grams": 378,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "milk 3.78 kg CO₂e per kg (×1.2 for concentrate)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v33",
+   "grams": 750,
+   "hint": "yoghurt",
+   "cats": []
+  },
+  "expected": {
+   "grams": 2835,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "milk 3.78 kg CO₂e per kg (×1.2 for concentrate)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v34",
+   "grams": null,
+   "hint": "eggs",
+   "cats": []
+  },
+  "expected": {
+   "grams": 4670,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "eggs 4.67 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v35",
+   "grams": 100,
+   "hint": "eggs",
+   "cats": []
+  },
+  "expected": {
+   "grams": 467,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "eggs 4.67 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v36",
+   "grams": 750,
+   "hint": "eggs",
+   "cats": []
+  },
+  "expected": {
+   "grams": 3503,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "eggs 4.67 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v37",
+   "grams": null,
+   "hint": "olive-oil",
+   "cats": []
+  },
+  "expected": {
+   "grams": 5420,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "oliveOil 5.42 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v38",
+   "grams": 100,
+   "hint": "olive-oil",
+   "cats": []
+  },
+  "expected": {
+   "grams": 542,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "oliveOil 5.42 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v39",
+   "grams": 750,
+   "hint": "olive-oil",
+   "cats": []
+  },
+  "expected": {
+   "grams": 4065,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "oliveOil 5.42 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v40",
+   "grams": null,
+   "hint": "palm-oil",
+   "cats": []
+  },
+  "expected": {
+   "grams": 7320,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "palmOil 7.32 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v41",
+   "grams": 100,
+   "hint": "palm-oil",
+   "cats": []
+  },
+  "expected": {
+   "grams": 733,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "palmOil 7.32 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v42",
+   "grams": 750,
+   "hint": "palm-oil",
+   "cats": []
+  },
+  "expected": {
+   "grams": 5490,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "palmOil 7.32 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v43",
+   "grams": null,
+   "hint": "rice",
+   "cats": []
+  },
+  "expected": {
+   "grams": 4450,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "rice 4.45 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v44",
+   "grams": 100,
+   "hint": "rice",
+   "cats": []
+  },
+  "expected": {
+   "grams": 446,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "rice 4.45 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v45",
+   "grams": 750,
+   "hint": "rice",
+   "cats": []
+  },
+  "expected": {
+   "grams": 3338,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "rice 4.45 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v46",
+   "grams": null,
+   "hint": "sugar",
+   "cats": []
+  },
+  "expected": {
+   "grams": 3200,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "caneSugar 3.20 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v47",
+   "grams": 100,
+   "hint": "sugar",
+   "cats": []
+  },
+  "expected": {
+   "grams": 321,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "caneSugar 3.20 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v48",
+   "grams": 750,
+   "hint": "sugar",
+   "cats": []
+  },
+  "expected": {
+   "grams": 2401,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "caneSugar 3.20 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v49",
+   "grams": null,
+   "hint": "tofu",
+   "cats": []
+  },
+  "expected": {
+   "grams": 3160,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "tofu 3.16 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v50",
+   "grams": 100,
+   "hint": "tofu",
+   "cats": []
+  },
+  "expected": {
+   "grams": 317,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "tofu 3.16 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v51",
+   "grams": 750,
+   "hint": "tofu",
+   "cats": []
+  },
+  "expected": {
+   "grams": 2370,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "tofu 3.16 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v52",
+   "grams": null,
+   "hint": "peanut",
+   "cats": []
+  },
+  "expected": {
+   "grams": 3230,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "groundnuts 3.23 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v53",
+   "grams": 100,
+   "hint": "peanut",
+   "cats": []
+  },
+  "expected": {
+   "grams": 323,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "groundnuts 3.23 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v54",
+   "grams": 750,
+   "hint": "peanut",
+   "cats": []
+  },
+  "expected": {
+   "grams": 2423,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "groundnuts 3.23 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v55",
+   "grams": null,
+   "hint": "whole-milk",
+   "cats": []
+  },
+  "expected": {
+   "grams": 3150,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "milk 3.15 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v56",
+   "grams": 100,
+   "hint": "whole-milk",
+   "cats": []
+  },
+  "expected": {
+   "grams": 315,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "milk 3.15 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v57",
+   "grams": 750,
+   "hint": "whole-milk",
+   "cats": []
+  },
+  "expected": {
+   "grams": 2363,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "milk 3.15 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v58",
+   "grams": null,
+   "hint": "oat-based",
+   "cats": []
+  },
+  "expected": {
+   "grams": 980,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "plantMilk 0.98 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v59",
+   "grams": 100,
+   "hint": "oat-based",
+   "cats": []
+  },
+  "expected": {
+   "grams": 98,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "plantMilk 0.98 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v60",
+   "grams": 750,
+   "hint": "oat-based",
+   "cats": []
+  },
+  "expected": {
+   "grams": 735,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "plantMilk 0.98 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v61",
+   "grams": null,
+   "hint": "porridge",
+   "cats": []
+  },
+  "expected": {
+   "grams": 2480,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "oatmeal 2.48 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v62",
+   "grams": 100,
+   "hint": "porridge",
+   "cats": []
+  },
+  "expected": {
+   "grams": 248,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "oatmeal 2.48 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v63",
+   "grams": 750,
+   "hint": "porridge",
+   "cats": []
+  },
+  "expected": {
+   "grams": 1860,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "oatmeal 2.48 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v64",
+   "grams": null,
+   "hint": "wine",
+   "cats": []
+  },
+  "expected": {
+   "grams": 1790,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "wine 1.79 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v65",
+   "grams": 100,
+   "hint": "wine",
+   "cats": []
+  },
+  "expected": {
+   "grams": 180,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "wine 1.79 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v66",
+   "grams": 750,
+   "hint": "wine",
+   "cats": []
+  },
+  "expected": {
+   "grams": 1343,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "wine 1.79 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v67",
+   "grams": null,
+   "hint": "lager",
+   "cats": []
+  },
+  "expected": {
+   "grams": 1180,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "beer 1.18 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v68",
+   "grams": 100,
+   "hint": "lager",
+   "cats": []
+  },
+  "expected": {
+   "grams": 118,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "beer 1.18 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v69",
+   "grams": 750,
+   "hint": "lager",
+   "cats": []
+  },
+  "expected": {
+   "grams": 885,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "beer 1.18 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v70",
+   "grams": null,
+   "hint": "tomato",
+   "cats": []
+  },
+  "expected": {
+   "grams": 2090,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "tomatoes 2.09 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v71",
+   "grams": 100,
+   "hint": "tomato",
+   "cats": []
+  },
+  "expected": {
+   "grams": 209,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "tomatoes 2.09 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v72",
+   "grams": 750,
+   "hint": "tomato",
+   "cats": []
+  },
+  "expected": {
+   "grams": 1568,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "tomatoes 2.09 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v73",
+   "grams": null,
+   "hint": "baked-beans",
+   "cats": []
+  },
+  "expected": {
+   "grams": 1790,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "pulses 1.79 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v74",
+   "grams": 100,
+   "hint": "baked-beans",
+   "cats": []
+  },
+  "expected": {
+   "grams": 180,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "pulses 1.79 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v75",
+   "grams": 750,
+   "hint": "baked-beans",
+   "cats": []
+  },
+  "expected": {
+   "grams": 1343,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "pulses 1.79 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v76",
+   "grams": null,
+   "hint": "bread",
+   "cats": []
+  },
+  "expected": {
+   "grams": 1570,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "wheat 1.57 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v77",
+   "grams": 100,
+   "hint": "bread",
+   "cats": []
+  },
+  "expected": {
+   "grams": 158,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "wheat 1.57 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v78",
+   "grams": 750,
+   "hint": "bread",
+   "cats": []
+  },
+  "expected": {
+   "grams": 1178,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "wheat 1.57 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v79",
+   "grams": null,
+   "hint": "peas",
+   "cats": []
+  },
+  "expected": {
+   "grams": 980,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "peas 0.98 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v80",
+   "grams": 100,
+   "hint": "peas",
+   "cats": []
+  },
+  "expected": {
+   "grams": 98,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "peas 0.98 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v81",
+   "grams": 750,
+   "hint": "peas",
+   "cats": []
+  },
+  "expected": {
+   "grams": 735,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "peas 0.98 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v82",
+   "grams": null,
+   "hint": "banana",
+   "cats": []
+  },
+  "expected": {
+   "grams": 860,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "bananas 0.86 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v83",
+   "grams": 100,
+   "hint": "banana",
+   "cats": []
+  },
+  "expected": {
+   "grams": 86,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "bananas 0.86 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v84",
+   "grams": 750,
+   "hint": "banana",
+   "cats": []
+  },
+  "expected": {
+   "grams": 645,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "bananas 0.86 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v85",
+   "grams": null,
+   "hint": "apple-juice",
+   "cats": []
+  },
+  "expected": {
+   "grams": 860,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "apples 0.86 kg CO₂e per kg (×2 for concentrate) (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v86",
+   "grams": 100,
+   "hint": "apple-juice",
+   "cats": []
+  },
+  "expected": {
+   "grams": 86,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "apples 0.86 kg CO₂e per kg (×2 for concentrate)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v87",
+   "grams": 750,
+   "hint": "apple-juice",
+   "cats": []
+  },
+  "expected": {
+   "grams": 645,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "apples 0.86 kg CO₂e per kg (×2 for concentrate)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v88",
+   "grams": null,
+   "hint": "apple",
+   "cats": []
+  },
+  "expected": {
+   "grams": 430,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "apples 0.43 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v89",
+   "grams": 100,
+   "hint": "apple",
+   "cats": []
+  },
+  "expected": {
+   "grams": 43,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "apples 0.43 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v90",
+   "grams": 750,
+   "hint": "apple",
+   "cats": []
+  },
+  "expected": {
+   "grams": 323,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "apples 0.43 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v91",
+   "grams": null,
+   "hint": "orange-juice",
+   "cats": []
+  },
+  "expected": {
+   "grams": 780,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "citrus 0.78 kg CO₂e per kg (×2 for concentrate) (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v92",
+   "grams": 100,
+   "hint": "orange-juice",
+   "cats": []
+  },
+  "expected": {
+   "grams": 79,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "citrus 0.78 kg CO₂e per kg (×2 for concentrate)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v93",
+   "grams": 750,
+   "hint": "orange-juice",
+   "cats": []
+  },
+  "expected": {
+   "grams": 585,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "citrus 0.78 kg CO₂e per kg (×2 for concentrate)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v94",
+   "grams": null,
+   "hint": "lemon",
+   "cats": []
+  },
+  "expected": {
+   "grams": 390,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "citrus 0.39 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v95",
+   "grams": 100,
+   "hint": "lemon",
+   "cats": []
+  },
+  "expected": {
+   "grams": 40,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "citrus 0.39 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v96",
+   "grams": 750,
+   "hint": "lemon",
+   "cats": []
+  },
+  "expected": {
+   "grams": 293,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "citrus 0.39 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v97",
+   "grams": null,
+   "hint": "grape",
+   "cats": []
+  },
+  "expected": {
+   "grams": 1530,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "berries 1.53 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v98",
+   "grams": 100,
+   "hint": "grape",
+   "cats": []
+  },
+  "expected": {
+   "grams": 154,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "berries 1.53 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v99",
+   "grams": 750,
+   "hint": "grape",
+   "cats": []
+  },
+  "expected": {
+   "grams": 1148,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "berries 1.53 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v100",
+   "grams": null,
+   "hint": "crisps",
+   "cats": []
+  },
+  "expected": {
+   "grams": 460,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "potatoes 0.46 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v101",
+   "grams": 100,
+   "hint": "crisps",
+   "cats": []
+  },
+  "expected": {
+   "grams": 47,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "potatoes 0.46 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v102",
+   "grams": 750,
+   "hint": "crisps",
+   "cats": []
+  },
+  "expected": {
+   "grams": 346,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "potatoes 0.46 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "v103",
+   "grams": null,
+   "hint": "unknown-thing",
+   "cats": []
+  },
+  "expected": {
+   "grams": 6250,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Other food: 5 kg per kg (pack weight unknown, 1000 g assumed), plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "v104",
+   "grams": 100,
+   "hint": "unknown-thing",
+   "cats": []
+  },
+  "expected": {
+   "grams": 625,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Other food: 5 kg per kg, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "v105",
+   "grams": 750,
+   "hint": "unknown-thing",
+   "cats": []
+  },
+  "expected": {
+   "grams": 4688,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Other food: 5 kg per kg, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "a106",
+   "grams": 200,
+   "hint": "beef",
+   "cats": [],
+   "agribalyseKgPerKg": 5
+  },
+  "expected": {
+   "grams": 19896,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "beef 99.48 kg CO₂e per kg",
+   "alternatives": 2
+  }
+ },
+ {
+  "product": {
+   "name": "a107",
+   "grams": 200,
+   "hint": "beef",
+   "cats": [],
+   "agribalyseKgPerKg": 150
+  },
+  "expected": {
+   "grams": 30000,
+   "tier": 2,
+   "source": "Agribalyse (French government environmental database)",
+   "detail": "150.00 kg CO₂e per kg",
+   "alternatives": 2
+  }
+ },
+ {
+  "product": {
+   "name": "a108",
+   "grams": 200,
+   "hint": "chocolate",
+   "cats": [],
+   "agribalyseKgPerKg": 2
+  },
+  "expected": {
+   "grams": 9330,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "chocolate 46.65 kg CO₂e per kg",
+   "alternatives": 2
+  }
+ },
+ {
+  "product": {
+   "name": "a109",
+   "grams": 200,
+   "hint": "instant-coffee",
+   "cats": [],
+   "agribalyseKgPerKg": 100
+  },
+  "expected": {
+   "grams": 14836,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "coffee 74.18 kg CO₂e per kg (×2.6 for concentrate)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "a110",
+   "grams": 200,
+   "hint": "tea-bags",
+   "cats": [],
+   "agribalyseKgPerKg": 40
+  },
+  "expected": {
+   "grams": 2500,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Tea or coffee (dry, unbrewed): 10 kg per kg, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "a111",
+   "grams": 200,
+   "hint": "rice",
+   "cats": [],
+   "agribalyseKgPerKg": 9
+  },
+  "expected": {
+   "grams": 1800,
+   "tier": 2,
+   "source": "Agribalyse (French government environmental database)",
+   "detail": "9.00 kg CO₂e per kg",
+   "alternatives": 2
+  }
+ },
+ {
+  "product": {
+   "name": "c112",
+   "grams": 330,
+   "hint": "",
+   "cats": [
+    "beverages",
+    "sodas"
+   ]
+  },
+  "expected": {
+   "grams": 619,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Soft drinks, juice, water: 1.5 kg per kg, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "c113",
+   "grams": 330,
+   "hint": "",
+   "cats": [
+    "meat",
+    "poultry"
+   ]
+  },
+  "expected": {
+   "grams": 3258,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "poultry 9.87 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "c114",
+   "grams": 330,
+   "hint": "",
+   "cats": [
+    "dairy"
+   ]
+  },
+  "expected": {
+   "grams": 4950,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Dairy (cheese, butter, cream): 12 kg per kg, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "c115",
+   "grams": 330,
+   "hint": "",
+   "cats": [
+    "snacks"
+   ]
+  },
+  "expected": {
+   "grams": 2475,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Sweets, snacks, desserts: 6 kg per kg, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "c116",
+   "grams": 330,
+   "hint": "",
+   "cats": [
+    "pizza"
+   ]
+  },
+  "expected": {
+   "grams": 2475,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Ready meal: 6 kg per kg, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "c117",
+   "grams": 330,
+   "hint": "",
+   "cats": [
+    "bread",
+    "cereal"
+   ]
+  },
+  "expected": {
+   "grams": 819,
+   "tier": 1,
+   "source": "Poore & Nemecek (2018), Science — global supply-chain study",
+   "detail": "oatmeal 2.48 kg CO₂e per kg",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "c118",
+   "grams": 330,
+   "hint": "",
+   "cats": [
+    "teas"
+   ]
+  },
+  "expected": {
+   "grams": 4125,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Tea or coffee (dry, unbrewed): 10 kg per kg, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "c119",
+   "grams": 330,
+   "hint": "",
+   "cats": []
+  },
+  "expected": {
+   "grams": 2063,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Other food: 5 kg per kg, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "g120",
+   "grams": 450,
+   "hint": "",
+   "cats": [],
+   "groupId": "meat"
+  },
+  "expected": {
+   "grams": 16875,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Meat or fish: 30 kg per kg, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "g121",
+   "grams": 450,
+   "hint": "",
+   "cats": [],
+   "groupId": "dairy"
+  },
+  "expected": {
+   "grams": 6750,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Dairy (cheese, butter, cream): 12 kg per kg, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "g122",
+   "grams": 450,
+   "hint": "",
+   "cats": [],
+   "groupId": "sweets"
+  },
+  "expected": {
+   "grams": 3375,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Sweets, snacks, desserts: 6 kg per kg, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "g123",
+   "grams": 450,
+   "hint": "",
+   "cats": [],
+   "groupId": "ready"
+  },
+  "expected": {
+   "grams": 3375,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Ready meal: 6 kg per kg, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "g124",
+   "grams": 450,
+   "hint": "",
+   "cats": [],
+   "groupId": "plant"
+  },
+  "expected": {
+   "grams": 1125,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Fruit, veg, bread, grains: 2 kg per kg, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "g125",
+   "grams": 450,
+   "hint": "",
+   "cats": [],
+   "groupId": "drinks"
+  },
+  "expected": {
+   "grams": 844,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Soft drinks, juice, water: 1.5 kg per kg, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "g126",
+   "grams": 450,
+   "hint": "",
+   "cats": [],
+   "groupId": "tea"
+  },
+  "expected": {
+   "grams": 5625,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Tea or coffee (dry, unbrewed): 10 kg per kg, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "g127",
+   "grams": 450,
+   "hint": "",
+   "cats": [],
+   "groupId": "food"
+  },
+  "expected": {
+   "grams": 2813,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Other food: 5 kg per kg, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "g128",
+   "grams": 450,
+   "hint": "",
+   "cats": [],
+   "groupId": "toiletries"
+  },
+  "expected": {
+   "grams": 1000,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Toiletries (shampoo, soap, toothpaste): 0.8 kg per item, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "g129",
+   "grams": 450,
+   "hint": "",
+   "cats": [],
+   "groupId": "cleaning"
+  },
+  "expected": {
+   "grams": 1500,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Cleaning products: 1.2 kg per item, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "g130",
+   "grams": 450,
+   "hint": "",
+   "cats": [],
+   "groupId": "paper"
+  },
+  "expected": {
+   "grams": 1875,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Toilet roll, kitchen roll, tissues: 1.5 kg per item, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "g131",
+   "grams": 450,
+   "hint": "",
+   "cats": [],
+   "groupId": "clothing"
+  },
+  "expected": {
+   "grams": 12500,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Clothing item: 10 kg per item, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "g132",
+   "grams": 450,
+   "hint": "",
+   "cats": [],
+   "groupId": "electrical"
+  },
+  "expected": {
+   "grams": 31250,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Small electrical item: 25 kg per item, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "g133",
+   "grams": 450,
+   "hint": "",
+   "cats": [],
+   "groupId": "other"
+  },
+  "expected": {
+   "grams": 3750,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Other household item: 3 kg per item, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "h-agri-negative",
+   "grams": 100,
+   "hint": "",
+   "cats": [
+    "en:something"
+   ],
+   "agribalyseKgPerKg": -5
+  },
+  "expected": {
+   "grams": 625,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Other food: 5 kg per kg, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "h-agri-huge",
+   "grams": 100,
+   "hint": "",
+   "cats": [
+    "en:something"
+   ],
+   "agribalyseKgPerKg": 1000000000
+  },
+  "expected": {
+   "grams": 625,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Other food: 5 kg per kg, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "h-agri-string",
+   "grams": 100,
+   "hint": "",
+   "cats": [
+    "en:something"
+   ],
+   "agribalyseKgPerKg": "7"
+  },
+  "expected": {
+   "grams": 625,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Other food: 5 kg per kg, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "h-agri-zero",
+   "grams": 100,
+   "hint": "",
+   "cats": [
+    "en:something"
+   ],
+   "agribalyseKgPerKg": 0
+  },
+  "expected": {
+   "grams": 625,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Other food: 5 kg per kg, plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "h-grams-negative",
+   "grams": -50,
+   "hint": "",
+   "cats": [
+    "en:something"
+   ],
+   "agribalyseKgPerKg": 3
+  },
+  "expected": {
+   "grams": 3000,
+   "tier": 2,
+   "source": "Agribalyse (French government environmental database)",
+   "detail": "3.00 kg CO₂e per kg (pack weight unknown, 1000 g assumed)",
+   "alternatives": 1
+  }
+ },
+ {
+  "product": {
+   "name": "h-grams-zero",
+   "grams": 0,
+   "hint": "",
+   "cats": [
+    "en:something"
+   ]
+  },
+  "expected": {
+   "grams": 6250,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Other food: 5 kg per kg (pack weight unknown, 1000 g assumed), plus 25% margin",
+   "alternatives": 0
+  }
+ },
+ {
+  "product": {
+   "name": "h-grams-string",
+   "grams": "100",
+   "hint": "",
+   "cats": [
+    "en:something"
+   ]
+  },
+  "expected": {
+   "grams": 6250,
+   "tier": 4,
+   "source": "CarbonLedger category estimate",
+   "detail": "Other food: 5 kg per kg (pack weight unknown, 1000 g assumed), plus 25% margin",
+   "alternatives": 0
+  }
+ }
+]

@@ -1,0 +1,376 @@
+{
+ "PN_SOURCE": "Poore & Nemecek (2018), Science — global supply-chain study",
+ "FOOD_FACTORS": {
+  "beef": 99.48,
+  "lamb": 39.72,
+  "cheese": 23.88,
+  "coffee": 28.53,
+  "chocolate": 46.65,
+  "prawns": 26.87,
+  "fish": 13.63,
+  "pork": 12.31,
+  "poultry": 9.87,
+  "palmOil": 7.32,
+  "oliveOil": 5.42,
+  "soyOil": 6.32,
+  "rapeseedOil": 3.77,
+  "sunflowerOil": 3.6,
+  "eggs": 4.67,
+  "rice": 4.45,
+  "caneSugar": 3.2,
+  "tofu": 3.16,
+  "milk": 3.15,
+  "groundnuts": 3.23,
+  "oatmeal": 2.48,
+  "tomatoes": 2.09,
+  "pulses": 1.79,
+  "wine": 1.79,
+  "wheat": 1.57,
+  "berries": 1.53,
+  "beer": 1.18,
+  "plantMilk": 0.98,
+  "peas": 0.98,
+  "bananas": 0.86,
+  "brassicas": 0.51,
+  "potatoes": 0.46,
+  "apples": 0.43,
+  "citrus": 0.39,
+  "rootVeg": 0.43
+ },
+ "FOOD_RULES": [
+  {
+   "src": "oat-based|plant-based-milk|soy-milk|almond-milk|plant-based-drink",
+   "flags": "",
+   "key": "plantMilk",
+   "x": null
+  },
+  {
+   "src": "beef|veal",
+   "flags": "",
+   "key": "beef",
+   "x": null
+  },
+  {
+   "src": "lamb|mutton",
+   "flags": "",
+   "key": "lamb",
+   "x": null
+  },
+  {
+   "src": "instant-coffee|soluble",
+   "flags": "",
+   "key": "coffee",
+   "x": 2.6
+  },
+  {
+   "src": "coffee",
+   "flags": "",
+   "key": "coffee",
+   "x": null
+  },
+  {
+   "src": "chocolate|cocoa",
+   "flags": "",
+   "key": "chocolate",
+   "x": null
+  },
+  {
+   "src": "prawn|shrimp",
+   "flags": "",
+   "key": "prawns",
+   "x": null
+  },
+  {
+   "src": "salmon|fish|tuna|cod|seafood",
+   "flags": "",
+   "key": "fish",
+   "x": null
+  },
+  {
+   "src": "bacon|pork|ham|sausage",
+   "flags": "",
+   "key": "pork",
+   "x": null
+  },
+  {
+   "src": "chicken|poultry|turkey",
+   "flags": "",
+   "key": "poultry",
+   "x": null
+  },
+  {
+   "src": "cheese|cheddar",
+   "flags": "",
+   "key": "cheese",
+   "x": null
+  },
+  {
+   "src": "yogurt|yoghurt|skyr",
+   "flags": "",
+   "key": "milk",
+   "x": 1.2
+  },
+  {
+   "src": "\\beggs?\\b|en:eggs",
+   "flags": "",
+   "key": "eggs",
+   "x": null
+  },
+  {
+   "src": "olive-oil",
+   "flags": "",
+   "key": "oliveOil",
+   "x": null
+  },
+  {
+   "src": "palm-oil",
+   "flags": "",
+   "key": "palmOil",
+   "x": null
+  },
+  {
+   "src": "rapeseed|canola",
+   "flags": "",
+   "key": "rapeseedOil",
+   "x": null
+  },
+  {
+   "src": "sunflower-oil",
+   "flags": "",
+   "key": "sunflowerOil",
+   "x": null
+  },
+  {
+   "src": "rice",
+   "flags": "",
+   "key": "rice",
+   "x": null
+  },
+  {
+   "src": "sugar",
+   "flags": "",
+   "key": "caneSugar",
+   "x": null
+  },
+  {
+   "src": "tofu",
+   "flags": "",
+   "key": "tofu",
+   "x": null
+  },
+  {
+   "src": "peanut|groundnut",
+   "flags": "",
+   "key": "groundnuts",
+   "x": null
+  },
+  {
+   "src": "\\bmilks?\\b|semi-skimmed|whole-milk|skimmed-milk",
+   "flags": "",
+   "key": "milk",
+   "x": null
+  },
+  {
+   "src": "oat|porridge|cereal|muesli",
+   "flags": "",
+   "key": "oatmeal",
+   "x": null
+  },
+  {
+   "src": "wine",
+   "flags": "",
+   "key": "wine",
+   "x": null
+  },
+  {
+   "src": "beer|lager|\\bales?\\b",
+   "flags": "",
+   "key": "beer",
+   "x": null
+  },
+  {
+   "src": "tomato",
+   "flags": "",
+   "key": "tomatoes",
+   "x": null
+  },
+  {
+   "src": "baked-beans|pulse|lentil|chickpea|beans",
+   "flags": "",
+   "key": "pulses",
+   "x": null
+  },
+  {
+   "src": "bread|pasta|lasagne|wheat|flour|biscuit",
+   "flags": "",
+   "key": "wheat",
+   "x": null
+  },
+  {
+   "src": "\\bpeas\\b|green-peas|frozen-peas",
+   "flags": "",
+   "key": "peas",
+   "x": null
+  },
+  {
+   "src": "banana",
+   "flags": "",
+   "key": "bananas",
+   "x": null
+  },
+  {
+   "src": "apple-juice",
+   "flags": "",
+   "key": "apples",
+   "x": 2
+  },
+  {
+   "src": "apple",
+   "flags": "",
+   "key": "apples",
+   "x": null
+  },
+  {
+   "src": "orange-juice|citrus-juice",
+   "flags": "",
+   "key": "citrus",
+   "x": 2
+  },
+  {
+   "src": "orange|citrus|lemon",
+   "flags": "",
+   "key": "citrus",
+   "x": null
+  },
+  {
+   "src": "berr|grape",
+   "flags": "",
+   "key": "berries",
+   "x": null
+  },
+  {
+   "src": "potato|crisps|chips|hash-brown",
+   "flags": "",
+   "key": "potatoes",
+   "x": null
+  }
+ ],
+ "ESTIMATE_GROUPS": [
+  {
+   "id": "meat",
+   "label": "Meat or fish",
+   "perKg": 30
+  },
+  {
+   "id": "dairy",
+   "label": "Dairy (cheese, butter, cream)",
+   "perKg": 12
+  },
+  {
+   "id": "sweets",
+   "label": "Sweets, snacks, desserts",
+   "perKg": 6
+  },
+  {
+   "id": "ready",
+   "label": "Ready meal",
+   "perKg": 6
+  },
+  {
+   "id": "plant",
+   "label": "Fruit, veg, bread, grains",
+   "perKg": 2
+  },
+  {
+   "id": "drinks",
+   "label": "Soft drinks, juice, water",
+   "perKg": 1.5
+  },
+  {
+   "id": "tea",
+   "label": "Tea or coffee (dry, unbrewed)",
+   "perKg": 10
+  },
+  {
+   "id": "food",
+   "label": "Other food",
+   "perKg": 5
+  },
+  {
+   "id": "toiletries",
+   "label": "Toiletries (shampoo, soap, toothpaste)",
+   "perItem": 0.8
+  },
+  {
+   "id": "cleaning",
+   "label": "Cleaning products",
+   "perItem": 1.2
+  },
+  {
+   "id": "paper",
+   "label": "Toilet roll, kitchen roll, tissues",
+   "perItem": 1.5
+  },
+  {
+   "id": "clothing",
+   "label": "Clothing item",
+   "perItem": 10
+  },
+  {
+   "id": "electrical",
+   "label": "Small electrical item",
+   "perItem": 25
+  },
+  {
+   "id": "other",
+   "label": "Other household item",
+   "perItem": 3
+  }
+ ],
+ "GROUP_RULES": [
+  {
+   "src": "\\btea|teas\\b|tea-bags|infusion",
+   "flags": "",
+   "id": "tea"
+  },
+  {
+   "src": "beverage|drink|soda|cola|water|juice",
+   "flags": "",
+   "id": "drinks"
+  },
+  {
+   "src": "meat|fish|poultry",
+   "flags": "",
+   "id": "meat"
+  },
+  {
+   "src": "dairy|butter|cream",
+   "flags": "",
+   "id": "dairy"
+  },
+  {
+   "src": "sweet|snack|confection|biscuit|cake|dessert",
+   "flags": "",
+   "id": "sweets"
+  },
+  {
+   "src": "meal|pizza",
+   "flags": "",
+   "id": "ready"
+  },
+  {
+   "src": "fruit|vegetable|bread|cereal|grain",
+   "flags": "",
+   "id": "plant"
+  }
+ ],
+ "AGRIBALYSE_SKIP": {
+  "src": "\\btea|teas\\b|tea-bags|infusion|instant-coffee|soluble",
+  "flags": ""
+ },
+ "CONFIG": {
+  "unknownWeightGrams": 1000,
+  "estimateUplift": 1.25,
+  "maxAgribalyseKgPerKg": 1000
+ }
+}
