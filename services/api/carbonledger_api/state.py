@@ -28,7 +28,7 @@ class Limits:
                  agent_sig_max_age_s: int = 120, demo_keys: bool = False, demo_keys_per_hour: int = 10):
         self.rate_per_minute, self.burst, self.max_request_bytes, self.request_timeout_s = rate_per_minute, burst, max_request_bytes, request_timeout_s
         self.agent_sig_max_age_s = agent_sig_max_age_s
-        # Self-serve demo logins (DEMO_KEYS=1, only with APP_ENV=demo): anyone with the link can mint a personal or
+        # Self-serve demo logins (DEMO_LOGINS=1, only with APP_ENV=demo): anyone with the link can mint a personal or
         # business key for simulated units, a few per hour per address. Never on for real units.
         self.demo_keys, self.demo_keys_per_hour = demo_keys, demo_keys_per_hour
 
@@ -37,7 +37,7 @@ class Limits:
         e = os.environ.get
         return cls(int(e("RATE_LIMIT_PER_MINUTE", "60")), int(e("RATE_LIMIT_BURST", "20")), int(e("MAX_REQUEST_BYTES", "65536")),
                    float(e("REQUEST_TIMEOUT_SECONDS", "40")), int(e("AGENT_SIGNATURE_MAX_AGE_SECONDS", "120")),
-                   e("DEMO_KEYS", "0") == "1" and e("APP_ENV", "") == "demo", int(e("DEMO_KEYS_PER_HOUR", "10")))
+                   e("DEMO_LOGINS", "0") == "1" and e("APP_ENV", "") == "demo", int(e("DEMO_LOGINS_PER_HOUR", "10")))
 
 
 class State:

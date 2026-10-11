@@ -8,7 +8,8 @@ export E2E_API_KEY="clk_personal_e2e$(date +%s)000000000000000000000000000000"
 export API_DEMO_KEY="$E2E_API_KEY"
 export E2E_BUSINESS_KEY="clk_business_e2e$(date +%s)000000000000000000000000000000"
 export API_DEMO_BUSINESS_KEY="$E2E_BUSINESS_KEY"
-export PYTHONPATH=packages/core:services/api APP_ENV=demo DEMO_KEYS=1 CHAIN_MODE=dry-run WEB_ORIGIN="http://127.0.0.1:${WEB_PORT}" ANCHOR_WAIT_SECONDS=5 ANCHOR_INTERVAL_SECONDS=0
+export API_KEY_PEPPER="e2e-only-pepper-0000000000000000"
+export PYTHONPATH=packages/core:services/api APP_ENV=demo DEMO_LOGINS=1 CHAIN_MODE=dry-run WEB_ORIGIN="http://127.0.0.1:${WEB_PORT}" ANCHOR_WAIT_SECONDS=5 ANCHOR_INTERVAL_SECONDS=0
 export APP_URL="http://127.0.0.1:${WEB_PORT}" API_URL="http://127.0.0.1:${API_PORT}"
 "$PY" -m uvicorn carbonledger_api.main:create_app --factory --port "$API_PORT" --log-level warning &
 API=$!
