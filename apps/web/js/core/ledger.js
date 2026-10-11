@@ -49,7 +49,8 @@ export class SolanaLedger {
   info = { name: `Solana ${CONFIG.solana.cluster} (through the CarbonLedger API)`, explorer: true };
   async retire(entry) {
     const body = {
-      account: entry.account || 'personal', grams: entry.grams, kind: entry.kind || 'other', label: entry.label || '',
+      account: entry.account || 'personal', grams: entry.grams, kind: entry.kind || 'other', label: entry.label || 'Shopping basket',
+      note: entry.note ? String(entry.note).slice(0, 120) : null,
       lines: (entry.lines || []).map(l => ({ name: String(l.name), grams: Math.round(l.grams) })),
       target_iso3: entry.countryIso3 || null, idempotency_key: entry.idempotencyKey || ref(),
     };

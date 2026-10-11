@@ -164,13 +164,14 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
         reg = copy.deepcopy(st.registry)            # work on a copy; commit only if everything succeeds
         retiree = f"{body.account}:{caller.owner}:{body.agent or 'self'}"
         lines_digest = digest({"lines": [l.model_dump() for l in body.lines]})
+        note_digest = digest({"note": body.note}) if body.note else None
         try:
             ret = reg.retire(retiree, DEMO_BATCH, body.grams, body.target_iso3, lines_digest)
         except RegistryError as exc:
             raise HTTPException(STATUS_FOR.get(exc.code, 409), "Not enough pilot units left." if exc.code == "OVER_RETIREMENT" else str(exc))
         receipt = {"ts": datetime.fromtimestamp(now, timezone.utc).isoformat(), "account": body.account, "owner": caller.owner,
                    "grams": body.grams, "clt": grams_to_clt(body.grams), "kind": body.kind, "label": body.label,
-                   "lines_digest": lines_digest, "target_iso3": body.target_iso3, "project_id": DEMO_PROJECT, "batch_id": DEMO_BATCH,
+                   "lines_digest": lines_digest, "note_digest": note_digest, "target_iso3": body.target_iso3, "project_id": DEMO_PROJECT, "batch_id": DEMO_BATCH,
                    "serial_start": ret.serial_start, "serial_end": ret.serial_end, "units": UNITS_STATUS}
         # The public id comes from the receipt's own content, so the memo never exposes a running count (F14).
         receipt_id = public_receipt_id(receipt)

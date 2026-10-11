@@ -108,7 +108,7 @@ export function mountBusiness(root) {
       <div class="total-row"><span>${esc($('#b-period').value)}</span><strong>${mass(total)} CO₂e</strong></div>
       <button class="btn primary block" id="retire-biz">${retireButtonLabel(total)}</button>` : `<p class="muted">Enter some activity to see the footprint.</p>`;
     $('#retire-biz', out)?.addEventListener('click', () => confirmRetirement({
-      grams: total, kind: 'business', account: 'business', label: `${profile().name || 'Business'}: ${$('#b-period').value.toLowerCase()}`,
+      grams: total, kind: 'business', account: 'business', label: 'Business period', note: `${profile().name || 'Business'}: ${$('#b-period').value.toLowerCase()}`,
       areas: [...new Set(ls.map(l => l.area))], lines: ls.map(({ name, grams }) => ({ name, grams })),
     }, refreshBusiness));
   }

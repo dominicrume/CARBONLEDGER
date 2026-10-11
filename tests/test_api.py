@@ -33,7 +33,7 @@ def make(chain=None, role="personal", owner="p1", limits=None, **kw):
 
 
 def body(**kw):
-    b = {"account": "personal", "grams": 1200, "kind": "shop", "label": "Basket",
+    b = {"account": "personal", "grams": 1200, "kind": "shop", "label": "Shopping basket",
          "target_iso3": "GBR", "idempotency_key": "key-0000001"}
     b.update(kw)
     b.setdefault("lines", [{"name": "Beef", "grams": b["grams"]}] if isinstance(b["grams"], int) else [])
@@ -145,6 +145,7 @@ def test_the_response_does_not_wait_forever_for_an_anchor():
 @pytest.mark.parametrize("bad", [
     {"grams": "1200"}, {"grams": 0}, {"grams": -5}, {"grams": 10**13}, {"grams": 1.5}, {"extra": "x"},
     {"target_iso3": "gb"}, {"idempotency_key": "short"}, {"idempotency_key": "has space!!"}, {"account": "admin"}, {"label": "x" * 500},
+    {"label": "Alice's weekly shop at 12 Acacia Avenue"}, {"kind": "anything"}, {"note": "n" * 121},
 ])
 def test_hostile_input_is_rejected_loudly(bad):
     assert make().post("/v1/retire", json=body(**bad)).status_code == 422
@@ -284,3 +285,13 @@ def test_a_slow_request_answers_504_with_an_unconfirmed_outcome():
     c = make(Slow(), limits=Limits(request_timeout_s=0.05))
     r = c.post("/v1/retire", json=body())
     assert r.status_code == 504 and "unconfirmed" in r.json()["detail"]
+
+
+def test_free_text_goes_in_the_note_and_only_its_hash_is_kept():
+    c = make()
+    r = c.post("/v1/retire", json=body(label="Journey", kind="travel", note="Heathrow to Barcelona, Alice and Bob")).json()
+    e = c.get(f"/v1/receipts/{r['receipt_id']}").json()["entry"]
+    assert e["receipt"]["label"] == "Journey" and e["receipt"]["note_digest"] and "note" not in e["receipt"]
+    assert "Heathrow" not in c.get(f"/v1/receipts/{r['receipt_id']}").text
+    plain = c.post("/v1/retire", json=body(idempotency_key="key-0000002")).json()
+    assert c.get(f"/v1/receipts/{plain['receipt_id']}").json()["entry"]["receipt"]["note_digest"] is None

@@ -68,7 +68,7 @@ export function showReceipt(rec, newBadges = []) {
     <div class="receipt">
       <div class="r-head"><strong>CarbonLedger</strong><span>Retirement receipt</span></div>
       <div class="r-meta mono">${esc(rec.id)}<br>${new Date(rec.ts).toLocaleString('en-GB')}</div>
-      <div class="r-sub">${esc(rec.label)}</div>
+      <div class="r-sub">${esc(rec.note || rec.label)}</div>
       ${lines}
       <div class="r-line r-total"><span>Total retired</span><span>${mass(rec.grams)} CO₂e</span></div>
       <div class="r-line mono"><span>CLT units</span><span>${rec.clt} ${SIM_TAG}</span></div>

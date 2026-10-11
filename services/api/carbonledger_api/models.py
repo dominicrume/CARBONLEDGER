@@ -4,6 +4,9 @@ from typing import List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 UNITS_STATUS = "Simulated pilot units. Not verified credits."
+# Receipt labels are a closed vocabulary (D8, T18). Free text goes in `note`, which is hashed and never stored.
+LABELS = ("Shopping basket", "Journey", "Everyday activities", "Business period", "Partner reward")
+KINDS = ("shop", "travel", "daily", "business", "partner", "other")
 MAX_RETIRE_G = 10**12                  # ASSUMPTION: a request above 1,000,000 tonnes is a mistake or an attack
 STATUS_FOR = {"UNAUTHORISED": 403, "OVER_RETIREMENT": 409, "OVER_ISSUANCE": 409, "SUSPENDED": 409,
               "UNKNOWN_BATCH": 404, "UNKNOWN_PROJECT": 404, "BAD_AMOUNT": 422, "DUPLICATE_LINK": 409, "EXISTS": 409, "NOT_ATTESTED": 409}
@@ -19,8 +22,9 @@ class RetireIn(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     account: Literal["personal", "business"]
     grams: int = Field(gt=0, le=MAX_RETIRE_G)
-    kind: str = Field(max_length=24)
-    label: str = Field(max_length=120)
+    kind: Literal[KINDS]
+    label: Literal[LABELS]
+    note: Optional[str] = Field(default=None, max_length=120)     # hashed into the receipt, never stored or logged
     lines: List[Line] = Field(default_factory=list, max_length=200)
     target_iso3: Optional[str] = Field(default=None, pattern=r"^[A-Z]{3}$")
     idempotency_key: str = Field(min_length=8, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")

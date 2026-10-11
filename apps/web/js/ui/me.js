@@ -29,7 +29,7 @@ export function mountMe(root) {
   nameEl.addEventListener('change', () => { store.set('name', nameEl.value.trim()); refreshMe(); });
   root.querySelectorAll('[data-partner]').forEach(b => b.addEventListener('click', () => {
     const p = PARTNERS.find(x => x.id === b.dataset.partner);
-    confirmRetirement({ grams: p.grams, kind: 'partner', label: `${p.name} reward`, paidBy: p.name, account: 'personal', lines: [{ name: p.action, grams: p.grams }] }, refreshMe);
+    confirmRetirement({ grams: p.grams, kind: 'partner', label: 'Partner reward', note: `${p.name} reward`, paidBy: p.name, account: 'personal', lines: [{ name: p.action, grams: p.grams }] }, refreshMe);
   }));
   refreshMe();
 }
@@ -43,7 +43,7 @@ export function levelHTML(total, lv, unitNote) {
 }
 
 export function historyHTML(h) {
-  return h.length ? h.map(r => `<li><button class="hist" data-rec="${r.id}"><span>${esc(r.label)}<small>${new Date(r.ts).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })} · ${esc(r.countryName || '')}</small></span><span>${mass(r.grams)}</span></button></li>`).join('')
+  return h.length ? h.map(r => `<li><button class="hist" data-rec="${r.id}"><span>${esc(r.note || r.label)}<small>${new Date(r.ts).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })} · ${esc(r.countryName || '')}</small></span><span>${mass(r.grams)}</span></button></li>`).join('')
     : `<li class="empty">No retirements yet.</li>`;
 }
 

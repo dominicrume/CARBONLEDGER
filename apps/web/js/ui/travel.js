@@ -70,7 +70,7 @@ export function mountTravel(root) {
     if (!r) { out.innerHTML = `<p class="muted">Choose two different places, or enter a distance.</p>`; return; }
     out.innerHTML = `<div class="total-row"><span>${esc(r.label)}<br><small class="muted">${esc(r.sub || '')}</small></span><strong>${mass(r.grams)} CO₂e</strong></div>
       <button class="btn primary block" id="retire-trip">${retireButtonLabel(r.grams)}</button>`;
-    $('#retire-trip', out).addEventListener('click', () => confirmRetirement({ grams: r.grams, kind: 'travel', label: r.label, longHaul: !!r.longHaul, travelMode: r.travelMode, lines: [{ name: r.label, grams: r.grams }] }));
+    $('#retire-trip', out).addEventListener('click', () => confirmRetirement({ grams: r.grams, kind: 'travel', label: 'Journey', note: r.label, longHaul: !!r.longHaul, travelMode: r.travelMode, lines: [{ name: r.label, grams: r.grams }] }));
   }
   update();
 }
