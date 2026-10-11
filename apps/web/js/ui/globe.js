@@ -53,7 +53,9 @@ export function createGlobe(canvas, { statusOf, onSelect }) {
   function tick(t) {
     raf = requestAnimationFrame(tick);
     if (!canvas.offsetParent || document.hidden) return; // not on screen: do nothing
-    if (spinning && !matchMedia('(prefers-reduced-motion: reduce)').matches) { rotate[0] += (t - (last || t)) * 0.006; draw(); }
+    const auto = spinning && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+    canvas.dataset.autorotate = auto ? '1' : '0';     // observable: tests and assistive tools can see whether it moves
+    if (auto) { rotate[0] += (t - (last || t)) * 0.006; draw(); }
     last = t;
   }
 

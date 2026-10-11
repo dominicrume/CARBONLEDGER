@@ -436,3 +436,26 @@ def test_a_receipt_proof_verifies_and_many_receipts_share_one_anchor():
     for p in proofs:
         assert verify_proof(p["receipt_hash"], [tuple(x) for x in p["proof"]], p["anchor_root"])
     assert c.get("/v1/receipts/CL-NOPE/proof").status_code == 404
+
+
+def test_an_owner_lists_their_own_mandates_with_use_and_state():
+    agent = Keypair()
+    c = make(role="business", owner="acme")
+    mid = c.post("/v1/mandates", json={"agent": str(agent.pubkey()), "cap_g": 1000, "ttl_seconds": 3600, "allow_projects": ["demo-pilot-1"]}).json()["mandate_id"]
+    c.post("/v1/retire", json=signed(agent, grams=600, idempotency_key="key-1000001", mandate_id=mid, account="business"))
+    rows = c.get("/v1/accounts/me/mandates").json()["mandates"]
+    assert rows == [{"mandate_id": mid, "owner": "acme", "agent": str(agent.pubkey()), "cap_g": 1000, "used_g": 600, "expires_at": CLOCK["t"] + 3600,
+                     "allow_projects": ["demo-pilot-1"], "revoked": False, "active": True}]
+    assert c.as_("business", "other").get("/v1/accounts/me/mandates").json()["mandates"] == []
+    c.post(f"/v1/mandates/{mid}/revoke")
+    assert c.get("/v1/accounts/me/mandates").json()["mandates"][0]["active"] is False
+
+
+def test_a_422_is_one_plain_sentence_that_names_the_field():
+    c = make(role="business", owner="acme")
+    r = c.post("/v1/mandates", json={"agent": "agent-1-is-not-a-key-but-long-enough", "cap_g": 1, "ttl_seconds": 1})
+    assert r.status_code == 422
+    d = r.json()["detail"]
+    assert isinstance(d, str) and d.startswith("Invalid request. agent:") and "public key" in d and d.endswith("Nothing was recorded.")
+    r = c.post("/v1/retire", json=body(grams="12"))
+    assert "grams:" in r.json()["detail"] and "Nothing was recorded" in r.json()["detail"]

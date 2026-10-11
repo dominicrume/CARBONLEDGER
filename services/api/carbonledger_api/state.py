@@ -131,9 +131,13 @@ def keys_from_env() -> ApiKeyStore:
         role, owner, key_hash = item.strip().split(":", 2)
         store.add_hashed(role, owner, key_hash)
     demo = _real(os.environ.get("API_DEMO_KEY"))
-    if demo and env in ("dev", "test"):
+    demo_biz = _real(os.environ.get("API_DEMO_BUSINESS_KEY"))
+    if env in ("dev", "test") and (demo or demo_biz):
         from carbonledger.auth import hash_key
-        store.add_hashed("personal", "demo", hash_key(pepper, demo), "key-demo")
+        if demo:
+            store.add_hashed("personal", "demo", hash_key(pepper, demo), "key-demo")
+        if demo_biz:
+            store.add_hashed("business", "demo-business", hash_key(pepper, demo_biz), "key-demo-business")
     elif env == "dev" and store.count() == 0:
         key, _ = store.issue("personal", "demo")
         print(f"[dev] no API_KEYS configured; a demo key was minted for this process only: {key}", file=sys.stderr)

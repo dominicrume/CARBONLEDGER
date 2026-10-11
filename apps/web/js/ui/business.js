@@ -10,6 +10,7 @@ import { confirmRetirement, retireButtonLabel, showReceipt } from './retire.js';
 import { badgeBookHTML } from './badges.js';
 import { skillTreeHTML, bindSkillTree } from './skilltree.js';
 import { levelHTML, historyHTML } from './me.js';
+import { mandateHTML, bindMandates } from './mandate.js';
 
 const car = id => GROUND.find(g => g.id === id);
 
@@ -74,7 +75,9 @@ export function mountBusiness(root) {
     <section class="panel"><h2 class="h2">Business skill tree</h2><div id="biz-skills"></div></section>
     <section class="panel"><h2 class="h2">Business badges</h2><div id="biz-badges"></div></section>
     <section class="panel"><h2 class="h2">Business league</h2><ol class="league" id="biz-league"></ol></section>
-    <section class="panel"><h2 class="h2">Business history</h2><ul class="history" id="biz-history"></ul></section>`;
+    <section class="panel"><h2 class="h2">Business history</h2><ul class="history" id="biz-history"></ul></section>
+    <section class="panel" id="biz-mandates"><h2 class="h2">Agent mandates</h2>${mandateHTML()}</section>`;
+  bindMandates($('#biz-mandates', root));
 
   const saveProfile = () => { store.set('biz', { name: $('#biz-name').value.trim(), employees: Math.max(1, +$('#biz-emp').value || 1) }); refreshBusiness(); };
   $('#biz-name', root).addEventListener('change', saveProfile);

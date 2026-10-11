@@ -43,4 +43,16 @@ def account_router(st, require_key) -> APIRouter:
                 break
         return {"owner": caller.owner, "units": UNITS_STATUS, "source": "ledger", "records": rows}
 
+    @r.get("/mandates")
+    def mandates(caller=Depends(require_key)):
+        """The caller's own mandates: cap, used, expiry, agent key, revoked. Owners see theirs; an agent key sees the ones naming it."""
+        out = []
+        with st.lock:
+            for m in st.mandates.values():
+                if m.owner == caller.owner or (caller.role == "agent" and m.agent == caller.owner):
+                    out.append({"mandate_id": m.id, "owner": m.owner, "agent": m.agent, "cap_g": m.cap_g, "used_g": m.used_g,
+                                "expires_at": m.expires_at, "allow_projects": list(m.allow_projects) if m.allow_projects is not None else None,
+                                "revoked": m.revoked, "active": not m.revoked and int(st.now()) < m.expires_at})
+        return {"owner": caller.owner, "mandates": out}
+
     return r

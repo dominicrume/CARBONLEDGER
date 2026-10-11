@@ -4,6 +4,11 @@
 - Dependencies pinned. scripts/dev.sh and scripts/check.sh. docs/RUN-LOG.md tracks the autonomous run.
 - Browser: one idempotency key per intent, honest timeout message, timeout above the server's worst case (F12, F13).
 - API: lines must add up to the total (F15). Public receipt ids derive from content, not a counter (F14).
+- Merkle anchoring (D15): one root per interval, a proof per receipt, memo v2, proof endpoint, browser verifier.
+  Program revised for volume and three verifiers (not compiled). Postgres persistence (D4, D9) with a second guard.
+  Self-hosted scripts with integrity hashes and a Content-Security-Policy (D7). CI pinned to commit hashes (D6).
+- Screens: verify screen with a browser-side proof check, mandate screen, connection state, accessibility pass
+  (axe at WCAG 2.1 AA, keyboard reach, reduced motion). Plain one-sentence 422 answers.
 - Login (D2): API keys with hashed storage and roles, per-key rate limit, request size limit, server deadline.
   Agents are ed25519 keys and every agent request is signed and time-boxed (KYA), with 8 signature vectors.
 - Server recomputation (D1): typed items on every retire request, priced by the server from its own tables and its

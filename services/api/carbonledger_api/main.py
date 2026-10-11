@@ -15,6 +15,7 @@ from datetime import datetime, timezone
 from typing import Callable, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -57,6 +58,16 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
         app.add_middleware(CORSMiddleware, allow_origins=[origin], allow_methods=["GET", "POST"], allow_headers=["content-type", "authorization"])
     if start_worker:
         st.worker.start()
+
+    @app.exception_handler(RequestValidationError)
+    async def plain_422(request: Request, exc: RequestValidationError):
+        """Rule 4: an error says what happened in words, and that nothing was recorded. One line, no stack of objects."""
+        parts = []
+        for e in exc.errors()[:5]:
+            loc = ".".join(str(x) for x in e.get("loc", []) if x not in ("body",))
+            parts.append(f"{loc}: {e.get('msg', 'invalid')}" if loc else e.get("msg", "invalid"))
+        errors = [{"loc": [str(x) for x in e.get("loc", [])], "msg": e.get("msg", ""), "type": e.get("type", "")} for e in exc.errors()[:5]]
+        return JSONResponse({"detail": "Invalid request. " + "; ".join(parts) + ". Nothing was recorded.", "errors": errors}, status_code=422)
 
     def require_key(request: Request) -> KeyRecord:
         """Every write needs a key (D2). Then the key's bucket must have a token (rate limit)."""

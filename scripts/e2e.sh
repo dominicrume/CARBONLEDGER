@@ -6,6 +6,8 @@ PY="$PWD/.venv/bin/python"; [ -x "$PY" ] || PY=python3
 API_PORT="${E2E_API_PORT:-8765}"; WEB_PORT="${E2E_WEB_PORT:-8787}"      # not 8000 and 8080: other things may live there
 export E2E_API_KEY="clk_personal_e2e$(date +%s)000000000000000000000000000000"
 export API_DEMO_KEY="$E2E_API_KEY"
+export E2E_BUSINESS_KEY="clk_business_e2e$(date +%s)000000000000000000000000000000"
+export API_DEMO_BUSINESS_KEY="$E2E_BUSINESS_KEY"
 export PYTHONPATH=packages/core:services/api APP_ENV=test CHAIN_MODE=dry-run WEB_ORIGIN="http://127.0.0.1:${WEB_PORT}" ANCHOR_WAIT_SECONDS=5 ANCHOR_INTERVAL_SECONDS=0
 export APP_URL="http://127.0.0.1:${WEB_PORT}" API_URL="http://127.0.0.1:${API_PORT}"
 "$PY" -m uvicorn carbonledger_api.main:create_app --factory --port "$API_PORT" --log-level warning &

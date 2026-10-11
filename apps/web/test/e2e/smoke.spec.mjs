@@ -5,6 +5,7 @@ import { test, expect } from '@playwright/test';
 const APP = process.env.APP_URL || 'http://127.0.0.1:8080';
 const API = process.env.API_URL || 'http://127.0.0.1:8000';
 const KEY = process.env.E2E_API_KEY || '';
+const BUSINESS_KEY = process.env.E2E_BUSINESS_KEY || '';
 
 // The key is a login. The test puts it where Settings would: this browser's storage.
 test.beforeEach(async ({ page }) => {
@@ -95,4 +96,34 @@ test('when the API is down the app says so and records nothing', async ({ page }
   await page.click('#confirm-retire');
   await expect(page.locator('#retire-error')).toContainText('Nothing was recorded');
   await expect(page.locator('.receipt')).toHaveCount(0);
+});
+
+test('a business sets a mandate for an agent key, sees use against cap, and revokes it', async ({ page }) => {
+  await page.addInitScript(k => { try { localStorage.setItem('carbonledger.apiKey', JSON.stringify(k)); } catch {} }, BUSINESS_KEY);
+  await page.goto(`${APP}/?ledger=solana-devnet&api=${encodeURIComponent(API)}#business`);
+  await page.reload();
+  await page.fill('#m-agent', '11111111111111111111111111111111');          // a valid 32-byte base58 key (the system program id)
+  await page.fill('#m-cap', '2');
+  await page.fill('#m-days', '7');
+  await page.fill('#m-projects', 'demo-pilot-1');
+  await page.click('#mandate-create');
+  const row = page.locator('#mandate-list .mandate').first();
+  await expect(row).toContainText('0 g used of 2 kg');
+  await expect(row).toContainText('demo-pilot-1');
+  await expect(page.locator('#mandate-error')).toHaveText('');
+  await row.locator('[data-revoke]').click();
+  await expect(page.locator('#mandate-list .mandate').first()).toContainText('revoked');
+  await expect(page.locator('#mandate-list [data-revoke]')).toHaveCount(0);
+  // a name instead of a key is refused in plain words, and nothing is recorded
+  await page.fill('#m-agent', 'agent-1-is-not-a-key-but-long-enough');
+  await page.click('#mandate-create');
+  await expect(page.locator('#mandate-error')).toContainText(/public key/);
+});
+
+test('a personal key cannot write a mandate', async ({ page }) => {
+  await page.goto(`${APP}/?ledger=solana-devnet&api=${encodeURIComponent(API)}#business`);
+  await page.reload();
+  await page.fill('#m-agent', '11111111111111111111111111111111');
+  await page.click('#mandate-create');
+  await expect(page.locator('#mandate-error')).toContainText(/business key/);
 });
