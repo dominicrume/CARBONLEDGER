@@ -40,6 +40,7 @@ One line per step: time (UTC), what changed, the test that proves it, anything s
 - 2026-10-11 Block 8 step 31: README.md written: what it is, what is simulated, how to run, verify a receipt, architecture, honest limits, third-party code and data.
 - 2026-10-11 Block 8 step 32: DEBT.md reviewed (paid and new), ROOTS-SCORE.md re-scored (10 ROOTED, 3 SEEDLING), CHANGELOG.md 0.2.0, docs/PITCH-FACTS.md, docs/HACKATHON-48H.md checklist, START-HERE.txt.
 - 2026-10-11 Block 8 step 33: final scripts/check.sh with the database and the browser suite, final commit.
+- 2026-10-11 Deployed at the user's request. GitHub: github.com/dominicrume/CARBONLEDGER (private, main). Railway project carbonledger: Dockerfile build, Postgres plugin, API serving the app from one origin, dry-run chain, demo API keys set as variables (never in the repo). Live: https://carbonledger-production.up.railway.app. Proof: health shows store postgres; a real retirement, its Merkle proof, an idempotent replay and the audit all answered correctly over HTTPS; 9 of 10 browser tests pass against the live site (the tenth aborts every request to the API origin, which is also the page origin there, so the page cannot load: a test artefact, not a fault).
 
 ## Human gates
 - First push to GitHub: create the repository, push, watch the ci workflow. Set the repository variable RECHECK_ENABLED=1 and the secret DATABASE_URL_RECHECK (a read-only role) to turn on the nightly recheck.
