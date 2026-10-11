@@ -44,6 +44,8 @@ One line per step: time (UTC), what changed, the test that proves it, anything s
 - 2026-10-11 Audit with ai-code-quality-auditor 0.5.1 (installed in .venv): security density 8.82 per kLOC (OK), complexity mean 3.30 (tool band WARN), duplication 1.07% (OK), scope drift 0 against spec.yaml. 44 medium findings are innerHTML patterns, reviewed line by line and kept (F19). 16 low bandit findings: the asserts in check_invariants and main.py replaced by explicit errors (F18); the rest are in the drill script (subprocess with fixed arguments, a deliberate placeholder string). CI job added, pinned to the auditor's v1 commit.
 - 2026-10-11 Front-end redesign after the partner call (gamification): apps/web/css/app.css rewritten (tokens, shape lock, Outfit, Phosphor sprite), ui/hud.js (level ring, mission strip, reward moment, confetti), core/world.js and GET /v1/stats/world (world clock), ui/me.js command centre, ui/countries.js clock and celebration, reward moment in ui/retire.js, mission strips on Shop, Travel and Daily, business command centre. Proof: 10 browser tests incl. axe at WCAG 2.1 AA, tests/test_api.py world stats test, screenshots reviewed in both themes at 430 and 1200 wide. docs/ux/DESIGN-SYSTEM.md rewritten.
 
+- 2026-10-11 D27: silent demo login at load and on a refused key (main.js, retire.js). Proof: e2e tests 'demo makes one for you' and 'revoked login is replaced'.
+
 ## Human gates
 - First push to GitHub: create the repository, push, watch the ci workflow. Set the repository variable RECHECK_ENABLED=1 and the secret DATABASE_URL_RECHECK (a read-only role) to turn on the nightly recheck.
 - Install Node 22 (`brew install node@22`) so CI and local match. Node 20 runs everything today.

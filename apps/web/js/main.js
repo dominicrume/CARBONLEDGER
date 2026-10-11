@@ -8,7 +8,7 @@ import { mountMe, refreshMe } from './ui/me.js';
 import { mountBusiness, refreshBusiness } from './ui/business.js';
 import { mountVerify } from './ui/verify.js';
 import { openSettings } from './ui/settings.js';
-import { ledger, apiKey } from './core/ledger.js';
+import { ledger, apiKey, getDemoLogin } from './core/ledger.js';
 import { levelChip } from './ui/hud.js';
 import { world } from './core/world.js';
 import { $ } from './ui/dom.js';
@@ -55,6 +55,8 @@ async function showConnection() {
   try {
     const r = await fetch(`${CONFIG.api.baseUrl}/health`, { signal: AbortSignal.timeout(4000) });
     const h = await r.json();
+    // Demo servers mint logins: a first-time visitor gets one here, silently, so the first retirement just works (D27).
+    if (!apiKey.get() && h.demo_keys) { try { await getDemoLogin('personal'); document.dispatchEvent(new CustomEvent('carbonledger:login')); } catch {} }
     el.textContent = `Connected to the ledger (${h.chain})${apiKey.get() ? '' : ', no login yet'}`; el.dataset.state = 'connected';
     ledger.info.name = h.chain === 'dry-run' ? 'the CarbonLedger API, dry-run chain (nothing is sent to Solana)' : `the CarbonLedger API, Solana ${h.chain}`;
   } catch { el.textContent = 'Ledger not reachable'; el.dataset.state = 'down'; }

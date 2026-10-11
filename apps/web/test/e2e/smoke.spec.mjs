@@ -73,22 +73,29 @@ test('no banned claim words on any screen', async ({ page }) => {
   }
 });
 
-test('without a key the ledger refuses and says nothing was recorded', async ({ page }) => {
+test('without a login the demo makes one for you and the retirement goes through', async ({ page }) => {
   await page.addInitScript(() => { try { localStorage.removeItem('carbonledger.apiKey'); } catch {} });
+  await page.goto(`${APP}/?ledger=solana-devnet&api=${encodeURIComponent(API)}#shop`);
+  await expect(page.locator('#conn')).toContainText('Connected to the ledger');
+  await expect(page.locator('#conn')).not.toContainText('no login', { timeout: 10000 });
+  await page.click('#shelf-btn');
+  await page.locator('.shelf-item').first().click();
+  await page.click('.sheet-body button[data-close]');
+  await page.click('#retire-basket');
+  await page.click('#confirm-retire');
+  await expect(page.locator('.receipt')).toContainText('Retirement receipt');
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('carbonledger.apiKey') || '""'))).toMatch(/^clk_personal_/);
+});
+
+test('a revoked login is replaced on the spot, never a wall', async ({ page }) => {
+  await page.addInitScript(() => { try { localStorage.setItem('carbonledger.apiKey', JSON.stringify('clk_personal_' + 'f'.repeat(48))); } catch {} });
   await page.goto(`${APP}/?ledger=solana-devnet&api=${encodeURIComponent(API)}#shop`);
   await page.click('#shelf-btn');
   await page.locator('.shelf-item').first().click();
   await page.click('.sheet-body button[data-close]');
   await page.click('#retire-basket');
   await page.click('#confirm-retire');
-  await expect(page.locator('#retire-error')).toContainText('NO_KEY');
-  await expect(page.locator('#retire-error')).toContainText('Nothing was recorded');
-  // demo mode: get a login right there and confirm again
-  await page.click('#get-demo-login');
-  await expect(page.locator('#retire-login-ok')).toContainText('Logged in as demo-personal-');
-  await page.click('#confirm-retire');
   await expect(page.locator('.receipt')).toContainText('Retirement receipt');
-  await expect(page.locator('#conn')).not.toContainText('no login');
 });
 
 test('when the API is down the app says so and records nothing', async ({ page }) => {

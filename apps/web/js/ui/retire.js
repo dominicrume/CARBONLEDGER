@@ -57,8 +57,16 @@ export function confirmRetirement(entry, onDone) {
       const account = entry.account || 'personal', ctx = { employees: store.get('biz', {}).employees };
       const before = new Set(badgeBook(account, ctx).all.map(b => b.id));
       const totalBefore = ledger.history(account).reduce((s, r) => s + r.grams, 0);
+      const attempt = () => ledger.retire({ ...entry, idempotencyKey, countryIso3: dest?.iso3, countryName: dest?.name, mode: dest?.mode, finished: !!dest?.finished });
       try {
-        const rec = await ledger.retire({ ...entry, idempotencyKey, countryIso3: dest?.iso3, countryName: dest?.name, mode: dest?.mode, finished: !!dest?.finished });
+        let rec;
+        try { rec = await attempt(); }
+        catch (err) {
+          if (!/NO_KEY|BAD_KEY|REVOKED_KEY/.test(err.message)) throw err;
+          await getDemoLogin('personal');                 // a demo server: log in and retry once, no wall for the person
+          document.dispatchEvent(new CustomEvent('carbonledger:login'));
+          rec = await attempt();
+        }
         const fresh = badgeBook(account, ctx).all.filter(b => !before.has(b.id));
         const totalAfter = ledger.history(account).reduce((s, r) => s + r.grams, 0);
         buzz();
