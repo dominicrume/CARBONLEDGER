@@ -125,6 +125,7 @@ function drawBasket() {
   $('#retire-basket')?.addEventListener('click', () => confirmRetirement({
     grams: total, kind: 'shop', label: 'Shopping basket', itemCount: count, codes: items.map(i => i.code).filter(Boolean),
     lines: items.map(i => ({ name: `${i.qty} × ${i.name}`, grams: i.est.grams * i.qty })),
+    items: items.map(i => ({ type: 'product', code: i.code || null, groupId: i.groupId || null, packGrams: i.packGrams ?? null, qty: i.qty })),
   }, () => basket.clear()));
 }
 

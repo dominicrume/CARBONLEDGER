@@ -2,7 +2,7 @@
 
 Each rule has a number. Tests and reviews cite the number. A rule marked ENFORCED has a test that fails if it breaks.
 
-1. PARTLY. The server records and holds the key, and the browser holds no key (enforced). The server does not yet recompute footprints: the API trusts the grams it is sent (DEBT D1).
+1. ENFORCED (since 2026-10-11). The server records and holds the signing key; the browser holds none. The server prices every retirement itself from typed items (products by barcode from its own catalogue or lookup, flights, ground, energy, meals, the six business areas, partner rewards) with the same tables as the app, proven by 1,787 golden vectors, and refuses a total below its own figure. Tests: tests/test_activity_parity.py, tests/test_api.py recomputation tests.
 2. ENFORCED. Grams are integers. Money is Decimal. A float near either is a bug.
 3. ENFORCED. Validate at the edge. Strict models, unknown fields refused, every number bounded, every string capped.
 4. ENFORCED. Fail loud. An error says what happened and what was NOT recorded. No silent defaults.

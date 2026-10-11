@@ -64,3 +64,12 @@ a login, like a password, kept in browser storage. It signs nothing and decides 
 key" in CLAUDE.md means no signing key.
 Why: D2 and T12. An open API lets anyone retire pilot units and spam the chain. Public reads keep receipts verifiable.
 Who agreed: Engineering, during the autonomous run. Awaiting Rume.
+
+---
+Date: 2026-10-11
+Decision: Every retire request carries typed items (product by barcode or category, flight, ground, energy, meal, the
+six business areas, partner reward). The server prices them with the same tables as the app, proven by golden
+vectors, and refuses a total below its own figure. A higher total is allowed because estimates err high. Product
+facts come from the server's own catalogue or its own Open Food Facts lookup, never from the client.
+Why: D1 and T7. A browser total is a claim. The server must be able to stand behind every receipt it signs.
+Who agreed: Engineering, during the autonomous run. Awaiting Rume.

@@ -1,5 +1,5 @@
 """Request models. Strict: unknown fields refused, every number bounded, every string capped (ENGINEERING rule 3)."""
-from typing import List, Literal, Optional
+from typing import Annotated, List, Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -20,6 +20,98 @@ class Line(BaseModel):
     grams: int = Field(ge=0, le=MAX_RETIRE_G)
 
 
+# ---- Typed items: what the retirement is for, in a form the server can price itself (D1). ----
+_B = ConfigDict(extra="forbid", strict=True)
+_NUM = Annotated[Union[int, float], Field(ge=0, le=MAX_RETIRE_G)]
+
+
+class ProductItem(BaseModel):
+    model_config = _B
+    type: Literal["product"]
+    code: Optional[str] = Field(default=None, min_length=4, max_length=20, pattern=r"^[0-9]+$")
+    groupId: Optional[str] = Field(default=None, max_length=24, pattern=r"^[a-z]+$")
+    packGrams: Optional[_NUM] = None
+    qty: int = Field(ge=1, le=1000)
+
+
+class FlightItem(BaseModel):
+    model_config = _B
+    type: Literal["flight"]
+    from_: str = Field(alias="from", min_length=3, max_length=3)
+    to: str = Field(min_length=3, max_length=3)
+    cabin: Literal["economy", "business"]
+    ret: bool
+    people: int = Field(ge=1, le=1000)
+
+
+class GroundItem(BaseModel):
+    model_config = _B
+    type: Literal["ground"]
+    mode: str = Field(max_length=16)
+    km: _NUM
+    people: int = Field(ge=1, le=100)
+
+
+class EnergyItem(BaseModel):
+    model_config = _B
+    type: Literal["energy"]
+    electricityKwh: _NUM
+    gasKwh: _NUM
+
+
+class MealItem(BaseModel):
+    model_config = _B
+    type: Literal["meal"]
+    meal: str = Field(max_length=16)
+    n: int = Field(ge=1, le=10000)
+
+
+class FleetItem(BaseModel):
+    model_config = _B
+    type: Literal["fleet"]
+    fuel: str = Field(max_length=16)
+    km: _NUM
+
+
+class BusinessFlightsItem(BaseModel):
+    model_config = _B
+    type: Literal["business_flights"]
+    band: Literal["domestic", "short", "long"]
+    n: int = Field(ge=0, le=100000)
+
+
+class CommuteItem(BaseModel):
+    model_config = _B
+    type: Literal["commute"]
+    mode: str = Field(max_length=16)
+    km: _NUM
+    days: int = Field(ge=0, le=366)
+    employees: int = Field(ge=1, le=10**6)
+
+
+class ProductsSoldItem(BaseModel):
+    model_config = _B
+    type: Literal["products_sold"]
+    gPerUnit: _NUM
+    n: int = Field(ge=0, le=MAX_RETIRE_G)
+
+
+class MeasuredItem(BaseModel):
+    model_config = _B
+    type: Literal["measured"]
+    kg: _NUM
+
+
+class PartnerItem(BaseModel):
+    model_config = _B
+    type: Literal["partner"]
+    id: str = Field(max_length=24)
+
+
+Item = Annotated[Union[ProductItem, FlightItem, GroundItem, EnergyItem, MealItem, FleetItem, BusinessFlightsItem, CommuteItem,
+                       ProductsSoldItem, MeasuredItem, PartnerItem], Field(discriminator="type")]
+
+
 class RetireIn(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     account: Literal["personal", "business"]
@@ -28,6 +120,7 @@ class RetireIn(BaseModel):
     label: Literal[LABELS]
     note: Optional[str] = Field(default=None, max_length=120)     # hashed into the receipt, never stored or logged
     lines: List[Line] = Field(default_factory=list, max_length=200)
+    items: List[Item] = Field(min_length=1, max_length=200)       # what this retirement is for; the server prices these
     target_iso3: Optional[str] = Field(default=None, pattern=r"^[A-Z]{3}$")
     idempotency_key: str = Field(min_length=8, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
     mandate_id: Optional[str] = Field(default=None, max_length=64)

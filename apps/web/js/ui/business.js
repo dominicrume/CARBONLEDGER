@@ -2,7 +2,8 @@
 import { ledger } from '../core/ledger.js';
 import { levelFor, badgeBook } from '../core/game.js';
 import { store } from '../core/store.js';
-import { ENERGY, GROUND, FLIGHT, FLIGHT_UPLIFT, TRAVEL_SOURCE } from '../data/travel.js';
+import { GROUND, TRAVEL_SOURCE } from '../data/travel.js';
+import { FLIGHT_KM, businessEnergyGrams, businessFleetGrams, businessFlightGrams, commuteGrams, productsSoldGrams, measuredGrams } from '../core/activities.js';
 import { EXAMPLE_BUSINESSES } from '../data/partners.js';
 import { $, esc, mass } from './dom.js';
 import { confirmRetirement, retireButtonLabel, showReceipt } from './retire.js';
@@ -10,8 +11,6 @@ import { badgeBookHTML } from './badges.js';
 import { skillTreeHTML, bindSkillTree } from './skilltree.js';
 import { levelHTML, historyHTML } from './me.js';
 
-// Typical one-way distances used when a business counts flights rather than routes (assumption, shown on screen).
-const FLIGHT_KM = { domestic: 500, short: 1800, long: 7000 };
 const car = id => GROUND.find(g => g.id === id);
 
 const AREAS = [
@@ -84,19 +83,20 @@ export function mountBusiness(root) {
   form.addEventListener('submit', e => e.preventDefault());
   form.addEventListener('input', update);
 
+  // Every line carries the typed item the server recomputes it from (D1). Browser totals are a preview only.
   function lines() {
     const v = id => Math.max(0, +$(id).value || 0), out = [];
-    const add = (area, name, kg) => { if (kg > 0) out.push({ area, name, grams: Math.ceil(kg * 1000) }); };
-    add('energy', `Electricity ${v('#b-elec').toLocaleString('en-GB')} kWh`, v('#b-elec') * ENERGY.electricity);
-    add('energy', `Gas ${v('#b-gas').toLocaleString('en-GB')} kWh`, v('#b-gas') * ENERGY.gas);
+    const add = (area, name, grams, item) => { if (grams > 0) out.push({ area, name, grams, item }); };
+    add('energy', `Electricity ${v('#b-elec').toLocaleString('en-GB')} kWh`, businessEnergyGrams({ electricityKwh: v('#b-elec'), gasKwh: 0 }), { type: 'energy', electricityKwh: v('#b-elec'), gasKwh: 0 });
+    add('energy', `Gas ${v('#b-gas').toLocaleString('en-GB')} kWh`, businessEnergyGrams({ electricityKwh: 0, gasKwh: v('#b-gas') }), { type: 'energy', electricityKwh: 0, gasKwh: v('#b-gas') });
     const f = car($('#b-fleet').value);
-    add('fleet', `${f.label}s, ${v('#b-fleetkm').toLocaleString('en-GB')} km`, v('#b-fleetkm') * f.perKm);
+    add('fleet', `${f.label}s, ${v('#b-fleetkm').toLocaleString('en-GB')} km`, businessFleetGrams({ fuel: f.id, km: v('#b-fleetkm') }), { type: 'fleet', fuel: f.id, km: v('#b-fleetkm') });
     for (const [band, id, name] of [['domestic', '#b-fdom', 'UK'], ['short', '#b-fshort', 'Europe'], ['long', '#b-flong', 'Long-haul']])
-      add('flights', `${v(id)} × ${name} return flight`, v(id) * 2 * FLIGHT_KM[band] * FLIGHT_UPLIFT * FLIGHT[band].economy);
+      add('flights', `${v(id)} × ${name} return flight`, businessFlightGrams({ band, n: v(id) }), { type: 'business_flights', band, n: v(id) });
     const c = car($('#b-cmode').value), emp = profile().employees;
-    add('commute', `Commuting: ${emp} staff, ${v('#b-days')} days`, emp * v('#b-ckm') * v('#b-days') * c.perKm);
-    add('products', `${v('#b-pn').toLocaleString('en-GB')} units sold`, v('#b-pg') * v('#b-pn') / 1000);
-    add('other', 'Other measured emissions', v('#b-other'));
+    add('commute', `Commuting: ${emp} staff, ${v('#b-days')} days`, commuteGrams({ mode: c.id, km: v('#b-ckm'), days: v('#b-days'), employees: emp }), { type: 'commute', mode: c.id, km: v('#b-ckm'), days: v('#b-days'), employees: emp });
+    add('products', `${v('#b-pn').toLocaleString('en-GB')} units sold`, productsSoldGrams({ gPerUnit: v('#b-pg'), n: v('#b-pn') }), { type: 'products_sold', gPerUnit: v('#b-pg'), n: v('#b-pn') });
+    add('other', 'Other measured emissions', measuredGrams({ kg: v('#b-other') }), { type: 'measured', kg: v('#b-other') });
     return out;
   }
 
@@ -109,7 +109,7 @@ export function mountBusiness(root) {
       <button class="btn primary block" id="retire-biz">${retireButtonLabel(total)}</button>` : `<p class="muted">Enter some activity to see the footprint.</p>`;
     $('#retire-biz', out)?.addEventListener('click', () => confirmRetirement({
       grams: total, kind: 'business', account: 'business', label: 'Business period', note: `${profile().name || 'Business'}: ${$('#b-period').value.toLowerCase()}`,
-      areas: [...new Set(ls.map(l => l.area))], lines: ls.map(({ name, grams }) => ({ name, grams })),
+      areas: [...new Set(ls.map(l => l.area))], lines: ls.map(({ name, grams }) => ({ name, grams })), items: ls.map(l => l.item),
     }, refreshBusiness));
   }
   update();

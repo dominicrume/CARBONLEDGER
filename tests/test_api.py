@@ -29,9 +29,11 @@ class Client(TestClient):
         return c
 
 
-def make(chain=None, role="personal", owner="p1", limits=None, **kw):
+def make(chain=None, role="personal", owner="p1", limits=None, lookup=None, **kw):
     keys = ApiKeyStore(PEPPER)
-    return Client(create_app(chain or DryRunChain(), now=lambda: CLOCK["t"], keys=keys, limits=limits or Limits(), **kw), keys, role, owner)
+    app = create_app(chain or DryRunChain(), now=lambda: CLOCK["t"], keys=keys, limits=limits or Limits(),
+                     product_lookup=lookup or (lambda code: None), **kw)
+    return Client(app, keys, role, owner)
 
 
 def signed(kp, **kw):
@@ -46,6 +48,8 @@ def body(**kw):
          "target_iso3": "GBR", "idempotency_key": "key-0000001"}
     b.update(kw)
     b.setdefault("lines", [{"name": "Beef", "grams": b["grams"]}] if isinstance(b["grams"], int) else [])
+    # an item the server prices to exactly the total, so tests about other rules are not about recomputation
+    b.setdefault("items", [{"type": "products_sold", "gPerUnit": b["grams"], "n": 1}] if isinstance(b["grams"], int) else [{"type": "measured", "kg": 1}])
     return b
 
 
@@ -330,3 +334,67 @@ def test_free_text_goes_in_the_note_and_only_its_hash_is_kept():
     assert "Heathrow" not in c.get(f"/v1/receipts/{r['receipt_id']}").text
     plain = c.post("/v1/retire", json=body(idempotency_key="key-0000002")).json()
     assert c.get(f"/v1/receipts/{plain['receipt_id']}").json()["entry"]["receipt"]["note_digest"] is None
+
+
+# ---- server recomputation (D1, T7) ----
+from carbonledger.estimate import estimate_product  # noqa: E402
+from carbonledger_api.lookup import catalogue_lookup  # noqa: E402
+
+MILK = "5000436589457"      # Tesco semi skimmed milk, in the exported catalogue
+
+
+def _milk_grams():
+    return estimate_product(catalogue_lookup(MILK))["grams"]
+
+
+def test_a_catalogue_product_is_priced_by_the_server_not_the_browser():
+    c = make(lookup=catalogue_lookup)
+    g = _milk_grams()
+    items = [{"type": "product", "code": MILK, "qty": 2}]
+    low = c.post("/v1/retire", json=body(grams=2 * g - 1, lines=[], items=items))
+    assert low.status_code == 422 and "below what the server computes" in low.json()["detail"] and f"({2 * g} g)" in low.json()["detail"]
+    ok = c.post("/v1/retire", json=body(grams=2 * g, lines=[], items=items, idempotency_key="key-0000002")).json()
+    e = c.get(f"/v1/receipts/{ok['receipt_id']}").json()["entry"]["receipt"]
+    assert e["computed_g"] == 2 * g and e["items_digest"]
+    high = c.post("/v1/retire", json=body(grams=2 * g + 500, lines=[], items=items, idempotency_key="key-0000003"))
+    assert high.status_code == 200                   # claiming more than computed is allowed: estimates err high
+    assert c.get("/v1/registry/summary").json()["retirements"] == 2
+
+
+def test_an_unknown_barcode_needs_a_chosen_category_or_is_refused():
+    c = make(lookup=catalogue_lookup)
+    r = c.post("/v1/retire", json=body(grams=10**6, lines=[], items=[{"type": "product", "code": "4000000000001", "qty": 1}]))
+    assert r.status_code == 422 and "UNKNOWN_PRODUCT" in r.json()["detail"]
+    g = estimate_product({"groupId": "clothing"})["grams"]
+    ok = c.post("/v1/retire", json=body(grams=g, lines=[], items=[{"type": "product", "code": "4000000000001", "groupId": "clothing", "qty": 1}], idempotency_key="key-0000002"))
+    assert ok.status_code == 200 and c.get(f"/v1/receipts/{ok.json()['receipt_id']}").json()["entry"]["receipt"]["computed_g"] == g
+
+
+def test_a_live_lookup_result_is_bounded_like_any_outside_number():
+    hostile = lambda code: {"name": "x", "grams": -5, "cats": ["en:beef"], "hint": "", "agribalyseKgPerKg": 1e9}   # noqa: E731
+    c = make(lookup=hostile)
+    g = estimate_product(hostile("1"))["grams"]
+    assert 0 < g < 10**6
+    assert c.post("/v1/retire", json=body(grams=g, lines=[], items=[{"type": "product", "code": "4000000000001", "qty": 1}])).status_code == 200
+
+
+def test_activities_and_partners_are_priced_from_the_tables():
+    from carbonledger import activities as A
+    c = make()
+    f = A.flight_grams("LHR", "BCN", "economy", True, 1)["grams"]
+    items = [{"type": "flight", "from": "LHR", "to": "BCN", "cabin": "economy", "ret": True, "people": 1}]
+    assert c.post("/v1/retire", json=body(grams=f - 1, lines=[], items=items, kind="travel", label="Journey")).status_code == 422
+    assert c.post("/v1/retire", json=body(grams=f, lines=[], items=items, kind="travel", label="Journey", idempotency_key="key-0000002")).status_code == 200
+    bad = c.post("/v1/retire", json=body(grams=1, lines=[], items=[{"type": "flight", "from": "LHR", "to": "XXX", "cabin": "economy", "ret": False, "people": 1}], idempotency_key="key-0000003"))
+    assert bad.status_code == 422 and "BAD_FLIGHT" in bad.json()["detail"]
+    assert c.post("/v1/retire", json=body(grams=119, lines=[], items=[{"type": "partner", "id": "search"}], kind="partner", label="Partner reward", idempotency_key="key-0000004")).status_code == 422
+    assert c.post("/v1/retire", json=body(grams=120, lines=[], items=[{"type": "partner", "id": "search"}], kind="partner", label="Partner reward", idempotency_key="key-0000005")).status_code == 200
+    daily = [{"type": "energy", "electricityKwh": 8, "gasKwh": 30}, {"type": "meal", "meal": "chicken", "n": 1}]
+    want = A.business_energy_grams(8, 30) + A.meal_grams("chicken", 1)["grams"]
+    assert c.post("/v1/retire", json=body(grams=want, lines=[], items=daily, kind="daily", label="Everyday activities", idempotency_key="key-0000006")).status_code == 200
+
+
+@pytest.mark.parametrize("items", [[], [{"type": "rocket"}], [{"type": "measured", "kg": -1}], [{"type": "product", "qty": 0}], [{"type": "flight", "from": "LHR"}],
+                                   [{"type": "measured", "kg": 1, "extra": 1}]])
+def test_bad_items_are_refused_at_the_edge(items):
+    assert make().post("/v1/retire", json=body(items=items)).status_code == 422

@@ -1,5 +1,6 @@
 // Daily view: home energy and meals.
-import { ENERGY, MEALS, TRAVEL_SOURCE } from '../data/travel.js';
+import { MEALS, TRAVEL_SOURCE } from '../data/travel.js';
+import { energyGrams, mealGrams } from '../core/activities.js';
 import { PN_SOURCE } from '../data/factors.js';
 import { $, esc, mass } from './dom.js';
 import { confirmRetirement, retireButtonLabel } from './retire.js';
@@ -25,18 +26,18 @@ export function mountDaily(root) {
   form.addEventListener('submit', e => e.preventDefault());
   form.addEventListener('input', update);
   function update() {
-    const lines = [];
+    const items = [];
     const e = +$('#elec').value || 0, g = +$('#gas').value || 0;
-    if (e) lines.push({ name: `Electricity ${e} kWh`, grams: Math.ceil(e * ENERGY.electricity * 1000) });
-    if (g) lines.push({ name: `Gas ${g} kWh`, grams: Math.ceil(g * ENERGY.gas * 1000) });
+    const lines = energyGrams({ electricityKwh: e, gasKwh: g });
+    if (e || g) items.push({ type: 'energy', electricityKwh: e, gasKwh: g });
     form.querySelectorAll('[data-meal]').forEach(i => {
-      const n = +i.value || 0, m = MEALS.find(x => x.id === i.dataset.meal);
-      if (n) lines.push({ name: `${n} × ${m.label}`, grams: Math.ceil(n * m.kg * 1000) });
+      const n = +i.value || 0, r = mealGrams({ meal: i.dataset.meal, n });
+      if (r) { lines.push({ name: r.label, grams: r.grams }); items.push({ type: 'meal', meal: i.dataset.meal, n }); }
     });
     const total = lines.reduce((s, l) => s + l.grams, 0), out = $('#daily-result', root);
     out.innerHTML = total ? `<div class="total-row"><span>${lines.length} activit${lines.length === 1 ? 'y' : 'ies'}</span><strong>${mass(total)} CO₂e</strong></div>
       <button class="btn primary block" id="retire-daily">${retireButtonLabel(total)}</button>` : `<p class="muted">Enter some activity to see its footprint.</p>`;
-    $('#retire-daily', out)?.addEventListener('click', () => confirmRetirement({ grams: total, kind: 'daily', label: 'Everyday activities', lines }));
+    $('#retire-daily', out)?.addEventListener('click', () => confirmRetirement({ grams: total, kind: 'daily', label: 'Everyday activities', lines, items }));
   }
   update();
 }

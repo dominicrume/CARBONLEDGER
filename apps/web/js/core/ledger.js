@@ -52,6 +52,7 @@ export class SolanaLedger {
       account: entry.account || 'personal', grams: entry.grams, kind: entry.kind || 'other', label: entry.label || 'Shopping basket',
       note: entry.note ? String(entry.note).slice(0, 120) : null,
       lines: (entry.lines || []).map(l => ({ name: String(l.name), grams: Math.round(l.grams) })),
+      items: entry.items || [],
       target_iso3: entry.countryIso3 || null, idempotency_key: entry.idempotencyKey || ref(),
     };
     const ctrl = new AbortController();

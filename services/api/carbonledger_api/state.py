@@ -13,6 +13,8 @@ from carbonledger.outbox import AnchorOutbox, AnchorWorker
 from carbonledger.receipts import ReceiptChain
 from carbonledger.registry import Registry
 
+from .lookup import ProductLookup, lookup_from_env
+
 DEMO_PROJECT, DEMO_BATCH = "demo-pilot-1", "pilot-2026"
 DEMO_ISSUED_G = 1_000_000_000          # 1,000 tonnes, simulated (ASSUMPTION for the demo)
 HEALTH_CACHE_S = 10.0                  # how long one chain health answer is trusted before asking again
@@ -34,8 +36,9 @@ class Limits:
 
 class State:
     def __init__(self, chain: ChainClient, now: Callable[[], float] = time.time, anchor_wait_s: float = 0.0,
-                 keys: Optional[ApiKeyStore] = None, limits: Optional[Limits] = None):
+                 keys: Optional[ApiKeyStore] = None, limits: Optional[Limits] = None, product_lookup: Optional[ProductLookup] = None):
         self.lock = threading.Lock()
+        self.product_lookup = product_lookup or lookup_from_env()
         self.chain_client, self.now, self.anchor_wait_s = chain, now, anchor_wait_s
         self.limits = limits or Limits()
         self.keys = keys or keys_from_env()

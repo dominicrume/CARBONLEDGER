@@ -14,7 +14,7 @@ export const basket = {
     const existing = items.find(i => i.code === (product.code || null) && i.groupId === (product.groupId || null));
     if (existing && product.code) existing.qty += 1;
     else items.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7), code: product.code || null, name: product.name, brand: product.brand || '',
-      quantity: product.quantity || '', groupId: product.groupId || null, qty: 1, est });
+      quantity: product.quantity || '', groupId: product.groupId || null, packGrams: typeof product.grams === 'number' && product.grams > 0 ? product.grams : null, qty: 1, est });
     save();
     return est;
   },

@@ -29,7 +29,7 @@ export function mountMe(root) {
   nameEl.addEventListener('change', () => { store.set('name', nameEl.value.trim()); refreshMe(); });
   root.querySelectorAll('[data-partner]').forEach(b => b.addEventListener('click', () => {
     const p = PARTNERS.find(x => x.id === b.dataset.partner);
-    confirmRetirement({ grams: p.grams, kind: 'partner', label: 'Partner reward', note: `${p.name} reward`, paidBy: p.name, account: 'personal', lines: [{ name: p.action, grams: p.grams }] }, refreshMe);
+    confirmRetirement({ grams: p.grams, kind: 'partner', label: 'Partner reward', note: `${p.name} reward`, paidBy: p.name, account: 'personal', lines: [{ name: p.action, grams: p.grams }], items: [{ type: 'partner', id: p.id }] }, refreshMe);
   }));
   refreshMe();
 }

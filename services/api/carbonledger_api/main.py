@@ -26,7 +26,9 @@ from carbonledger.receipts import digest, verify
 from carbonledger.registry import RegistryError
 from carbonledger.units import grams_to_clt
 
+from .lookup import ProductLookup
 from .models import STATUS_FOR, UNITS_STATUS, MandateIn, RetireIn
+from .recompute import RecomputeError, compute
 from .state import DEMO_BATCH, DEMO_ISSUED_G, DEMO_PROJECT, Limits, State, anchor_wait_from_env, chain_from_env
 
 __all__ = ["create_app", "public_receipt_id", "DEMO_BATCH", "DEMO_ISSUED_G", "DEMO_PROJECT", "UNITS_STATUS"]
@@ -39,9 +41,9 @@ def public_receipt_id(receipt_body: dict) -> str:
 
 def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = time.time, web_origin: Optional[str] = None,
                anchor_wait_s: Optional[float] = None, start_worker: bool = True, keys: Optional[ApiKeyStore] = None,
-               limits: Optional[Limits] = None) -> FastAPI:
+               limits: Optional[Limits] = None, product_lookup: Optional[ProductLookup] = None) -> FastAPI:
     st = State(chain or chain_from_env(), now, anchor_wait_from_env() if anchor_wait_s is None else anchor_wait_s,
-               keys=keys, limits=limits or Limits.from_env())
+               keys=keys, limits=limits or Limits.from_env(), product_lookup=product_lookup)
     dev = os.environ.get("APP_ENV") == "dev"
     app = FastAPI(title="CarbonLedger API", docs_url="/docs" if dev else None, redoc_url=None, openapi_url="/openapi.json" if dev else None)
     app.state.st = st
@@ -167,17 +169,26 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
                 authorize(mandate, body.agent, body.grams, DEMO_PROJECT, now)
             except MandateError as exc:
                 raise HTTPException(403, f"The mandate does not allow this: {exc.code}.")
+        # The server prices the items itself (D1). A total below that is refused. Above it is allowed: estimates err high.
+        try:
+            computed_g, _breakdown = compute(body.items, st.product_lookup)
+        except RecomputeError as exc:
+            raise HTTPException(422, f"Cannot price this request: {exc}. Nothing was recorded.")
+        if body.grams < computed_g:
+            raise HTTPException(422, f"The total ({body.grams} g) is below what the server computes for these items ({computed_g} g). Nothing was recorded.")
         reg = copy.deepcopy(st.registry)            # work on a copy; commit only if everything succeeds
         retiree = f"{body.account}:{caller.owner}:{body.agent or 'self'}"
         lines_digest = digest({"lines": [l.model_dump() for l in body.lines]})
         note_digest = digest({"note": body.note}) if body.note else None
+        items_digest = digest({"items": [i.model_dump(by_alias=True) for i in body.items]})
         try:
             ret = reg.retire(retiree, DEMO_BATCH, body.grams, body.target_iso3, lines_digest)
         except RegistryError as exc:
             raise HTTPException(STATUS_FOR.get(exc.code, 409), "Not enough pilot units left." if exc.code == "OVER_RETIREMENT" else str(exc))
         receipt = {"ts": datetime.fromtimestamp(now, timezone.utc).isoformat(), "account": body.account, "owner": caller.owner,
                    "grams": body.grams, "clt": grams_to_clt(body.grams), "kind": body.kind, "label": body.label,
-                   "lines_digest": lines_digest, "note_digest": note_digest, "target_iso3": body.target_iso3, "project_id": DEMO_PROJECT, "batch_id": DEMO_BATCH,
+                   "lines_digest": lines_digest, "note_digest": note_digest, "items_digest": items_digest, "computed_g": computed_g,
+                   "target_iso3": body.target_iso3, "project_id": DEMO_PROJECT, "batch_id": DEMO_BATCH,
                    "serial_start": ret.serial_start, "serial_end": ret.serial_end, "units": UNITS_STATUS}
         # The public id comes from the receipt's own content, so the memo never exposes a running count (F14).
         receipt_id = public_receipt_id(receipt)

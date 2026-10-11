@@ -1,23 +1,8 @@
 // Travel view: flights between airports, or ground journeys by distance.
-import { FLIGHT, FLIGHT_UPLIFT, GROUND, AIRPORTS, UK_AIRPORTS, TRAVEL_SOURCE } from '../data/travel.js';
+import { GROUND, AIRPORTS, TRAVEL_SOURCE } from '../data/travel.js';
+import { flightGrams, groundGrams } from '../core/activities.js';
 import { $, esc, mass } from './dom.js';
 import { confirmRetirement, retireButtonLabel } from './retire.js';
-
-function km(a, b) {
-  const R = 6371, r = d => d * Math.PI / 180;
-  const dLat = r(b[2] - a[2]), dLon = r(b[3] - a[3]);
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(r(a[2])) * Math.cos(r(b[2])) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(h));
-}
-
-export function flightGrams({ from, to, cabin, ret, people }) {
-  const a = AIRPORTS.find(x => x[0] === from), b = AIRPORTS.find(x => x[0] === to);
-  if (!a || !b || a === b) return null;
-  const dist = km(a, b) * FLIGHT_UPLIFT;
-  const band = UK_AIRPORTS.has(from) && UK_AIRPORTS.has(to) ? 'domestic' : dist <= 3700 ? 'short' : 'long';
-  const g = Math.ceil(dist * FLIGHT[band][cabin] * 1000 * (ret ? 2 : 1) * people);
-  return { grams: g, dist: Math.round(dist), band, label: `${a[1]} to ${b[1]}${ret ? ' and back' : ''}` };
-}
 
 export function mountTravel(root) {
   const opts = AIRPORTS.map(a => `<option value="${a[0]}">${esc(a[1])} (${a[0]})</option>`).join('');
@@ -58,19 +43,19 @@ export function mountTravel(root) {
   function calc() {
     if (mode === 'flight') {
       const f = flightGrams({ from: $('#from').value, to: $('#to').value, cabin: $('#cabin').value, ret: $('#ret').checked, people: Math.max(1, +$('#fpeople').value || 1) });
-      return f && { ...f, travelMode: 'flight', sub: `${f.dist.toLocaleString('en-GB')} km each way, ${f.band === 'long' ? 'long-haul' : f.band === 'short' ? 'short-haul' : 'domestic'}`, longHaul: f.band === 'long' };
+      return f && { ...f, travelMode: 'flight', item: { type: 'flight', from: $('#from').value, to: $('#to').value, cabin: $('#cabin').value, ret: $('#ret').checked, people: Math.max(1, +$('#fpeople').value || 1) }, sub: `${f.dist.toLocaleString('en-GB')} km each way, ${f.band === 'long' ? 'long-haul' : f.band === 'short' ? 'short-haul' : 'domestic'}`, longHaul: f.band === 'long' };
     }
-    const g = GROUND.find(x => x.id === $('#gmode').value), dist = Math.max(0, +$('#gkm').value || 0);
-    const people = g.perVehicle ? Math.max(1, +$('#gpeople').value || 1) : 1;
-    if (!dist) return null;
-    return { travelMode: g.id, grams: Math.ceil(dist * g.perKm * 1000 / people), label: `${g.label}, ${dist} km`, sub: g.perVehicle && people > 1 ? `your share of ${people} people` : '' };
+    const mode = $('#gmode').value, dist = Math.max(0, +$('#gkm').value || 0), people = Math.max(1, +$('#gpeople').value || 1);
+    const r = groundGrams({ mode, km: dist, people });
+    if (!r) return null;
+    return { travelMode: mode, grams: r.grams, label: r.label, sub: r.share > 1 ? `your share of ${r.share} people` : '', item: { type: 'ground', mode, km: dist, people } };
   }
   function update() {
     const r = calc(), out = $('#travel-result', root);
     if (!r) { out.innerHTML = `<p class="muted">Choose two different places, or enter a distance.</p>`; return; }
     out.innerHTML = `<div class="total-row"><span>${esc(r.label)}<br><small class="muted">${esc(r.sub || '')}</small></span><strong>${mass(r.grams)} CO₂e</strong></div>
       <button class="btn primary block" id="retire-trip">${retireButtonLabel(r.grams)}</button>`;
-    $('#retire-trip', out).addEventListener('click', () => confirmRetirement({ grams: r.grams, kind: 'travel', label: 'Journey', note: r.label, longHaul: !!r.longHaul, travelMode: r.travelMode, lines: [{ name: r.label, grams: r.grams }] }));
+    $('#retire-trip', out).addEventListener('click', () => confirmRetirement({ grams: r.grams, kind: 'travel', label: 'Journey', note: r.label, longHaul: !!r.longHaul, travelMode: r.travelMode, lines: [{ name: r.label, grams: r.grams }], items: [r.item] }));
   }
   update();
 }
