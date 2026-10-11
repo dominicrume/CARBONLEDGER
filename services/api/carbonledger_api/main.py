@@ -26,7 +26,7 @@ from carbonledger.auth import ApiKeyStore, AuthError, KeyRecord
 from carbonledger.chain import ChainClient
 from carbonledger.merkle import verify_proof
 from carbonledger.mandate import Mandate, MandateError, authorize, consume, revoke
-from carbonledger.receipts import digest, verify
+from carbonledger.receipts import digest, to_json, verify
 from carbonledger.registry import RegistryError
 from carbonledger.units import grams_to_clt
 
@@ -174,57 +174,75 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
         return _response(e["receipt"], e["hash"], entry.public())
 
     def _commit(body: RetireIn, payload_digest: str, caller: KeyRecord) -> str:
-        """Called under the lock. Retires on a copy, commits, enqueues the anchor. Returns the receipt id."""
+        """Called under the lock. Every attempt that reaches a decision becomes a sealed receipt (KYA format):
+        ACCEPTED with its serial range, or REFUSED with the rule that stopped it. Returns the accepted receipt id."""
         now = int(st.now())
-        mandate = None
-        if body.mandate_id is not None:
-            mandate = st.mandates.get(body.mandate_id)
-            if mandate is None:
-                raise HTTPException(404, "No such mandate.")
-            if not body.agent:
-                raise HTTPException(422, "An agent key is required when a mandate is used.")
+        at = datetime.fromtimestamp(now, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        ledger = f"CarbonLedger API, chain {getattr(st.chain_client, 'cluster', 'unknown')} (simulated pilot units)"
+        lines_digest = digest({"lines": [l.model_dump() for l in body.lines]})
+        note_digest = digest({"note": body.note}) if body.note else None
+        items_digest = digest({"items": [i.model_dump(by_alias=True) for i in body.items]})
+        base = {"ts": datetime.fromtimestamp(now, timezone.utc).isoformat(), "account": body.account, "owner": caller.owner,
+                "grams": body.grams, "kind": body.kind, "label": body.label, "lines_digest": lines_digest, "note_digest": note_digest,
+                "items_digest": items_digest, "target_iso3": body.target_iso3, "project_id": DEMO_PROJECT, "batch_id": DEMO_BATCH, "units": UNITS_STATUS}
+        what = f"retire {body.grams} g of simulated pilot units: {body.label}"
+        mandate = st.mandates.get(body.mandate_id) if body.mandate_id is not None else None
+        if body.mandate_id is not None and mandate is None:
+            raise HTTPException(404, "No such mandate.")
+        if mandate is not None and not body.agent:
+            raise HTTPException(422, "An agent key is required when a mandate is used.")
+        approved_by = f"mandate {mandate.id} of {mandate.owner}" if mandate else f"api key owner {caller.owner}"
+
+        def refuse(status: int, code: str, message: str, computed_g=None) -> None:
+            """Record the refusal as a receipt (it is anchored like any other), then answer. No units move."""
+            fields = {**base, "computed_g": computed_g, "refusal_code": code}
+            fields["receipt_id"] = public_receipt_id(fields)
+            entry = st.receipts.prepare(fields, what=what, amount=str(body.grams), payee=DEMO_PROJECT, rule=f"{code}: {message}", outcome="REFUSED",
+                                        approved_by=approved_by, ledger=ledger, at=at, instrument="nothing moved")
+            try:
+                st.store.write_refusal(entry)
+                entry = st.receipts.commit(entry)
+                st.outbox.enqueue(fields["receipt_id"], entry["hash"], entry["index"])
+                noted = f" The refusal is on the record as {fields['receipt_id']}."
+            except StoreError:
+                noted = " The refusal could not be recorded."
+            raise HTTPException(status, f"{message} No units were retired.{noted}")
+
+        if mandate is not None:
             try:
                 check_timestamp(body.agent_ts, now, st.limits.agent_sig_max_age_s)
                 verify_agent(body.agent, body.agent_sig, body.model_dump(exclude={"agent_sig"}))
             except AgentSigError as exc:
-                raise HTTPException(403, f"The agent signature was refused: {exc.code}. Nothing was recorded.")
+                refuse(403, exc.code, f"The agent signature was refused: {exc.code}.")
             try:
                 authorize(mandate, body.agent, body.grams, DEMO_PROJECT, now)
             except MandateError as exc:
-                raise HTTPException(403, f"The mandate does not allow this: {exc.code}.")
+                refuse(403, exc.code, f"The mandate does not allow this: {exc.code}.")
         # The server prices the items itself (D1). A total below that is refused. Above it is allowed: estimates err high.
         try:
             computed_g, _breakdown = compute(body.items, st.product_lookup)
         except RecomputeError as exc:
-            raise HTTPException(422, f"Cannot price this request: {exc}. Nothing was recorded.")
+            refuse(422, exc.code, f"Cannot price this request: {exc}.")
         if body.grams < computed_g:
-            raise HTTPException(422, f"The total ({body.grams} g) is below what the server computes for these items ({computed_g} g). Nothing was recorded.")
+            refuse(422, "BELOW_COMPUTED", f"The total ({body.grams} g) is below what the server computes for these items ({computed_g} g).", computed_g)
         reg = copy.deepcopy(st.registry)            # work on a copy; commit only if everything succeeds
         retiree = f"{body.account}:{caller.owner}:{body.agent or 'self'}"
-        lines_digest = digest({"lines": [l.model_dump() for l in body.lines]})
-        note_digest = digest({"note": body.note}) if body.note else None
-        items_digest = digest({"items": [i.model_dump(by_alias=True) for i in body.items]})
         try:
             ret = reg.retire(retiree, DEMO_BATCH, body.grams, body.target_iso3, lines_digest)
         except RegistryError as exc:
-            raise HTTPException(STATUS_FOR.get(exc.code, 409), "Not enough pilot units left." if exc.code == "OVER_RETIREMENT" else str(exc))
-        receipt = {"ts": datetime.fromtimestamp(now, timezone.utc).isoformat(), "account": body.account, "owner": caller.owner,
-                   "grams": body.grams, "clt": grams_to_clt(body.grams), "kind": body.kind, "label": body.label,
-                   "lines_digest": lines_digest, "note_digest": note_digest, "items_digest": items_digest, "computed_g": computed_g,
-                   "target_iso3": body.target_iso3, "project_id": DEMO_PROJECT, "batch_id": DEMO_BATCH,
-                   "serial_start": ret.serial_start, "serial_end": ret.serial_end, "units": UNITS_STATUS}
+            refuse(STATUS_FOR.get(exc.code, 409), exc.code, "Not enough pilot units left." if exc.code == "OVER_RETIREMENT" else str(exc), computed_g)
+        fields = {**base, "clt": grams_to_clt(body.grams), "computed_g": computed_g, "serial_start": ret.serial_start, "serial_end": ret.serial_end}
         # The public id comes from the receipt's own content, so the memo never exposes a running count (F14).
-        receipt_id = public_receipt_id(receipt)
-        receipt["receipt_id"] = receipt_id
-        preview = {"index": st.receipts.next_index(), "receipt": receipt, "prev_hash": st.receipts.head_hash()}
-        preview["hash"] = digest(preview)
+        receipt_id = public_receipt_id(fields)
+        fields["receipt_id"] = receipt_id
+        rule = "within the mandate cap, allow-list and expiry; priced by the server" if mandate else "priced by the server from the typed items; pilot units available"
+        preview = st.receipts.prepare(fields, what=what, amount=str(body.grams), payee=DEMO_PROJECT, rule=rule, outcome="ACCEPTED", approved_by=approved_by,
+                                      ledger=ledger, at=at, instrument=f"serial range {ret.serial_start}-{ret.serial_end} of batch {DEMO_BATCH}")
         try:                                     # the database first (its constraints are the second guard), then memory
             st.store.write_retirement(preview, ret, reg.batches[DEMO_BATCH], body.idempotency_key, payload_digest)
         except StoreError as exc:
             raise HTTPException(409, f"{exc}. Nothing was recorded.")
-        entry = st.receipts.append(receipt)
-        if entry["hash"] != preview["hash"]:          # cannot happen under the lock; if it does, say so loudly, never silently
-            raise RuntimeError(f"receipt hash drifted between preview and append for {receipt_id}")
+        entry = st.receipts.commit(preview)
         st.registry = reg
         if mandate is not None:
             consume(mandate, body.grams)
@@ -255,10 +273,20 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
                 "proof": a.proof if a else None, "proof_checks": ok,
                 "memo": f"carbonledger:v2:{a.anchor_id}:{a.anchor_root}" if a and a.anchor_root else None}
 
+    @app.get("/v1/audit/receipts.json")
+    def audit_export():
+        """The whole chain in the KYA receipt wire format, for `python -m knowyouragenticai_receipts verify` and the
+        verifier page. Ids and hashes only: no names, baskets or notes are in it."""
+        from fastapi.responses import Response
+        return Response(to_json(st.receipts.receipts()), media_type="application/json",
+                        headers={"content-disposition": 'attachment; filename="carbonledger-receipts.json"'})
+
     @app.get("/v1/audit/verify")
     def audit_verify():
         bad = verify(st.receipts.entries())
-        return {"intact": bad is None, "first_bad_index": bad, "count": len(st.receipts.entries()), "head_hash": st.receipts.head_hash(),
+        rs = st.receipts.receipts()
+        return {"intact": bad is None, "first_bad_index": bad, "count": len(rs), "accepted": sum(r["outcome"] == "ACCEPTED" for r in rs),
+                "refused": sum(r["outcome"] == "REFUSED" for r in rs), "head_hash": st.receipts.head_hash(), "format": "knowyouragenticai-receipts 1.1.0",
                 "anchors": st.outbox.counts()}
 
     web_dir = Path(os.environ.get("WEB_DIR", "")) if os.environ.get("WEB_DIR") else None

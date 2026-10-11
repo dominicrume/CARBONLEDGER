@@ -101,3 +101,17 @@ needs two different verifiers to agree on any attestation above a threshold, has
 does not enable init-if-needed.
 Why: T4 (one stolen verifier key), the missing lever to lift a suspension, and a known re-initialisation foot-gun.
 Who agreed: Engineering, during the autonomous run. Awaiting Rume. Compiles and vectors wait on the toolchain.
+
+---
+Date: 2026-10-11
+Decision: The receipt is the KYA receipt (knowyouragenticai-receipts 1.1.0, SPEC.md v1.3). Every attempt that
+reaches a decision is sealed into the chain, ACCEPTED with its serial range or REFUSED with the rule that stopped
+it, and the seal is the hash that is anchored and stored. CarbonLedger's own fields (receipt id, grams, serial
+range, digests) are added to the wire format; the package's verifier and the verifier page check the seals
+regardless. GET /v1/audit/receipts.json exports the bare chain. The `ledger` field names the decider and says the
+units are simulated. Malformed and unauthenticated requests are not attempts and are not recorded.
+Why: "What did it try to do that you stopped?" is the question an auditor asks about an agent, and the mandate path
+exists for agents. A refusal that leaves no trace cannot be audited. One format, already specified and verifiable
+by anyone, beats a private one.
+Who agreed: Rume asked for it (2026-10-11). Engineering implemented it. Format rule 1 of the package applies: the
+chain proves consistency, not origin; origin comes from the anchored root.

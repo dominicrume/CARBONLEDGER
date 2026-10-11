@@ -27,8 +27,10 @@ export function mountVerify(root) {
     </section>
     <section class="panel">
       <h2 class="h2">Whole ledger</h2>
-      <p class="note">Checks that every receipt still commits to the one before it. An edit, a deletion or a swap names the first bad index.</p>
-      <button class="btn ghost" id="verify-all" type="button">Check the receipt chain</button>
+      <p class="note">Checks that every receipt still commits to the one before it. An edit, a deletion or a swap names the first bad index. Refused attempts are in the chain with equal weight.</p>
+      <div class="row wrap"><button class="btn ghost" id="verify-all" type="button">Check the receipt chain</button>
+      <a class="btn ghost" id="verify-export" href="${esc(CONFIG.api.baseUrl)}/v1/audit/receipts.json" download="carbonledger-receipts.json">Download receipts.json</a></div>
+      <p class="note">The file is the KYA receipt format: check it with <span class="mono">python -m knowyouragenticai_receipts verify carbonledger-receipts.json</span> or drop it on the verifier page, with nothing installed and nothing uploaded.</p>
       <div id="verify-all-out" class="result" aria-live="polite"></div>
     </section>`;
   $('#verify-form', root).addEventListener('submit', async (e) => { e.preventDefault(); await lookup($('#verify-id', root).value.trim()); });
@@ -55,8 +57,10 @@ async function lookup(id) {
     out.innerHTML = `
       <dl class="kv">
         <div><dt>Receipt</dt><dd class="mono">${esc(rc.receipt_id)}</dd></div>
-        <div><dt>Retired</dt><dd>${mass(rc.grams)} CO₂e, ${esc(rc.clt)} CLT ${SIM_TAG}</dd></div>
-        <div><dt>Serial range</dt><dd class="mono">${rc.serial_start} to ${rc.serial_end} in batch ${esc(rc.batch_id)}</dd></div>
+        <div><dt>Outcome</dt><dd data-outcome="${esc(rc.outcome)}">${rc.outcome === 'REFUSED' ? 'Refused. No units were retired.' : 'Accepted.'} Rule: ${esc(rc.rule)}</dd></div>
+        <div><dt>${rc.outcome === 'REFUSED' ? 'Attempted' : 'Retired'}</dt><dd>${mass(rc.grams)} CO₂e${rc.clt ? `, ${esc(rc.clt)} CLT` : ''} ${SIM_TAG}</dd></div>
+        ${rc.serial_start != null ? `<div><dt>Serial range</dt><dd class="mono">${rc.serial_start} to ${rc.serial_end} in batch ${esc(rc.batch_id)}</dd></div>` : ''}
+        <div><dt>Decided by</dt><dd>${esc(rc.ledger)}, under ${esc(rc.approved_by)}</dd></div>
         <div><dt>Receipt hash</dt><dd class="mono wrap">${esc(entry.hash)}</dd></div>
         <div><dt>Previous hash</dt><dd class="mono wrap">${esc(entry.prev_hash)}</dd></div>
         <div><dt>Chain</dt><dd data-anchor="${esc(a.anchor_status)}">${esc(ANCHOR_WORDS[a.anchor_status] || a.anchor_status)}${a.slot != null ? ` Slot ${a.slot}.` : ''}
@@ -87,7 +91,7 @@ async function checkAll() {
   if (CONFIG.ledger !== 'solana-devnet') { out.innerHTML = '<p class="note">The whole-ledger check needs the API. This device keeps records only.</p>'; return; }
   try {
     const v = await (await fetch(`${CONFIG.api.baseUrl}/v1/audit/verify`, { signal: AbortSignal.timeout(CONFIG.api.timeoutMs) })).json();
-    out.innerHTML = v.intact ? `<p class="ok" data-intact="true">Intact. ${v.count} receipt${v.count === 1 ? '' : 's'}, head hash <span class="mono">${esc(v.head_hash.slice(0, 16))}…</span>. Anchors: ${v.anchors.anchored} confirmed, ${v.anchors.pending} pending, ${v.anchors.failed} failed.</p>`
+    out.innerHTML = v.intact ? `<p class="ok" data-intact="true">Intact. ${v.count} receipt${v.count === 1 ? '' : 's'} (${v.accepted} accepted, ${v.refused} refused), head hash <span class="mono">${esc(v.head_hash.slice(0, 16))}…</span>. Anchors: ${v.anchors.anchored} confirmed, ${v.anchors.pending} pending, ${v.anchors.failed} failed.</p>`
       : `<p class="bad" data-intact="false">Not intact. The first bad receipt is at index ${v.first_bad_index}.</p>`;
   } catch { out.innerHTML = '<p class="note">Could not reach the CarbonLedger API. Nothing was checked.</p>'; }
 }

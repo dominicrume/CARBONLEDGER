@@ -18,7 +18,7 @@ def account_router(st, require_key) -> APIRouter:
         out: Dict[str, dict] = {a: {"grams": 0, "count": 0, "by_kind": {}} for a in ("personal", "business")}
         for e in _mine():
             rc = e["receipt"]
-            if rc.get("owner") != caller.owner:
+            if rc.get("owner") != caller.owner or rc.get("outcome") != "ACCEPTED":
                 continue
             t = out[rc["account"]]
             t["grams"] += rc["grams"]
@@ -27,7 +27,9 @@ def account_router(st, require_key) -> APIRouter:
         return {"owner": caller.owner, "units": UNITS_STATUS, "source": "ledger", **out}
 
     @r.get("/history")
-    def history(account: Literal["personal", "business", "all"] = "all", limit: int = 200, caller=Depends(require_key)):
+    def history(account: Literal["personal", "business", "all"] = "all", outcome: Literal["accepted", "refused", "all"] = "accepted",
+                limit: int = 200, caller=Depends(require_key)):
+        """Default: what was retired. outcome=refused: what was attempted and stopped, the half an ordinary log drops."""
         if not 1 <= limit <= 1000:
             raise HTTPException(422, "limit must be between 1 and 1000")
         rows = []
@@ -35,10 +37,12 @@ def account_router(st, require_key) -> APIRouter:
             rc = e["receipt"]
             if rc.get("owner") != caller.owner or (account != "all" and rc["account"] != account):
                 continue
+            if outcome != "all" and rc.get("outcome") != outcome.upper():
+                continue
             a = st.outbox.get(rc["receipt_id"])
-            rows.append({"id": rc["receipt_id"], "ts": rc["ts"], "account": rc["account"], "grams": rc["grams"], "clt": rc["clt"], "kind": rc["kind"],
-                         "label": rc["label"], "target_iso3": rc["target_iso3"], "serial_start": rc["serial_start"], "serial_end": rc["serial_end"],
-                         "receipt_hash": e["hash"], **(a.public() if a else {"anchor_status": "pending"})})
+            rows.append({"id": rc["receipt_id"], "ts": rc["ts"], "account": rc["account"], "grams": rc["grams"], "clt": rc.get("clt"), "kind": rc["kind"],
+                         "label": rc["label"], "target_iso3": rc["target_iso3"], "serial_start": rc.get("serial_start"), "serial_end": rc.get("serial_end"),
+                         "outcome": rc["outcome"], "rule": rc["rule"], "receipt_hash": e["hash"], **(a.public() if a else {"anchor_status": "pending"})})
             if len(rows) >= limit:
                 break
         return {"owner": caller.owner, "units": UNITS_STATUS, "source": "ledger", "records": rows}

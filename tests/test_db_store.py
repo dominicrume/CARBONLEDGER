@@ -64,6 +64,14 @@ def test_state_survives_a_restart_and_idempotency_holds_across_it():
     nxt = c2.post("/v1/retire", json=_body(10, "key-0000003")).json()
     assert (nxt["serial_start"], nxt["serial_end"]) == (1700, 1710)
     assert c2.get("/v1/accounts/me/totals").json()["personal"]["grams"] == 1710
+    # a refusal is a receipt in the rows too, and survives the next restart
+    assert c2.post("/v1/retire", json=_body(10 ** 12, "key-0000004")).status_code == 409
+    from carbonledger.auth import ApiKeyStore as _K
+    _, c3, _ = _app(_K(PEPPER)); c3.headers["authorization"] = f"Bearer {key}"
+    v = c3.get("/v1/audit/verify").json()
+    assert v["refused"] == 1 and v["accepted"] == 3 and v["intact"]
+    from knowyouragenticai_receipts import verify as kya_verify
+    assert kya_verify(c3.get("/v1/audit/receipts.json").json()) == (True, 0)
 
 
 def test_mandates_and_revocation_persist():

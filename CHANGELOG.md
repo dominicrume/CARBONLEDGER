@@ -1,6 +1,9 @@
 # Changelog
 
 ## 0.2.0 (2026-10-11)
+- The receipt is the KYA receipt (knowyouragenticai-receipts 1.1.0): refused attempts are sealed into the chain
+  with the rule that stopped them, the seal is what is anchored, and GET /v1/audit/receipts.json exports a file the
+  package's CLI and verifier page check. The verify screen shows outcome, rule and decider.
 - Dependencies pinned. scripts/dev.sh, check.sh, e2e.sh, drills.py, migrate.py, recheck.py, make_api_key.py, vendor_hashes.sh. docs/RUN-LOG.md tracks the autonomous run. README.md added.
 - ai-code-quality-auditor in CI (pinned), spec.yaml for the scope-drift check (0 drift). Invariant checks raise
   InvariantError instead of assert (F18). Deployed to Railway with Postgres; the API serves the app from one origin.

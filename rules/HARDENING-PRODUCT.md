@@ -29,7 +29,7 @@ A judge, a regulator or a journalist reads the screen, not the code.
 ## Trust
 - Every receipt can be verified by anyone: hash, serial range, and explorer link when on-chain.
 - Say plainly what is recorded (an id and a hash) and what is not (names, places, baskets).
-- A failed action says "Nothing was recorded." and means it.
+- A failed action says "Nothing was recorded." and means it. A refused retirement (cap, signature, price, units) says "No units were retired" and names its refusal receipt: the refusal itself is on the record, with equal weight, so an auditor can see what was attempted and stopped.
 
 ## People and data
 - Personal data never goes on a public chain. Coordinates from farmers are coarse (geohash) and raw files stay off-chain.

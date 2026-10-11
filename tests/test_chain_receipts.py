@@ -43,7 +43,8 @@ def test_dry_run_signatures_cannot_be_mistaken_for_real_ones():
 def _chain():
     c = ReceiptChain()
     for i in range(3):
-        c.append({"receipt_id": f"CL-{i}", "grams": 100 + i})
+        c.append({"receipt_id": f"CL-{i}", "grams": 100 + i}, what="retire", amount=str(100 + i), payee="p1", rule="test", outcome="ACCEPTED",
+                 approved_by="test", ledger="test chain (simulated)", at="2027-01-01T00:00:00Z")
     return c
 
 

@@ -23,6 +23,9 @@ class MemoryStore:
     def write_retirement(self, entry: dict, ret, batch, idem_key: str, payload_digest: str) -> None:
         pass
 
+    def write_refusal(self, entry: dict) -> None:
+        pass
+
     def update_outbox(self, e) -> None:
         pass
 
@@ -101,6 +104,17 @@ class PostgresStore:
                 c.execute("INSERT INTO idempotency (key, payload_digest, receipt_id) VALUES (%s,%s,%s)", (idem_key, payload_digest, rid))
         except self._psycopg.Error as exc:
             raise StoreError(f"the database refused the retirement: {str(exc).splitlines()[0]}") from exc
+
+    def write_refusal(self, entry: dict) -> None:
+        """A refused attempt is a receipt too (KYA format): the receipt row and its anchor row, nothing else moves."""
+        rid = entry["receipt"]["receipt_id"]
+        try:
+            with self._conn() as c:
+                c.execute("INSERT INTO receipts (idx, receipt, prev_hash, hash) VALUES (%s,%s,%s,%s)",
+                          (entry["index"], json.dumps(entry["receipt"], sort_keys=True), entry["prev_hash"], entry["hash"]))
+                c.execute("INSERT INTO anchor_outbox (receipt_id, receipt_hash, status) VALUES (%s,%s,'pending')", (rid, entry["hash"]))
+        except self._psycopg.Error as exc:
+            raise StoreError(f"the database refused the refusal receipt: {str(exc).splitlines()[0]}") from exc
 
     def update_outbox(self, e) -> None:
         try:

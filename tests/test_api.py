@@ -186,7 +186,7 @@ def test_audit_chain_is_intact_then_detects_tampering():
         c.post("/v1/retire", json=body(idempotency_key=f"key-000000{i}"))
     v = c.get("/v1/audit/verify").json()
     assert v["intact"] and v["count"] == 3
-    app.state.st.receipts._entries[1]["receipt"]["grams"] = 1      # an insider edits history
+    app.state.st.receipts._receipts[1]["grams"] = 1                # an insider edits history
     v = c.get("/v1/audit/verify").json()
     assert not v["intact"] and v["first_bad_index"] == 1
 
@@ -200,8 +200,10 @@ def test_receipt_ids_are_not_sequential_and_come_from_content():
     assert a["receipt_id"] != b["receipt_id"]
     assert not any(a["receipt_id"].endswith(s) for s in ("0001", "0000001"))   # no counter leaks into the public id
     entry = c.get(f"/v1/receipts/{a['receipt_id']}").json()["entry"]
+    from carbonledger.receipts import RECEIPT_FIELDS
     from carbonledger_api.main import public_receipt_id
-    assert public_receipt_id({k: v for k, v in entry["receipt"].items() if k != "receipt_id"}) == a["receipt_id"]
+    own = {k: v for k, v in entry["receipt"].items() if k != "receipt_id" and k not in RECEIPT_FIELDS}   # the id covers CarbonLedger's fields
+    assert public_receipt_id(own) == a["receipt_id"]
 
 
 def test_receipts_can_be_looked_up():
@@ -473,3 +475,44 @@ def test_the_api_serves_the_app_when_web_dir_is_set(monkeypatch):
     api = c.get("/health")
     assert api.headers["content-security-policy"].startswith("default-src 'none'") and api.headers["cache-control"] == "no-store"
     assert c.get("/js/config.js").status_code == 200 and c.get("/nope.js").status_code == 404
+
+
+# ---- the receipt is the KYA receipt: refusals are on the record, the export verifies with the package ----
+def test_a_refused_attempt_is_a_sealed_receipt_and_never_a_retirement():
+    from knowyouragenticai_receipts import verify as kya_verify
+    agent = Keypair()
+    c = make(role="business", owner="acme")
+    mid = c.post("/v1/mandates", json={"agent": str(agent.pubkey()), "cap_g": 1000, "ttl_seconds": 3600}).json()["mandate_id"]
+    ok = c.post("/v1/retire", json=signed(agent, grams=600, idempotency_key="key-1000001", mandate_id=mid, account="business")).json()
+    over = c.post("/v1/retire", json=signed(agent, grams=401, idempotency_key="key-1000002", mandate_id=mid, account="business"))
+    assert over.status_code == 403 and "OVER_CAP" in over.json()["detail"] and "No units were retired" in over.json()["detail"]
+    rid = over.json()["detail"].split("on the record as ")[1].rstrip(".")
+    e = c.get(f"/v1/receipts/{rid}").json()
+    r = e["entry"]["receipt"]
+    assert r["outcome"] == "REFUSED" and r["rule"].startswith("OVER_CAP") and r["instrument"] == "nothing moved" and "serial_start" not in r
+    assert r["approved_by"] == f"mandate {mid} of acme" and "simulated" in r["ledger"] and r["amount"] == "401" and r["currency"] == "gCO2e"
+    assert e["chain"]["anchor_status"] == "anchored"                    # a refusal is anchored like any other receipt
+    v = c.get("/v1/audit/verify").json()
+    assert v["intact"] and v["count"] == 2 and v["accepted"] == 1 and v["refused"] == 1
+    assert c.get("/v1/registry/summary").json()["retired_g"] == 600
+    t = c.get("/v1/accounts/me/totals").json()
+    assert t["business"]["grams"] == 600 and t["business"]["count"] == 1
+    assert [x["outcome"] for x in c.get("/v1/accounts/me/history?account=business").json()["records"]] == ["ACCEPTED"]
+    refused = c.get("/v1/accounts/me/history?account=business&outcome=refused").json()["records"]
+    assert [x["id"] for x in refused] == [rid] and refused[0]["rule"].startswith("OVER_CAP")
+    wire = c.get("/v1/audit/receipts.json").json()
+    assert kya_verify(wire) == (True, 0) and [w["outcome"] for w in wire] == ["ACCEPTED", "REFUSED"] and wire[0]["receipt_id"] == ok["receipt_id"]
+    assert "note" not in wire[0] and set(wire[0]) > {"n", "what", "amount", "payee", "currency", "instrument", "rule", "outcome", "approved_by", "ledger", "at", "prev", "seal"}
+
+
+def test_every_decided_refusal_is_recorded_but_malformed_requests_are_not():
+    c = make(lookup=lambda code: None)
+    assert c.post("/v1/retire", json=body(grams=DEMO_ISSUED_G + 1)).status_code == 409                       # registry: OVER_RETIREMENT
+    assert c.post("/v1/retire", json=body(grams=10, lines=[], items=[{"type": "measured", "kg": 1}], idempotency_key="key-0000002")).status_code == 422   # below computed
+    assert c.post("/v1/retire", json=body(grams=1, lines=[], items=[{"type": "product", "code": "4000000000001", "qty": 1}], idempotency_key="key-0000003")).status_code == 422   # cannot price
+    assert c.post("/v1/retire", json=body(label="free text")).status_code == 422                               # malformed: not an attempt
+    assert c.anon().post("/v1/retire", json=body()).status_code == 401                                        # no key: not an attempt
+    v = c.get("/v1/audit/verify").json()
+    assert v["count"] == 3 and v["refused"] == 3 and v["accepted"] == 0 and v["intact"]
+    codes = [r["refusal_code"] for r in c.get("/v1/audit/receipts.json").json()]
+    assert codes == ["OVER_RETIREMENT", "BELOW_COMPUTED", "UNKNOWN_PRODUCT"]

@@ -12,8 +12,10 @@ carbon-neutral claim or a verified credit. The API says so in every response and
 - The server prices every retirement itself, from typed items and cited factor tables, and refuses a lower total.
 - A gram is retired once: every retirement takes a fresh serial range. Nothing is issued unless a verifier attested
   the project, and issued never exceeds attested. An external credit can be linked once, ever.
-- Receipts are hash-chained. One Merkle root per interval goes on Solana (devnet) as a memo; each receipt keeps a
-  proof path, and the verify screen recomputes it in the browser.
+- Receipts are KYA receipts (knowyouragenticai-receipts): every decided attempt is sealed to the one before it,
+  refusals included with the rule that stopped them. One Merkle root per interval goes on Solana (devnet) as a
+  memo; each receipt keeps a proof path, and the verify screen recomputes it in the browser. Export the chain at
+  `/v1/audit/receipts.json` and check it with `python -m knowyouragenticai_receipts verify`.
 - An AI agent may retire for a business only under a mandate: cap, allow-list, expiry, revoke. The agent is an
   ed25519 key and signs every request.
 - Every write needs an API key. Reads stay public, so anyone can verify a receipt.
