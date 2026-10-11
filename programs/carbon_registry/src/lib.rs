@@ -1,22 +1,49 @@
-// STATUS: NOT COMPILED OR TESTED IN THE SANDBOX THAT WROTE IT. No Rust toolchain was available.
-// The rules below mirror packages/core/carbonledger/registry.py, which IS tested. Before trusting this file:
+// STATUS: NOT COMPILED OR TESTED. No Rust toolchain was available where this was written (2026-10-11 revision).
+// The rules mirror packages/core/carbonledger/registry.py, which IS tested. Before trusting this file:
 //   1. `anchor build` and fix any compile errors,
-//   2. replay conformance/registry_vectors.json against it (see README.md in this folder),
-//   3. only then deploy to devnet.
+//   2. replay conformance/registry_vectors.json against it (programs/carbon_registry/tests/conformance.ts),
+//   3. only then deploy to devnet. Mainnet needs an independent review and multisig keys.
 // Units are grams. 1 CLT = 1 tonne = 1,000,000 grams.
+//
+// Design for volume (SCALING.md item 2, D15): there is NO per-retirement account. Retirements are recorded by the
+// API in its receipt chain, and a Merkle root over many receipts is anchored in one `anchor_root` instruction per
+// interval. What stays on-chain per entity: the registry, each project, each batch (the hot counters), each linked
+// external credit (the anti double-count rule, which must be unique across parties) and each anchor.
 use anchor_lang::prelude::*;
 
 declare_id!("11111111111111111111111111111111"); // replace with the real id from `anchor keys list`
+
+pub const MAX_VERIFIERS: usize = 3;
 
 #[program]
 pub mod carbon_registry {
     use super::*;
 
-    pub fn initialize_registry(ctx: Context<InitializeRegistry>, verifier: Pubkey) -> Result<()> {
+    pub fn initialize_registry(ctx: Context<InitializeRegistry>, verifier: Pubkey, attest_two_above_g: u64) -> Result<()> {
         let r = &mut ctx.accounts.registry;
         r.authority = ctx.accounts.authority.key();
-        r.verifier = verifier;
+        r.verifiers = [verifier, Pubkey::default(), Pubkey::default()];
+        r.verifier_count = 1;
+        r.attest_two_above_g = attest_two_above_g;
         r.bump = ctx.bumps.registry;
+        Ok(())
+    }
+
+    // Up to three verifiers. Adding and rotating is the authority's job; attesting is theirs alone.
+    pub fn add_verifier(ctx: Context<AuthorityOnly>, verifier: Pubkey) -> Result<()> {
+        let r = &mut ctx.accounts.registry;
+        require!((r.verifier_count as usize) < MAX_VERIFIERS, RegistryError::TooManyVerifiers);
+        require!(!r.verifiers.contains(&verifier), RegistryError::Exists);
+        r.verifiers[r.verifier_count as usize] = verifier;
+        r.verifier_count += 1;
+        Ok(())
+    }
+
+    pub fn rotate_verifier(ctx: Context<AuthorityOnly>, old: Pubkey, new: Pubkey) -> Result<()> {
+        let r = &mut ctx.accounts.registry;
+        require!(!r.verifiers.contains(&new), RegistryError::Exists);
+        let slot = r.verifiers.iter().position(|v| *v == old).ok_or(RegistryError::Unauthorised)?;
+        r.verifiers[slot] = new;
         Ok(())
     }
 
@@ -28,16 +55,33 @@ pub mod carbon_registry {
         p.status = ProjectStatus::Proposed;
         p.attested_g = 0;
         p.issued_g = 0;
+        p.pending_attest_g = 0;
+        p.pending_attest_by = Pubkey::default();
         p.bump = ctx.bumps.project;
         Ok(())
     }
 
-    // Only the verifier named in the registry can attest. Attestation can rise but never fall below what is issued.
+    // Only a verifier named in the registry can attest. Attestation can rise but never fall below what is issued.
+    // Above `attest_two_above_g`, the first call records a pending attestation and a second, different verifier
+    // must repeat the same amount to make it stand (T4: one stolen verifier key cannot attest a large amount).
     pub fn attest_project(ctx: Context<AttestProject>, attested_g: u64) -> Result<()> {
         require!(attested_g > 0, RegistryError::BadAmount);
+        let r = &ctx.accounts.registry;
+        let signer = ctx.accounts.verifier.key();
+        require!(r.is_verifier(&signer), RegistryError::Unauthorised);
         let p = &mut ctx.accounts.project;
         require!(p.status != ProjectStatus::Suspended, RegistryError::Suspended);
         require!(attested_g >= p.issued_g, RegistryError::OverIssuance);
+        if attested_g > r.attest_two_above_g {
+            if p.pending_attest_g == attested_g && p.pending_attest_by != signer && p.pending_attest_by != Pubkey::default() {
+                p.pending_attest_g = 0;
+                p.pending_attest_by = Pubkey::default();
+            } else {
+                p.pending_attest_g = attested_g;
+                p.pending_attest_by = signer;
+                return Ok(()); // recorded, not yet standing: a second verifier must agree
+            }
+        }
         p.attested_g = attested_g;
         p.status = ProjectStatus::Attested;
         Ok(())
@@ -71,14 +115,22 @@ pub mod carbon_registry {
         Ok(())
     }
 
-    pub fn suspend_project(ctx: Context<SuspendProject>) -> Result<()> {
+    pub fn suspend_project(ctx: Context<ProjectAuthority>) -> Result<()> {
         ctx.accounts.project.status = ProjectStatus::Suspended;
         Ok(())
     }
 
-    // Each retirement takes a fresh serial range. The Retirement PDA is seeded by batch and start serial,
-    // so a range can be written once. A gram can never be retired twice.
-    pub fn retire(ctx: Context<Retire>, grams: u64, target: [u8; 3], memo_hash: [u8; 32]) -> Result<()> {
+    // Lifting a suspension returns the project to Attested only if it was attested; otherwise Proposed.
+    pub fn unsuspend_project(ctx: Context<ProjectAuthority>) -> Result<()> {
+        let p = &mut ctx.accounts.project;
+        require!(p.status == ProjectStatus::Suspended, RegistryError::NotSuspended);
+        p.status = if p.attested_g > 0 { ProjectStatus::Attested } else { ProjectStatus::Proposed };
+        Ok(())
+    }
+
+    // The API retires on behalf of its callers. It takes a fresh serial range from the batch's hot counter.
+    // No per-retirement account: the receipts live in the API's chain and are anchored by Merkle root below.
+    pub fn retire(ctx: Context<Retire>, grams: u64) -> Result<(u64, u64)> {
         require!(grams > 0, RegistryError::BadAmount);
         require!(ctx.accounts.project.status != ProjectStatus::Suspended, RegistryError::Suspended);
         let b = &mut ctx.accounts.batch;
@@ -88,17 +140,29 @@ pub mod carbon_registry {
         let end = start.checked_add(grams).ok_or(RegistryError::Overflow)?;
         b.next_serial = end;
         b.retired_g = b.retired_g.checked_add(grams).ok_or(RegistryError::Overflow)?;
-        let r = &mut ctx.accounts.retirement;
-        r.batch = b.key();
-        r.retiree = ctx.accounts.retiree.key();
-        r.grams = grams;
-        r.serial_start = start;
-        r.serial_end = end;
-        r.target = target;
-        r.memo_hash = memo_hash;
-        r.slot = Clock::get()?.slot;
-        r.bump = ctx.bumps.retirement;
+        Ok((start, end))
+    }
+
+    // One anchor per interval: the Merkle root over receipt hashes [first_index, last_index]. The PDA is seeded by
+    // first_index, so an interval can be anchored once, and intervals must be contiguous with the previous anchor.
+    pub fn anchor_root(ctx: Context<AnchorRoot>, first_index: u64, last_index: u64, root: [u8; 32]) -> Result<()> {
+        require!(last_index >= first_index, RegistryError::BadAmount);
+        let r = &mut ctx.accounts.registry;
+        require!(first_index == r.next_anchor_index, RegistryError::AnchorGap);
+        let a = &mut ctx.accounts.anchor;
+        a.first_index = first_index;
+        a.last_index = last_index;
+        a.root = root;
+        a.slot = Clock::get()?.slot;
+        a.bump = ctx.bumps.anchor;
+        r.next_anchor_index = last_index + 1;
         Ok(())
+    }
+}
+
+impl Registry {
+    pub fn is_verifier(&self, key: &Pubkey) -> bool {
+        self.verifiers.iter().take(self.verifier_count as usize).any(|v| v == key)
     }
 }
 
@@ -109,6 +173,14 @@ pub struct InitializeRegistry<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct AuthorityOnly<'info> {
+    #[account(mut, seeds = [b"registry"], bump = registry.bump)]
+    pub registry: Account<'info, Registry>,
+    #[account(address = registry.authority @ RegistryError::Unauthorised)]
+    pub authority: Signer<'info>,
 }
 
 #[derive(Accounts)]
@@ -129,7 +201,6 @@ pub struct AttestProject<'info> {
     pub registry: Account<'info, Registry>,
     #[account(mut, seeds = [b"project", project.project_id.to_le_bytes().as_ref()], bump = project.bump)]
     pub project: Account<'info, Project>,
-    #[account(address = registry.verifier @ RegistryError::Unauthorised)]
     pub verifier: Signer<'info>,
 }
 
@@ -161,7 +232,7 @@ pub struct LinkExternalCredit<'info> {
 }
 
 #[derive(Accounts)]
-pub struct SuspendProject<'info> {
+pub struct ProjectAuthority<'info> {
     #[account(seeds = [b"registry"], bump = registry.bump)]
     pub registry: Account<'info, Registry>,
     #[account(mut, seeds = [b"project", project.project_id.to_le_bytes().as_ref()], bump = project.bump)]
@@ -172,28 +243,40 @@ pub struct SuspendProject<'info> {
 
 #[derive(Accounts)]
 pub struct Retire<'info> {
+    #[account(seeds = [b"registry"], bump = registry.bump)]
+    pub registry: Account<'info, Registry>,
     #[account(seeds = [b"project", project.project_id.to_le_bytes().as_ref()], bump = project.bump)]
     pub project: Account<'info, Project>,
     #[account(mut, constraint = batch.project == project.key() @ RegistryError::UnknownBatch)]
     pub batch: Account<'info, Batch>,
-    #[account(init, payer = retiree, space = 8 + Retirement::INIT_SPACE,
-        seeds = [b"retire", batch.key().as_ref(), batch.next_serial.to_le_bytes().as_ref()], bump)]
-    pub retirement: Account<'info, Retirement>,
-    #[account(mut)]
-    pub retiree: Signer<'info>,
+    // The API's hot key, named as the registry's operator. Callers never sign on-chain; the API retires for them.
+    #[account(address = registry.authority @ RegistryError::Unauthorised)]
+    pub operator: Signer<'info>,
+}
+
+#[derive(Accounts)]
+#[instruction(first_index: u64)]
+pub struct AnchorRoot<'info> {
+    #[account(mut, seeds = [b"registry"], bump = registry.bump)]
+    pub registry: Account<'info, Registry>,
+    #[account(init, payer = operator, space = 8 + Anchor::INIT_SPACE, seeds = [b"anchor", first_index.to_le_bytes().as_ref()], bump)]
+    pub anchor: Account<'info, Anchor>,
+    #[account(mut, address = registry.authority @ RegistryError::Unauthorised)]
+    pub operator: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
 
 #[account]
 #[derive(InitSpace)]
-pub struct Registry { pub authority: Pubkey, pub verifier: Pubkey, pub bump: u8 }
+pub struct Registry { pub authority: Pubkey, pub verifiers: [Pubkey; 3], pub verifier_count: u8, pub attest_two_above_g: u64, pub next_anchor_index: u64, pub bump: u8 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq, InitSpace)]
 pub enum ProjectStatus { Proposed, Attested, Suspended }
 
 #[account]
 #[derive(InitSpace)]
-pub struct Project { pub project_id: u64, pub country: [u8; 3], pub methodology: [u8; 16], pub status: ProjectStatus, pub attested_g: u64, pub issued_g: u64, pub bump: u8 }
+pub struct Project { pub project_id: u64, pub country: [u8; 3], pub methodology: [u8; 16], pub status: ProjectStatus, pub attested_g: u64, pub issued_g: u64,
+                     pub pending_attest_g: u64, pub pending_attest_by: Pubkey, pub bump: u8 }
 
 #[account]
 #[derive(InitSpace)]
@@ -205,7 +288,7 @@ pub struct LinkedCredit { pub batch: Pubkey, pub bump: u8 }
 
 #[account]
 #[derive(InitSpace)]
-pub struct Retirement { pub batch: Pubkey, pub retiree: Pubkey, pub grams: u64, pub serial_start: u64, pub serial_end: u64, pub target: [u8; 3], pub memo_hash: [u8; 32], pub slot: u64, pub bump: u8 }
+pub struct Anchor { pub first_index: u64, pub last_index: u64, pub root: [u8; 32], pub slot: u64, pub bump: u8 }
 
 // Names match the error codes in conformance/registry_vectors.json.
 #[error_code]
@@ -216,6 +299,10 @@ pub enum RegistryError {
     #[msg("OVER_RETIREMENT")] OverRetirement,
     #[msg("BAD_AMOUNT")] BadAmount,
     #[msg("SUSPENDED")] Suspended,
+    #[msg("NOT_SUSPENDED")] NotSuspended,
     #[msg("UNKNOWN_BATCH")] UnknownBatch,
     #[msg("OVERFLOW")] Overflow,
+    #[msg("EXISTS")] Exists,
+    #[msg("TOO_MANY_VERIFIERS")] TooManyVerifiers,
+    #[msg("ANCHOR_GAP")] AnchorGap,
 }

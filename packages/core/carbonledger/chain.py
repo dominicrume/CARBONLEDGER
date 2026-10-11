@@ -50,8 +50,9 @@ class DryRunChain:
         return replace(rec, confirmed=True, slot=0)
 
 
-def memo_text(receipt_id: str, receipt_hash: str) -> str:
-    return f"carbonledger:v1:{receipt_id}:{receipt_hash}"
+def memo_text(anchor_id: str, root_hash: str) -> str:
+    """v2: one memo per batch. anchor_id names the receipt index range, root_hash is the Merkle root over the hashes."""
+    return f"carbonledger:v2:{anchor_id}:{root_hash}"
 
 
 class RpcStats:

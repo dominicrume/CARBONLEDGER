@@ -4,6 +4,7 @@ import { CONFIG } from '../config.js';
 import { ledger } from '../core/ledger.js';
 import { $, esc, mass } from './dom.js';
 import { SIM_TAG } from './retire.js';
+import { verifyProof } from '../core/merkle.js';
 
 const ANCHOR_WORDS = {
   anchored: 'Confirmed on Solana devnet, a test network.',
@@ -60,9 +61,25 @@ async function lookup(id) {
         <div><dt>Previous hash</dt><dd class="mono wrap">${esc(entry.prev_hash)}</dd></div>
         <div><dt>Chain</dt><dd data-anchor="${esc(a.anchor_status)}">${esc(ANCHOR_WORDS[a.anchor_status] || a.anchor_status)}${a.slot != null ? ` Slot ${a.slot}.` : ''}
           ${a.explorer_url ? ` <a href="${esc(a.explorer_url)}" target="_blank" rel="noopener">View on the Solana explorer</a>` : ''}</dd></div>
+        <div><dt>Proof</dt><dd id="verify-proof" data-proof="">${a.anchor_status === 'anchored' ? 'Checking the Merkle proof in this browser…' : 'No proof until the anchor is confirmed.'}</dd></div>
       </dl>
-      <p class="note">What is on-chain: this receipt id and its hash. What is not: names, places, baskets. ${esc(rc.units)}</p>`;
+      <p class="note">What is on-chain: one Merkle root over many receipt hashes, in a memo. What is not: names, places, baskets. ${esc(rc.units)}</p>`;
+    if (a.anchor_status === 'anchored') checkProof(id);
   } catch { out.innerHTML = '<p class="note">Could not reach the CarbonLedger API. Nothing was checked.</p>'; }
+}
+
+// Fetch the proof path and recompute the root here, with no trust in the API's own "proof_checks" flag.
+async function checkProof(id) {
+  const el = $('#verify-proof');
+  try {
+    const p = await (await fetch(`${CONFIG.api.baseUrl}/v1/receipts/${encodeURIComponent(id)}/proof`, { signal: AbortSignal.timeout(CONFIG.api.timeoutMs) })).json();
+    if (!p.proof || !p.anchor_root) { el.textContent = 'No proof available.'; el.dataset.proof = 'none'; return; }
+    const ok = await verifyProof(p.receipt_hash, p.proof, p.anchor_root);
+    el.dataset.proof = ok ? 'ok' : 'bad';
+    el.innerHTML = ok
+      ? `Checks out: this receipt's hash sits under root <span class="mono">${esc(p.anchor_root.slice(0, 16))}…</span> in anchor ${esc(p.anchor_id)} (${p.proof.length} step${p.proof.length === 1 ? '' : 's'}), recomputed in this browser.`
+      : `Does NOT check out: the proof path does not lead to the anchored root. Treat this receipt as unverified.`;
+  } catch { el.textContent = 'Could not fetch the proof.'; el.dataset.proof = 'error'; }
 }
 
 async function checkAll() {

@@ -22,7 +22,7 @@ def _app(keys=None):
     from carbonledger_api.state import Limits
     from carbonledger_api.store import PostgresStore
     keys = keys or ApiKeyStore(PEPPER)
-    app = create_app(DryRunChain(), now=lambda: 1_800_000_000, keys=keys, limits=Limits(), product_lookup=lambda c: None, store=PostgresStore(URL))
+    app = create_app(DryRunChain(), now=lambda: 1_800_000_000, keys=keys, limits=Limits(), product_lookup=lambda c: None, store=PostgresStore(URL), anchor_interval_s=0.0)
     c = TestClient(app)
     return app, c, keys
 
@@ -55,6 +55,8 @@ def test_state_survives_a_restart_and_idempotency_holds_across_it():
     c2.headers["authorization"] = f"Bearer {key}"                   # the key came back from the database
     assert c2.get("/v1/registry/summary").json()["retired_g"] == 1700
     assert c2.get(f"/v1/receipts/{a['receipt_id']}").json()["chain"]["anchor_status"] == "anchored"
+    pr = c2.get(f"/v1/receipts/{a['receipt_id']}/proof").json()
+    assert pr["proof_checks"] and pr["anchor_root"] and pr["proof"] is not None          # the proof came back from the rows
     assert c2.get("/v1/audit/verify").json() == c.get("/v1/audit/verify").json()
     again = c2.post("/v1/retire", json=_body()).json()
     assert again["receipt_id"] == a["receipt_id"] and c2.get("/v1/registry/summary").json()["retired_g"] == 1700

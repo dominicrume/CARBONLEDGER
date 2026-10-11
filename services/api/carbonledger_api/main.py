@@ -21,6 +21,7 @@ from fastapi.responses import JSONResponse
 from carbonledger.agentsig import AgentSigError, check_timestamp, verify_agent
 from carbonledger.auth import ApiKeyStore, AuthError, KeyRecord
 from carbonledger.chain import ChainClient
+from carbonledger.merkle import verify_proof
 from carbonledger.mandate import Mandate, MandateError, authorize, consume, revoke
 from carbonledger.receipts import digest, verify
 from carbonledger.registry import RegistryError
@@ -30,7 +31,7 @@ from .accounts import account_router
 from .lookup import ProductLookup
 from .models import STATUS_FOR, UNITS_STATUS, MandateIn, RetireIn
 from .recompute import RecomputeError, compute
-from .state import DEMO_BATCH, DEMO_ISSUED_G, DEMO_PROJECT, Limits, State, anchor_wait_from_env, chain_from_env
+from .state import DEMO_BATCH, DEMO_ISSUED_G, DEMO_PROJECT, Limits, State, anchor_interval_from_env, anchor_wait_from_env, chain_from_env
 from .store import StoreError
 
 __all__ = ["create_app", "public_receipt_id", "DEMO_BATCH", "DEMO_ISSUED_G", "DEMO_PROJECT", "UNITS_STATUS"]
@@ -43,9 +44,11 @@ def public_receipt_id(receipt_body: dict) -> str:
 
 def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = time.time, web_origin: Optional[str] = None,
                anchor_wait_s: Optional[float] = None, start_worker: bool = True, keys: Optional[ApiKeyStore] = None,
-               limits: Optional[Limits] = None, product_lookup: Optional[ProductLookup] = None, store=None) -> FastAPI:
+               limits: Optional[Limits] = None, product_lookup: Optional[ProductLookup] = None, store=None,
+               anchor_interval_s: Optional[float] = None) -> FastAPI:
     st = State(chain or chain_from_env(), now, anchor_wait_from_env() if anchor_wait_s is None else anchor_wait_s,
-               keys=keys, limits=limits or Limits.from_env(), product_lookup=product_lookup, store=store)
+               keys=keys, limits=limits or Limits.from_env(), product_lookup=product_lookup, store=store,
+               anchor_interval_s=anchor_interval_from_env() if anchor_interval_s is None else anchor_interval_s)
     dev = os.environ.get("APP_ENV") == "dev"
     app = FastAPI(title="CarbonLedger API", docs_url="/docs" if dev else None, redoc_url=None, openapi_url="/openapi.json" if dev else None)
     app.state.st = st
@@ -209,7 +212,7 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
         if mandate is not None:
             consume(mandate, body.grams)
             st.store.upsert_mandate(mandate)
-        st.outbox.enqueue(receipt_id, entry["hash"])
+        st.outbox.enqueue(receipt_id, entry["hash"], entry["index"])
         st.idem[body.idempotency_key] = (payload_digest, receipt_id)
         return receipt_id
 
@@ -222,6 +225,18 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
             raise HTTPException(404, "No such receipt.")
         a = st.outbox.get(receipt_id)
         return {"entry": e, "chain": a.public() if a else None}
+
+    @app.get("/v1/receipts/{receipt_id}/proof")
+    def get_proof(receipt_id: str):
+        """The Merkle path from this receipt's hash to the anchored root. Anyone can recompute it (verify screen)."""
+        e = st.receipts.find(receipt_id)
+        if e is None:
+            raise HTTPException(404, "No such receipt.")
+        a = st.outbox.get(receipt_id)
+        ok = bool(a and a.status == "anchored" and a.proof is not None and verify_proof(e["hash"], [tuple(p) for p in a.proof], a.anchor_root))
+        return {"receipt_id": receipt_id, "receipt_hash": e["hash"], "index": e["index"], **(a.public() if a else {"anchor_status": "pending"}),
+                "proof": a.proof if a else None, "proof_checks": ok,
+                "memo": f"carbonledger:v2:{a.anchor_id}:{a.anchor_root}" if a and a.anchor_root else None}
 
     @app.get("/v1/audit/verify")
     def audit_verify():

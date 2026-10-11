@@ -34,6 +34,8 @@ test('retire pilot units from the demo shelf, see the receipt, verify the chain'
   await page.click('#verify-form button[type=submit]');
   await expect(page.locator('#verify-out')).toContainText(id);
   await expect(page.locator('#verify-out [data-anchor]')).toHaveAttribute('data-anchor', 'anchored');
+  await expect(page.locator('#verify-proof')).toHaveAttribute('data-proof', 'ok');
+  await expect(page.locator('#verify-proof')).toContainText('recomputed in this browser');
   await page.click('#verify-all');
   await expect(page.locator('#verify-all-out [data-intact]')).toHaveAttribute('data-intact', 'true');
   // the API agrees

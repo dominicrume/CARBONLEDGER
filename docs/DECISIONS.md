@@ -83,3 +83,21 @@ the rows and verifies the receipt chain; a broken chain refuses to start. Withou
 Why: D4 and D9. A restart must not lose receipts or keys, and an insider with database access must still be
 unable to rewrite history quietly.
 Who agreed: Engineering, during the autonomous run. Awaiting Rume.
+
+---
+Date: 2026-10-11
+Decision: Anchor one Merkle root per interval instead of one memo per receipt. Each receipt keeps its proof path,
+the API serves it, and the verify screen recomputes the root in the browser. The program design drops the
+per-retirement account and gains an anchor_root instruction with contiguous intervals. Details in
+docs/MERKLE-ANCHORING.md.
+Why: D15 and T22. Memo per receipt and rent per retirement do not scale. A root per interval does, and a proof
+per receipt keeps every receipt individually verifiable by anyone.
+Who agreed: Engineering, during the autonomous run. Awaiting Rume.
+
+---
+Date: 2026-10-11
+Decision: The Anchor program (not yet compiled) holds up to three verifier keys with add and rotate instructions,
+needs two different verifiers to agree on any attestation above a threshold, has an unsuspend instruction, and
+does not enable init-if-needed.
+Why: T4 (one stolen verifier key), the missing lever to lift a suspension, and a known re-initialisation foot-gun.
+Who agreed: Engineering, during the autonomous run. Awaiting Rume. Compiles and vectors wait on the toolchain.

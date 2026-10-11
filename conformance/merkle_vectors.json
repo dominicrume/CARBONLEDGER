@@ -1,0 +1,258 @@
+[
+ {
+  "name": "n1-leaf0",
+  "leaf": "cf5a29c893a704d5c429ff0ebd959bd6df2ea107c07f4f8fa122f51652f790fb",
+  "path": [],
+  "root": "6099383a2b68e9c094c3793488ff21a253895319214e685e359f9a3c40b13398"
+ },
+ {
+  "name": "n2-leaf0",
+  "leaf": "8005e004626a75837ecb374c3d8f4780c63a2f98d1c9cb8733a3522e9f61cd0c",
+  "path": [
+   [
+    "R",
+    "576f8be1a36c5b62abc3d74a91d6d1c4503b815086a395b9317ecaf86f283a92"
+   ]
+  ],
+  "root": "475ac4c20db62fead3e98ae13a40b2b673b4d6b0581889940c02a58a5b269b5b"
+ },
+ {
+  "name": "n2-leaf1",
+  "leaf": "3659c446aff2de09b86549447860a808a31f4f6b215c8d088b9041f7cedf34fe",
+  "path": [
+   [
+    "L",
+    "1355932e1679f0fd82da4497a3fe568cfee59b8c3508adcc2e774a2a289ce009"
+   ]
+  ],
+  "root": "475ac4c20db62fead3e98ae13a40b2b673b4d6b0581889940c02a58a5b269b5b"
+ },
+ {
+  "name": "n3-leaf0",
+  "leaf": "1e423c0948b828959d62b03134dd51994c94b9ae9761817c646c299e38c52ee2",
+  "path": [
+   [
+    "R",
+    "6183ad7803a8e064d198dba48ad0409387f34b0a04f3251ee55915acd1a637b5"
+   ],
+   [
+    "R",
+    "cb174ce8bb57016432c505aed5f631d28fdccaae1549183e41c64b302e2961bd"
+   ]
+  ],
+  "root": "0bdb4781d825e18e537bc96b63eba0ddea46a98be56c252da59aca56442e4d55"
+ },
+ {
+  "name": "n3-leaf1",
+  "leaf": "4ebb6c91a0f2b0e3a83932942424e8a15b478b23f1372dc8e28782857249038d",
+  "path": [
+   [
+    "L",
+    "88a793c6a4121f2ea39118d5e510ac44415dbd059d406314fc2d7ecabfc5af0e"
+   ],
+   [
+    "R",
+    "cb174ce8bb57016432c505aed5f631d28fdccaae1549183e41c64b302e2961bd"
+   ]
+  ],
+  "root": "0bdb4781d825e18e537bc96b63eba0ddea46a98be56c252da59aca56442e4d55"
+ },
+ {
+  "name": "n3-leaf2",
+  "leaf": "5ee997bcb6a552bc9fe27f3d7d76bd40d2322a304c7f526b729696655d015495",
+  "path": [
+   [
+    "R",
+    "134d147307d843dbbfa0dbbc2d0067fd5037b3ba57bf3d4b8b699879e9087d4c"
+   ],
+   [
+    "L",
+    "803139208ad28909f1412e0b37fbcd614c90e2cb3701bbdf380a41aa12eaa15c"
+   ]
+  ],
+  "root": "0bdb4781d825e18e537bc96b63eba0ddea46a98be56c252da59aca56442e4d55"
+ },
+ {
+  "name": "n5-leaf0",
+  "leaf": "689f1688c76a38b292d5ec57e6ac11bd9f6d03ac822a61473c99252c49813139",
+  "path": [
+   [
+    "R",
+    "cd59400bd8baa15cf7e0ecb14d0af27690e8de3c6577a8f2c73a0e69443fcc8d"
+   ],
+   [
+    "R",
+    "02c4cc4ea66a49873f56dcacef886f2c1ae9b8d55b861a0a7593e3ca2e925681"
+   ],
+   [
+    "R",
+    "3e269aff78e4bb69344afc5f4b0baa76ba62639c210467db1af0b6679a6c9791"
+   ]
+  ],
+  "root": "a4ba1cb38acf0d11eba32248678293057b84320f1d977494fb3c86348bf5943b"
+ },
+ {
+  "name": "n5-leaf2",
+  "leaf": "0fae96d8d74ecc23050d3143e351fce5159539fd4aabf3fa22c2c69e03aeb068",
+  "path": [
+   [
+    "R",
+    "6d52d24e8742b86a55073b442abad35e03ae2f03c66811aa8058b7237ec9ecd8"
+   ],
+   [
+    "L",
+    "24b4ab992ec8d9e321c47df42d7dfc159bb47ad849360bd57592c382d2ecdd23"
+   ],
+   [
+    "R",
+    "3e269aff78e4bb69344afc5f4b0baa76ba62639c210467db1af0b6679a6c9791"
+   ]
+  ],
+  "root": "a4ba1cb38acf0d11eba32248678293057b84320f1d977494fb3c86348bf5943b"
+ },
+ {
+  "name": "n5-leaf4",
+  "leaf": "1a87e3195117089c20f6ce823f3629689b5120a59e0fb4a9c885c17fabf7ea53",
+  "path": [
+   [
+    "R",
+    "9ce4d716c1d3cb28b3b088c456fa94a17e16454349f257bd9ee646c8e4a743b3"
+   ],
+   [
+    "R",
+    "73ba4ad77966c4bc8c85bc29d8660f67bee7c5300fe39594ae65943dd78ce8ac"
+   ],
+   [
+    "L",
+    "4bb918246c4829c1d98214f15a12d0580616698325c5434d5c376aa4c0504549"
+   ]
+  ],
+  "root": "a4ba1cb38acf0d11eba32248678293057b84320f1d977494fb3c86348bf5943b"
+ },
+ {
+  "name": "n8-leaf0",
+  "leaf": "2cbea9160fb76705d09ca36892ca2fb2b4c5156f59a825574b497999e2820f80",
+  "path": [
+   [
+    "R",
+    "a1bc5113be87dc777cc679144c67b6b8f6fa992ded5c4ffac4aa4dc1827a7fac"
+   ],
+   [
+    "R",
+    "2e06cbf0baece0610403d6906453ddb93cf8e7f78da689ca69a1b67fd6967d06"
+   ],
+   [
+    "R",
+    "5d7714e82ce126e4a68415ec6ceee4a363f88381ad711040c38ee48f9c50978c"
+   ]
+  ],
+  "root": "40473b394a841de03b9e78b6528a790a67b930bbbb66ecacc0b991dd43b9cb8a"
+ },
+ {
+  "name": "n8-leaf4",
+  "leaf": "d57ce725415abda1abcc5296b9d93876d6075ee1fda8c2f752d784cc8f2dc9d4",
+  "path": [
+   [
+    "R",
+    "7816c50de45a764c08c5ff5885172b6c60f2d2cd2154f5341038f644eaf7d58c"
+   ],
+   [
+    "R",
+    "190fa4f0c8fa8e2da4ed15b0ee64ec852cf5dac8f72bac7f1058b46747ff6fad"
+   ],
+   [
+    "L",
+    "56f8c721dd41a521af7aa0f708e347061286b31850e09407069cb8204c85c073"
+   ]
+  ],
+  "root": "40473b394a841de03b9e78b6528a790a67b930bbbb66ecacc0b991dd43b9cb8a"
+ },
+ {
+  "name": "n8-leaf7",
+  "leaf": "09f31dda3664eab56b532b2b3d558b1e6bd7ddf900253791722eb63b6ece18c4",
+  "path": [
+   [
+    "L",
+    "96ce603f992ee2e90926ffd967459d860731e39aca9a782b75d943feb17d2db4"
+   ],
+   [
+    "L",
+    "d138ff61eb7d8d1c565770566f93d04c4962bb02aa02f908d1a2f8e89dbd49c3"
+   ],
+   [
+    "L",
+    "56f8c721dd41a521af7aa0f708e347061286b31850e09407069cb8204c85c073"
+   ]
+  ],
+  "root": "40473b394a841de03b9e78b6528a790a67b930bbbb66ecacc0b991dd43b9cb8a"
+ },
+ {
+  "name": "n13-leaf0",
+  "leaf": "feaf71323d284d01ca6be45529ae8011dc8bb2bc0ac6757e4f9fb0e3212cf8bc",
+  "path": [
+   [
+    "R",
+    "c2dab11c81f9ab32ca66d40eb56ac63d8d397aafb33d597543d32e75ae28bdb4"
+   ],
+   [
+    "R",
+    "ac0a7d3658a39ea15d8d6f66457f3be32c25c0120e1538638794923311d39b95"
+   ],
+   [
+    "R",
+    "fe7b6e90d269045d7991626e3bb186cd8973243f25d296ef6ac652b476e76ff7"
+   ],
+   [
+    "R",
+    "6e868522ce5f0a1be3ace74ec31f037b77a1b5938a20128bb29c9cf3e549c7dd"
+   ]
+  ],
+  "root": "98e1b1f0db09854df759439af4b7101c8a1dbcd79e1b52d9db6bb9d830fb57f1"
+ },
+ {
+  "name": "n13-leaf6",
+  "leaf": "45522786d244ae02dbb2f000a0b55ed01c447ee848db83599198e84b61456df7",
+  "path": [
+   [
+    "R",
+    "a931cc2361f0d41a81c4ee1716afc01f5797127718408e527e9756c787f942c7"
+   ],
+   [
+    "L",
+    "1d0f993dc9d0111dad195ef639e39bc6887a84ef16679f7820dbd983621135fb"
+   ],
+   [
+    "L",
+    "5eb611c462f1b1f75832f1692eeb06247b7b0f2a7aabd1c2c911360f4f9df920"
+   ],
+   [
+    "R",
+    "6e868522ce5f0a1be3ace74ec31f037b77a1b5938a20128bb29c9cf3e549c7dd"
+   ]
+  ],
+  "root": "98e1b1f0db09854df759439af4b7101c8a1dbcd79e1b52d9db6bb9d830fb57f1"
+ },
+ {
+  "name": "n13-leaf12",
+  "leaf": "656d2ee56e8b48772e12d8a6f7273ef1a7e0ca4f8d6b8ef7232c27e0e33a4593",
+  "path": [
+   [
+    "R",
+    "553c2c15adaf8b7e13bcb2449c9c80b58627c47a53609dd15f4159815150b818"
+   ],
+   [
+    "R",
+    "f9a63715743f7168f48f46968a113d03b0febc698bdca01d84b64f68b9a76cbc"
+   ],
+   [
+    "L",
+    "304bde90e968b11af4705d6d97c2c172fa65ca5ed54ed1e6930c447fd64d596b"
+   ],
+   [
+    "L",
+    "b92d9a5f85bfe752f0b38344d312bd64177eb53019ee8793ca55c4581dbb2015"
+   ]
+  ],
+  "root": "98e1b1f0db09854df759439af4b7101c8a1dbcd79e1b52d9db6bb9d830fb57f1"
+ }
+]

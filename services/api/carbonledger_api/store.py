@@ -40,7 +40,7 @@ class PostgresStore:
         import psycopg
         self._psycopg, self.url = psycopg, url
         with self._conn() as c:
-            c.execute("SELECT 1 FROM schema_migrations WHERE name = '0002_phase1.sql'")
+            c.execute("SELECT 1 FROM schema_migrations WHERE name = '0003_merkle.sql'")
             if c.fetchone() is None:
                 raise StoreError("database is not migrated: run python scripts/migrate.py")
 
@@ -63,7 +63,9 @@ class PostgresStore:
             retirements = c.fetchall()
             c.execute("SELECT idx, receipt, prev_hash, hash FROM receipts ORDER BY idx")
             receipts = [{"index": i, "receipt": r, "prev_hash": p, "hash": h} for i, r, p, h in c.fetchall()]
-            c.execute("SELECT receipt_id, receipt_hash, status, signature, explorer_url, cluster, slot, attempts, last_error, extract(epoch from anchored_at) FROM anchor_outbox ORDER BY updated_at")
+            c.execute("""SELECT o.receipt_id, o.receipt_hash, o.status, o.signature, o.explorer_url, o.cluster, o.slot, o.attempts, o.last_error,
+                                extract(epoch from o.anchored_at), r.idx, o.anchor_id, o.anchor_root, o.proof
+                         FROM anchor_outbox o JOIN receipts r ON r.receipt_id = o.receipt_id ORDER BY r.idx""")
             outbox = c.fetchall()
             c.execute("SELECT key, payload_digest, receipt_id FROM idempotency")
             idem = c.fetchall()
@@ -103,8 +105,10 @@ class PostgresStore:
     def update_outbox(self, e) -> None:
         try:
             with self._conn() as c:
-                c.execute("UPDATE anchor_outbox SET status=%s, signature=%s, explorer_url=%s, cluster=%s, slot=%s, attempts=%s, last_error=%s, anchored_at=to_timestamp(%s) WHERE receipt_id=%s",
-                          (e.status, e.signature, e.explorer_url, e.cluster, e.slot, e.attempts, e.last_error, e.anchored_at, e.receipt_id))
+                c.execute("""UPDATE anchor_outbox SET status=%s, signature=%s, explorer_url=%s, cluster=%s, slot=%s, attempts=%s, last_error=%s,
+                                anchored_at=to_timestamp(%s), anchor_id=%s, anchor_root=%s, proof=%s WHERE receipt_id=%s""",
+                          (e.status, e.signature, e.explorer_url, e.cluster, e.slot, e.attempts, e.last_error, e.anchored_at, e.anchor_id, e.anchor_root,
+                           json.dumps(e.proof) if e.proof is not None else None, e.receipt_id))
         except self._psycopg.Error as exc:
             raise StoreError(f"the database refused the anchor update: {str(exc).splitlines()[0]}") from exc
 

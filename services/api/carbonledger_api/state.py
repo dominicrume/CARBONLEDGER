@@ -39,7 +39,7 @@ class Limits:
 class State:
     def __init__(self, chain: ChainClient, now: Callable[[], float] = time.time, anchor_wait_s: float = 0.0,
                  keys: Optional[ApiKeyStore] = None, limits: Optional[Limits] = None, product_lookup: Optional[ProductLookup] = None,
-                 store=None):
+                 store=None, anchor_interval_s: float = 0.0):
         self.lock = threading.Lock()
         self.product_lookup = product_lookup or lookup_from_env()
         self.chain_client, self.now, self.anchor_wait_s = chain, now, anchor_wait_s
@@ -51,7 +51,7 @@ class State:
         self.receipts = ReceiptChain()
         self.outbox = AnchorOutbox()
         self.outbox.on_change = self.store.update_outbox
-        self.worker = AnchorWorker(chain, self.outbox, now=now)
+        self.worker = AnchorWorker(chain, self.outbox, now=now, batch_window_s=anchor_interval_s)
         self.idem = {}                          # key -> (payload digest, receipt id)
         self.mandates = {}
         self._health: Optional[bool] = None
@@ -95,30 +95,42 @@ class State:
 
 def chain_from_env() -> ChainClient:
     if os.environ.get("CHAIN_MODE", "dry-run") == "solana-devnet":
+        secret = _real(os.environ.get("SOLANA_SECRET_KEY_B58"))
+        if not secret:
+            raise RuntimeError("CHAIN_MODE is solana-devnet but SOLANA_SECRET_KEY_B58 is unset or still a placeholder")
         urls = [os.environ["SOLANA_RPC_URL"], os.environ.get("SOLANA_RPC_URL_FALLBACK", "")]
-        return SolanaMemoChain(urls, os.environ["SOLANA_SECRET_KEY_B58"], "devnet",
-                               timeout=float(os.environ.get("SOLANA_RPC_TIMEOUT_SECONDS", "15")))
+        return SolanaMemoChain(urls, secret, "devnet", timeout=float(os.environ.get("SOLANA_RPC_TIMEOUT_SECONDS", "15")))
     return DryRunChain()
+
+
+def anchor_interval_from_env() -> float:
+    return float(os.environ.get("ANCHOR_INTERVAL_SECONDS", "2"))
 
 
 def anchor_wait_from_env() -> float:
     return float(os.environ.get("ANCHOR_WAIT_SECONDS", "20"))
 
 
+def _real(v: Optional[str]) -> str:
+    """A value still in its <placeholder> form from .env.example counts as unset."""
+    v = (v or "").strip()
+    return "" if v.startswith("<") else v
+
+
 def keys_from_env() -> ApiKeyStore:
     """API_KEY_PEPPER is required outside dev and test. API_KEYS holds role:owner:hash entries made by
     scripts/make_api_key.py. In dev or test only, API_DEMO_KEY may supply one plaintext key for local tools."""
     env = os.environ.get("APP_ENV", "")
-    pepper = os.environ.get("API_KEY_PEPPER", "")
+    pepper = _real(os.environ.get("API_KEY_PEPPER"))
     if not pepper:
         if env not in ("dev", "test"):
             raise RuntimeError("API_KEY_PEPPER is not set. The API refuses to start without it outside dev and test.")
         pepper = secrets.token_hex(32)
     store = ApiKeyStore(pepper)
-    for item in filter(None, os.environ.get("API_KEYS", "").split(",")):
+    for item in filter(None, _real(os.environ.get("API_KEYS")).split(",")):
         role, owner, key_hash = item.strip().split(":", 2)
         store.add_hashed(role, owner, key_hash)
-    demo = os.environ.get("API_DEMO_KEY", "")
+    demo = _real(os.environ.get("API_DEMO_KEY"))
     if demo and env in ("dev", "test"):
         from carbonledger.auth import hash_key
         store.add_hashed("personal", "demo", hash_key(pepper, demo), "key-demo")

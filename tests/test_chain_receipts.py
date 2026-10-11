@@ -9,7 +9,7 @@ from carbonledger.receipts import GENESIS, ReceiptChain, verify
 def test_the_memo_transaction_builds_and_signs_offline():
     kp = Keypair()
     chain = SolanaMemoChain(["http://unused.invalid"], str(kp))
-    text = memo_text("CL-00000001", "ab" * 32)
+    text = memo_text("A-00000000-00000000", "ab" * 32)
     raw = chain.build_signed_tx("11111111111111111111111111111111", text)
     tx = Transaction.from_bytes(raw)
     msg = tx.message
@@ -20,9 +20,9 @@ def test_the_memo_transaction_builds_and_signs_offline():
     tx.verify()                                   # raises if the signature does not match the message
 
 
-def test_the_memo_carries_only_ids_and_a_hash():
-    t = memo_text("CL-00000001", "cd" * 32)
-    assert t == "carbonledger:v1:CL-00000001:" + "cd" * 32 and "@" not in t
+def test_the_memo_carries_only_an_anchor_id_and_a_root():
+    t = memo_text("A-00000000-00000041", "cd" * 32)
+    assert t == "carbonledger:v2:A-00000000-00000041:" + "cd" * 32 and "@" not in t
 
 
 def test_an_oversized_memo_is_refused():

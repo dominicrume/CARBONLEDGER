@@ -31,6 +31,7 @@ class Client(TestClient):
 
 def make(chain=None, role="personal", owner="p1", limits=None, lookup=None, **kw):
     keys = ApiKeyStore(PEPPER)
+    kw.setdefault("anchor_interval_s", 0.0)          # no batch window in tests unless a test asks for one
     app = create_app(chain or DryRunChain(), now=lambda: CLOCK["t"], keys=keys, limits=limits or Limits(),
                      product_lookup=lookup or (lambda code: None), **kw)
     return Client(app, keys, role, owner)
@@ -416,3 +417,22 @@ def test_totals_and_history_come_from_the_server_and_are_the_owners_own():
     assert c.get("/v1/accounts/me/history?account=business").json()["records"] == []
     assert c.get("/v1/accounts/me/history?limit=0").status_code == 422
     assert c.as_("personal", "someone-else").get("/v1/accounts/me/totals").json()["personal"]["grams"] == 999
+
+
+# ---- Merkle proofs through the API (D15) ----
+def test_a_receipt_proof_verifies_and_many_receipts_share_one_anchor():
+    from carbonledger.merkle import verify_proof
+    c = make(anchor_interval_s=0.3, anchor_wait_s=0)      # answers come back pending; the worker gathers all three into one root
+    ids = [c.post("/v1/retire", json=body(idempotency_key=f"key-000000{i}")).json()["receipt_id"] for i in range(3)]
+    assert c.get(f"/v1/receipts/{ids[0]}/proof").json()["anchor_status"] == "pending"
+    for _ in range(40):
+        proofs = [c.get(f"/v1/receipts/{i}/proof").json() for i in ids]
+        if all(p["anchor_status"] == "anchored" for p in proofs):
+            break
+        time.sleep(0.1)
+    assert all(p["anchor_status"] == "anchored" and p["proof_checks"] for p in proofs)
+    assert len({p["anchor_id"] for p in proofs}) == 1 and len({p["signature"] for p in proofs}) == 1
+    assert proofs[0]["anchor_id"] == "A-00000000-00000002" and proofs[0]["memo"].startswith("carbonledger:v2:A-00000000-00000002:")
+    for p in proofs:
+        assert verify_proof(p["receipt_hash"], [tuple(x) for x in p["proof"]], p["anchor_root"])
+    assert c.get("/v1/receipts/CL-NOPE/proof").status_code == 404

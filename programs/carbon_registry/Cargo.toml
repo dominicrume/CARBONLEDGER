@@ -16,4 +16,5 @@ idl-build = ["anchor-lang/idl-build"]
 
 [dependencies]
 # ASSUMPTION: pin the Anchor version your toolchain installs (check `anchor --version`), then re-run `anchor build`.
-anchor-lang = { version = "0.31.1", features = ["init-if-needed"] }
+# init-if-needed is deliberately NOT enabled: it allows re-initialisation attacks and no instruction here needs it.
+anchor-lang = { version = "0.31.1" }
