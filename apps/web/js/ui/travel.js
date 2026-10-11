@@ -1,7 +1,7 @@
 // Travel view: flights between airports, or ground journeys by distance.
 import { FLIGHT, FLIGHT_UPLIFT, GROUND, AIRPORTS, UK_AIRPORTS, TRAVEL_SOURCE } from '../data/travel.js';
 import { $, esc, mass } from './dom.js';
-import { confirmOffset, offsetButtonLabel } from './offset.js';
+import { confirmRetirement, retireButtonLabel } from './retire.js';
 
 function km(a, b) {
   const R = 6371, r = d => d * Math.PI / 180;
@@ -23,7 +23,7 @@ export function mountTravel(root) {
   const opts = AIRPORTS.map(a => `<option value="${a[0]}">${esc(a[1])} (${a[0]})</option>`).join('');
   root.innerHTML = `
     <section class="panel">
-      <h1 class="h1">Offset a journey</h1>
+      <h1 class="h1">Retire pilot units for a journey</h1>
       <div class="seg" role="tablist">
         <button class="on" data-mode="flight" role="tab">Flight</button><button data-mode="ground" role="tab">Car, train, bus</button>
       </div>
@@ -69,8 +69,8 @@ export function mountTravel(root) {
     const r = calc(), out = $('#travel-result', root);
     if (!r) { out.innerHTML = `<p class="muted">Choose two different places, or enter a distance.</p>`; return; }
     out.innerHTML = `<div class="total-row"><span>${esc(r.label)}<br><small class="muted">${esc(r.sub || '')}</small></span><strong>${mass(r.grams)} CO₂e</strong></div>
-      <button class="btn primary block" id="offset-trip">${offsetButtonLabel(r.grams)}</button>`;
-    $('#offset-trip', out).addEventListener('click', () => confirmOffset({ grams: r.grams, kind: 'travel', label: r.label, longHaul: !!r.longHaul, travelMode: r.travelMode, lines: [{ name: r.label, grams: r.grams }] }));
+      <button class="btn primary block" id="retire-trip">${retireButtonLabel(r.grams)}</button>`;
+    $('#retire-trip', out).addEventListener('click', () => confirmRetirement({ grams: r.grams, kind: 'travel', label: r.label, longHaul: !!r.longHaul, travelMode: r.travelMode, lines: [{ name: r.label, grams: r.grams }] }));
   }
   update();
 }

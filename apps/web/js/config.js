@@ -5,7 +5,7 @@ export const CONFIG = {
   pricePerTonneGBP: 250,
   // 1 CLT = 1 tonne CO2e. 6 decimals = whole grams.
   cltDecimals: 6,
-  // Which ledger records offsets: 'local' (this device) now; 'solana-devnet' once the CLT is live.
+  // Which ledger records retirements: 'local' (this device) now; 'solana-devnet' once the CLT is live.
   ledger: 'local',
   // The CarbonLedger API signs and records retirements. Browsers never hold a signing key.
   api: { baseUrl: 'http://127.0.0.1:8000', timeoutMs: 40000 },   // above the API's worst case: two RPC calls at 15 s each

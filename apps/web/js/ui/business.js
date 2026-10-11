@@ -5,7 +5,7 @@ import { store } from '../core/store.js';
 import { ENERGY, GROUND, FLIGHT, FLIGHT_UPLIFT, TRAVEL_SOURCE } from '../data/travel.js';
 import { EXAMPLE_BUSINESSES } from '../data/partners.js';
 import { $, esc, mass } from './dom.js';
-import { confirmOffset, offsetButtonLabel, showReceipt } from './offset.js';
+import { confirmRetirement, retireButtonLabel, showReceipt } from './retire.js';
 import { badgeBookHTML } from './badges.js';
 import { skillTreeHTML, bindSkillTree } from './skilltree.js';
 import { levelHTML, historyHTML } from './me.js';
@@ -27,7 +27,7 @@ export function mountBusiness(root) {
     <section class="panel">
       <p class="eyebrow">For organisations</p>
       <h1 class="h1">Business</h1>
-      <p class="lead">Work out your organisation's footprint for a period, offset it, and earn business badges.</p>
+      <p class="lead">Work out your organisation's footprint for a period, retire simulated pilot units for it, and earn business badges.</p>
       <div class="grid2">
         <div><label class="label" for="biz-name">Business name</label><input id="biz-name" maxlength="40" placeholder="Your business" value="${esc(p.name)}"></div>
         <div><label class="label" for="biz-emp">Employees</label><input id="biz-emp" type="number" min="1" value="${p.employees}" class="num"></div>
@@ -106,8 +106,8 @@ export function mountBusiness(root) {
     out.innerHTML = total ? `
       <ul class="split">${byArea.map(a => `<li><span>${a.label}</span><span class="split-bar"><span style="width:${(a.g / total * 100).toFixed(1)}%"></span></span><span class="mono">${mass(a.g)}</span></li>`).join('')}</ul>
       <div class="total-row"><span>${esc($('#b-period').value)}</span><strong>${mass(total)} CO₂e</strong></div>
-      <button class="btn primary block" id="offset-biz">${offsetButtonLabel(total)}</button>` : `<p class="muted">Enter some activity to see the footprint.</p>`;
-    $('#offset-biz', out)?.addEventListener('click', () => confirmOffset({
+      <button class="btn primary block" id="retire-biz">${retireButtonLabel(total)}</button>` : `<p class="muted">Enter some activity to see the footprint.</p>`;
+    $('#retire-biz', out)?.addEventListener('click', () => confirmRetirement({
       grams: total, kind: 'business', account: 'business', label: `${profile().name || 'Business'}: ${$('#b-period').value.toLowerCase()}`,
       areas: [...new Set(ls.map(l => l.area))], lines: ls.map(({ name, grams }) => ({ name, grams })),
     }, refreshBusiness));

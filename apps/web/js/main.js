@@ -44,7 +44,7 @@ document.querySelectorAll('.tabs [data-tab]').forEach(b => b.addEventListener('c
 $('#level-chip').addEventListener('click', () => show('me'));
 // Settings changes (price, community total) redraw the open view; price labels refresh on next render.
 $('#settings-btn').addEventListener('click', () => openSettings(() => { Object.entries(VIEWS).forEach(([k, v]) => { if (k !== 'countries') v.mounted = false; }); show(currentView); }));
-// Any offset updates the level chip.
+// Any retirement updates the level chip.
 const retire = ledger.retire.bind(ledger);
 ledger.retire = async (e) => { const r = await retire(e); updateChip(); return r; };
 let start = 'shop';

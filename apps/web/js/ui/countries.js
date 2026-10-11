@@ -23,7 +23,7 @@ export function mountCountries(root) {
     <section class="panel">
       <p class="eyebrow">Clearing the historical stock</p>
       <h1 class="h1">Countries</h1>
-      <p class="lead">Each country carries its share of the ${tonnes(TOTAL_T)} of CO₂ emitted since 1850. Send your offsets to any country, or play the Frontline: clear the world smallest share first.</p>
+      <p class="lead">Each country carries its share of the ${tonnes(TOTAL_T)} of CO₂ emitted since 1850. Send your retirements to any country, or play the Frontline: clear the world smallest share first. This is a symbolic game: a CLT is a tonne of simulated pilot units retired today, not a tonne of the 1850 stock.</p>
       <div class="target-box" id="target-box"></div>
       <div class="globe-wrap">
         <canvas id="globe" class="globe" aria-label="Globe showing which countries are cleared, in progress or waiting"></canvas>
@@ -43,7 +43,7 @@ export function mountCountries(root) {
     </section>
     <section class="panel">
       <h2 class="h3">How shares are worked out</h2>
-      <p class="note">Each country's cumulative CO₂ emissions within its borders from 1850 to 2019, including land-use change (Global Carbon Project, via Our World in Data). These are scaled so the total equals the IPCC AR6 figure of 2,400 billion tonnes, the stock that CLTs represent. Other methods, such as consumption-based accounting, would give different shares. Map: Natural Earth.</p>
+      <p class="note">Each country's cumulative CO₂ emissions within its borders from 1850 to 2019, including land-use change (Global Carbon Project, via Our World in Data). These are scaled so the total equals the IPCC AR6 figure of 2,400 billion tonnes. The game is symbolic: clearing a share here does not remove historical emissions, and a CLT is a tonne of simulated pilot units retired against a project today. Other methods, such as consumption-based accounting, would give different shares. Map: Natural Earth.</p>
     </section>`;
   computeStatus();
   globe = createGlobe($('#globe', root), { statusOf: id => status.get(id) || null, onSelect: showPicked });
@@ -63,26 +63,26 @@ function showPicked(iso3, mapName) {
   box.innerHTML = `<strong>${esc(c?.name || mapName || iso3)}</strong>
     <span class="pill ${s || ''}">${label}</span>
     <small>${c ? `Share ${tonnes(c.tonnes)}, ${Math.floor((q?.progress || 0) * 100)}% cleared. Position ${pos} of ${COUNTRIES.length} in the queue.` : 'No separate share in the emissions data.'}</small>
-    ${c && s !== 'cleared' ? `<button class="btn ghost small" id="send-here">Send my offsets to ${esc(c.name)}</button>` : ''}`;
+    ${c && s !== 'cleared' ? `<button class="btn ghost small" id="send-here">Send my retirements to ${esc(c.name)}</button>` : ''}`;
   $('#send-here')?.addEventListener('click', () => { target.set({ mode: 'chosen', iso3 }); drawTarget(); });
 }
 
 function drawTarget() {
   const t = target.get(), box = $('#target-box');
   const chosen = t.mode === 'chosen' ? COUNTRIES.find(c => c.iso3 === t.iso3) : null;
-  box.innerHTML = `<span class="label">Your offsets go to</span>
+  box.innerHTML = `<span class="label">Your retirements go to</span>
     <div class="seg" role="radiogroup">
       <button role="radio" aria-checked="${!chosen}" class="${!chosen ? 'on' : ''}" data-t="frontline">The Frontline</button>
       <button role="radio" aria-checked="${!!chosen}" class="${chosen ? 'on' : ''}" data-t="chosen">${chosen ? esc(chosen.name) : 'A country I choose'}</button>
     </div>
-    <small>${chosen ? 'Change country by tapping it on the globe, or when you confirm an offset.' : 'Each offset goes to the smallest country still to clear.'}</small>`;
+    <small>${chosen ? 'Change country by tapping it on the globe, or when you confirm a retirement.' : 'Each retirement goes to the smallest country still to clear.'}</small>`;
   box.querySelector('[data-t=frontline]').onclick = () => { target.set({ mode: 'frontline' }); drawTarget(); };
   box.querySelector('[data-t=chosen]').onclick = () => sheet(`
     <h2 class="sheet-title">Choose a country</h2>
     <label class="label" for="pick-country">Country</label>
     <select id="pick-country">${[...COUNTRIES].sort((a, b) => a.name.localeCompare(b.name)).map(c => `<option value="${c.iso3}" ${c.iso3 === (chosen?.iso3 || 'GBR') ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
     <p class="note">You can also tap any country on the globe.</p>
-    <div class="row"><button class="btn ghost" data-close>Cancel</button><button class="btn primary" id="pick-ok">Send my offsets here</button></div>`,
+    <div class="row"><button class="btn ghost" data-close>Cancel</button><button class="btn primary" id="pick-ok">Send my retirements here</button></div>`,
     { onOpen: (r, close) => r.querySelector('#pick-ok').addEventListener('click', () => {
       const iso3 = r.querySelector('#pick-country').value; target.set({ mode: 'chosen', iso3 }); close(); drawTarget(); globe?.focus(iso3); showPicked(iso3);
     }) });
@@ -102,7 +102,7 @@ export function refreshCountries() {
       <div class="front-name">${esc(c.name)}</div>
       <div class="bar"><span style="width:${Math.max(0.5, c.progress * 100).toFixed(2)}%"></span></div>
       <div class="row between small"><span>${tonnes(c.doneGrams / 1e6)} retired</span><span>${tonnes(c.tonnes)} share</span></div>
-      <p class="note">The Frontline is the smallest country still to clear. Offsets sent here earn Frontline skills, and the offset that clears it earns Finisher.</p>
+      <p class="note">The Frontline is the smallest country still to clear. Retirements sent here earn Frontline skills, and the retirement that clears it earns Finisher.</p>
       <div class="row"><button class="btn ghost small" id="show-current">Show on globe</button></div>
       <p class="note">${q.cleared.length} cleared: ${q.cleared.slice(0, 8).map(x => esc(x.name)).join(', ') || 'none yet'}${q.cleared.length > 8 ? ' and more' : ''}.${simTonnes ? '' : ` Includes a simulated community total of ${tonnes(settings.communityTonnes())} for the demo, changeable in Settings.`}</p>
     </div>` : `<p>Every country is cleared.</p>`;

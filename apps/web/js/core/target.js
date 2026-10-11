@@ -1,4 +1,4 @@
-// Where a user's offsets go: the Frontline (smallest country not yet cleared) or a country they choose.
+// Where a user's retirements go: the Frontline (smallest country not yet cleared) or a country they choose.
 import { store } from './store.js';
 import { countryQueue } from './game.js';
 import { COUNTRIES } from '../data/countries.js';
@@ -10,7 +10,7 @@ export const target = {
   set(t) { store.set('target', t.mode === 'chosen' && byIso.has(t.iso3) ? { mode: 'chosen', iso3: t.iso3 } : { mode: 'frontline' }); },
 };
 
-// Resolve a target to the country that receives this offset, and whether this offset finishes it.
+// Resolve a target to the country that receives this retirement, and whether it finishes the share.
 export function resolveTarget(t, grams) {
   const q = countryQueue();
   let c = t.mode === 'chosen' ? q.byIso.get(t.iso3) : q.current;

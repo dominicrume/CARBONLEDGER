@@ -18,5 +18,5 @@ export function badgeBookHTML(book) {
     <p class="badge-total"><strong>${book.total.toLocaleString('en-GB')}</strong> badge${book.total === 1 ? '' : 's'} earned. Every family keeps going, so there is always a next one.</p>
     <ul class="fams">${fams}</ul>
     <h3 class="h3">Country badges</h3>
-    <div class="chips">${chips || '<span class="muted">Each country your offsets support earns a badge, and another when it is cleared.</span>'}${cb.length > 12 ? `<span class="muted">and ${cb.length - 12} more</span>` : ''}</div>`;
+    <div class="chips">${chips || '<span class="muted">Each country your retirements support earns a badge, and another when it is cleared.</span>'}${cb.length > 12 ? `<span class="muted">and ${cb.length - 12} more</span>` : ''}</div>`;
 }

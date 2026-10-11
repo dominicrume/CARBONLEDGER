@@ -16,26 +16,26 @@ const kg = v => v * 1000;
 // unit: noun for counts, or 'g' for masses. levels: targets for each level.
 const TREES = {
   personal: {
-    root: { id: 'start', name: 'First steps', desc: 'Make your first offset', metric: h => h.length, unit: 'offset', levels: [1] },
+    root: { id: 'start', name: 'First steps', desc: 'Make your first retirement', metric: h => h.length, unit: 'retirement', levels: [1] },
     branches: [
       { id: 'shop', name: 'Shopper', skills: [
-        { id: 'baskets', name: 'Basket', desc: 'Offset shopping baskets', metric: h => n(h, r => r.kind === 'shop'), unit: 'basket', levels: [1, 5, 25, 100, 500] },
-        { id: 'big', name: 'Big shop', desc: 'Offset a single basket with many items', metric: h => Math.max(0, ...h.map(r => r.itemCount || 0)), unit: 'item in one basket', levels: [10, 25, 50] },
-        { id: 'variety', name: 'Variety', desc: 'Offset different products', metric: h => new Set(h.flatMap(r => r.codes || [])).size, unit: 'different product', levels: [5, 25, 100, 250, 1000] },
+        { id: 'baskets', name: 'Basket', desc: 'Retire pilot units for shopping baskets', metric: h => n(h, r => r.kind === 'shop'), unit: 'basket', levels: [1, 5, 25, 100, 500] },
+        { id: 'big', name: 'Big shop', desc: 'Retire pilot units for a single basket with many items', metric: h => Math.max(0, ...h.map(r => r.itemCount || 0)), unit: 'item in one basket', levels: [10, 25, 50] },
+        { id: 'variety', name: 'Variety', desc: 'Retire pilot units for different products', metric: h => new Set(h.flatMap(r => r.codes || [])).size, unit: 'different product', levels: [5, 25, 100, 250, 1000] },
       ] },
       { id: 'travel', name: 'Traveller', skills: [
-        { id: 'journeys', name: 'Journeys', desc: 'Offset journeys', metric: h => n(h, r => r.kind === 'travel'), unit: 'journey', levels: [1, 5, 25, 100] },
-        { id: 'green', name: 'Low-carbon travel', desc: 'Offset train, bus, coach, ferry or electric car trips', metric: h => n(h, r => GREEN.has(r.travelMode)), unit: 'low-carbon trip', levels: [1, 5, 25, 100] },
-        { id: 'long', name: 'Long haul', desc: 'Offset long-haul flights', metric: h => n(h, r => r.longHaul), unit: 'long-haul flight', levels: [1, 3, 10] },
+        { id: 'journeys', name: 'Journeys', desc: 'Retire pilot units for journeys', metric: h => n(h, r => r.kind === 'travel'), unit: 'journey', levels: [1, 5, 25, 100] },
+        { id: 'green', name: 'Low-carbon travel', desc: 'Retire pilot units for train, bus, coach, ferry or electric car trips', metric: h => n(h, r => GREEN.has(r.travelMode)), unit: 'low-carbon trip', levels: [1, 5, 25, 100] },
+        { id: 'long', name: 'Long haul', desc: 'Retire pilot units for long-haul flights', metric: h => n(h, r => r.longHaul), unit: 'long-haul flight', levels: [1, 3, 10] },
       ] },
       { id: 'daily', name: 'Everyday', skills: [
-        { id: 'days', name: 'Everyday', desc: 'Offset everyday activities', metric: h => n(h, r => r.kind === 'daily'), unit: 'day logged', levels: [1, 7, 30, 100, 365] },
-        { id: 'habit', name: 'Habit', desc: 'Offset in different weeks', metric: weeks, unit: 'active week', levels: [2, 4, 12, 26, 52] },
+        { id: 'days', name: 'Everyday', desc: 'Retire pilot units for everyday activities', metric: h => n(h, r => r.kind === 'daily'), unit: 'day logged', levels: [1, 7, 30, 100, 365] },
+        { id: 'habit', name: 'Habit', desc: 'Retire pilot units in different weeks', metric: weeks, unit: 'active week', levels: [2, 4, 12, 26, 52] },
       ] },
       { id: 'front', name: 'Frontline', skills: [
-        { id: 'frontline', name: 'Frontline', desc: 'Send offsets to the Frontline, the smallest country still to clear', metric: h => n(h, r => r.mode === 'frontline'), unit: 'Frontline offset', levels: [1, 5, 25, 100, 500] },
+        { id: 'frontline', name: 'Frontline', desc: 'Send retirements to the Frontline, the smallest country still to clear', metric: h => n(h, r => r.mode === 'frontline'), unit: 'Frontline retirement', levels: [1, 5, 25, 100, 500] },
         { id: 'lifter', name: 'Heavy lifter', desc: 'Retire carbon at the Frontline', metric: h => sum(h.filter(r => r.mode === 'frontline')), unit: 'g', levels: [kg(1), kg(10), kg(100), kg(1000), kg(10000)] },
-        { id: 'finisher', name: 'Finisher', desc: 'Make the offset that clears a country', metric: h => n(h, r => r.finished), unit: 'country finished', levels: [1, 3, 10, 25] },
+        { id: 'finisher', name: 'Finisher', desc: 'Make the retirement that clears a country', metric: h => n(h, r => r.finished), unit: 'country finished', levels: [1, 3, 10, 25] },
       ] },
       { id: 'explore', name: 'Explorer', skills: [
         { id: 'supporter', name: 'Supporter', desc: 'Support different countries', metric: h => new Set(h.map(r => r.countryIso3).filter(Boolean)).size, unit: 'country', levels: [1, 3, 10, 25, 50, 100, 193] },
@@ -48,25 +48,25 @@ const TREES = {
     mastery: { id: 'mastery', name: 'Mastery', desc: 'Total carbon retired. This skill never ends.', metric: sum, unit: 'g', start: 1000 },
   },
   business: {
-    root: { id: 'b-start', name: 'First steps', desc: 'Make your first business offset', metric: h => h.length, unit: 'offset', levels: [1] },
+    root: { id: 'b-start', name: 'First steps', desc: 'Make your first business retirement', metric: h => h.length, unit: 'retirement', levels: [1] },
     branches: [
       { id: 'ops', name: 'Operations', skills: [
-        { id: 'b-energy', name: 'Energy', desc: 'Offset energy use', metric: hasArea('energy'), unit: 'period', levels: [1, 3, 6, 12, 24] },
-        { id: 'b-fleet', name: 'Vehicles', desc: 'Offset vehicle use', metric: hasArea('fleet'), unit: 'period', levels: [1, 3, 6, 12, 24] },
+        { id: 'b-energy', name: 'Energy', desc: 'Retire pilot units for energy use', metric: hasArea('energy'), unit: 'period', levels: [1, 3, 6, 12, 24] },
+        { id: 'b-fleet', name: 'Vehicles', desc: 'Retire pilot units for vehicle use', metric: hasArea('fleet'), unit: 'period', levels: [1, 3, 6, 12, 24] },
         { id: 'b-cover', name: 'Full coverage', desc: 'Cover different areas of the business', metric: h => new Set(h.flatMap(r => r.areas || [])).size, unit: 'area', levels: [2, 3, 4, 5, 6] },
       ] },
       { id: 'people', name: 'People', skills: [
-        { id: 'b-commute', name: 'Commuting', desc: 'Offset staff commuting', metric: hasArea('commute'), unit: 'period', levels: [1, 3, 6, 12, 24] },
-        { id: 'b-flights', name: 'Business travel', desc: 'Offset business flights', metric: hasArea('flights'), unit: 'period', levels: [1, 3, 6, 12, 24] },
+        { id: 'b-commute', name: 'Commuting', desc: 'Retire pilot units for staff commuting', metric: hasArea('commute'), unit: 'period', levels: [1, 3, 6, 12, 24] },
+        { id: 'b-flights', name: 'Business travel', desc: 'Retire pilot units for business flights', metric: hasArea('flights'), unit: 'period', levels: [1, 3, 6, 12, 24] },
         { id: 'b-head', name: 'Per head', desc: 'Retire carbon per employee', metric: (h, ctx) => sum(h) / Math.max(1, ctx.employees || 1), unit: 'g', levels: [kg(10), kg(50), kg(100), kg(500), kg(1000)] },
       ] },
       { id: 'products', name: 'Products', skills: [
-        { id: 'b-products', name: 'Products', desc: 'Offset products sold', metric: hasArea('products'), unit: 'period', levels: [1, 3, 6, 12, 24] },
-        { id: 'b-months', name: 'Consistency', desc: 'Offset in different months', metric: months, unit: 'active month', levels: [2, 6, 12, 24, 60] },
+        { id: 'b-products', name: 'Products', desc: 'Retire pilot units for products sold', metric: hasArea('products'), unit: 'period', levels: [1, 3, 6, 12, 24] },
+        { id: 'b-months', name: 'Consistency', desc: 'Retire pilot units in different months', metric: months, unit: 'active month', levels: [2, 6, 12, 24, 60] },
       ] },
       { id: 'front', name: 'Frontline', skills: [
-        { id: 'b-frontline', name: 'Frontline', desc: 'Send offsets to the Frontline', metric: h => n(h, r => r.mode === 'frontline'), unit: 'Frontline offset', levels: [1, 5, 25, 100] },
-        { id: 'b-finisher', name: 'Finisher', desc: 'Make the offset that clears a country', metric: h => n(h, r => r.finished), unit: 'country finished', levels: [1, 3, 10, 25] },
+        { id: 'b-frontline', name: 'Frontline', desc: 'Send retirements to the Frontline', metric: h => n(h, r => r.mode === 'frontline'), unit: 'Frontline retirement', levels: [1, 5, 25, 100] },
+        { id: 'b-finisher', name: 'Finisher', desc: 'Make the retirement that clears a country', metric: h => n(h, r => r.finished), unit: 'country finished', levels: [1, 3, 10, 25] },
       ] },
     ],
     mastery: { id: 'b-mastery', name: 'Mastery', desc: 'Total carbon retired. This skill never ends.', metric: sum, unit: 'g', start: 100_000 },

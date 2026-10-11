@@ -1,11 +1,11 @@
-// Shop view: scan or pick products, review the basket, offset it.
+// Shop view: scan or pick products, review the basket, retire pilot units for it.
 import { basket } from '../core/basket.js';
 import { lookupBarcode, catalogue } from '../core/lookup.js';
 import { decodePhoto, startLive } from '../core/scanner.js';
 import { TIERS } from '../core/estimate.js';
 import { ESTIMATE_GROUPS } from '../data/factors.js';
 import { $, esc, mass, toast, sheet } from './dom.js';
-import { confirmOffset, offsetButtonLabel } from './offset.js';
+import { confirmRetirement, retireButtonLabel } from './retire.js';
 
 let live = null;
 
@@ -121,8 +121,8 @@ function drawBasket() {
   const count = items.reduce((s, i) => s + i.qty, 0);
   totals.innerHTML = items.length ? `
     <div class="total-row"><span>${count} item${count === 1 ? '' : 's'}</span><strong>${mass(total)} CO₂e</strong></div>
-    <button class="btn primary block" id="offset-basket">${offsetButtonLabel(total)}</button>` : '';
-  $('#offset-basket')?.addEventListener('click', () => confirmOffset({
+    <button class="btn primary block" id="retire-basket">${retireButtonLabel(total)}</button>` : '';
+  $('#retire-basket')?.addEventListener('click', () => confirmRetirement({
     grams: total, kind: 'shop', label: 'Shopping basket', itemCount: count, codes: items.map(i => i.code).filter(Boolean),
     lines: items.map(i => ({ name: `${i.qty} × ${i.name}`, grams: i.est.grams * i.qty })),
   }, () => basket.clear()));

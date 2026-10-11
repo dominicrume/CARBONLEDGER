@@ -40,24 +40,24 @@ const pl = (n, w) => `${n.toLocaleString('en-GB')} ${w}${n === 1 ? '' : 's'}`;
 export const FAMILIES = {
   personal: [
     { id: 'retired', name: 'Carbon retired', metric: sum, ladder: () => ladder125(1000), label: v => `${mass(v)} retired`, fmt: mass },
-    { id: 'offsets', name: 'Offsets made', metric: h => count(h), ladder: ladderCount, label: v => pl(v, 'offset') },
+    { id: 'retirements', name: 'Retirements made', metric: h => count(h), ladder: ladderCount, label: v => pl(v, 'retirement') },
     { id: 'baskets', name: 'Shopping baskets', metric: h => count(h, 'shop'), ladder: ladderCount, label: v => pl(v, 'basket') },
     { id: 'products', name: 'Different products', metric: products, ladder: ladderCount, label: v => pl(v, 'product') },
     { id: 'journeys', name: 'Journeys', metric: h => count(h, 'travel'), ladder: ladderCount, label: v => pl(v, 'journey') },
     { id: 'everyday', name: 'Everyday life', metric: h => count(h, 'daily'), ladder: ladderCount, label: v => pl(v, 'day') + ' logged' },
     { id: 'partners', name: 'Partner rewards', metric: h => count(h, 'partner'), ladder: ladderCount, label: v => pl(v, 'reward') },
     { id: 'weeks', name: 'Active weeks', metric: weeks, ladder: ladderCount, label: v => pl(v, 'week') },
-    { id: 'frontline', name: 'Frontline offsets', metric: h => h.filter(r => r.mode === 'frontline').length, ladder: ladderCount, label: v => pl(v, 'Frontline offset') },
+    { id: 'frontline', name: 'Frontline retirements', metric: h => h.filter(r => r.mode === 'frontline').length, ladder: ladderCount, label: v => pl(v, 'Frontline retirement') },
     { id: 'finisher', name: 'Countries finished', metric: h => h.filter(r => r.finished).length, ladder: ladderCount, label: v => `Finished ${pl(v, 'country').replace('countrys', 'countries')}` },
     { id: 'countries', name: 'Countries supported', metric: countries, ladder: ladderCount, label: v => pl(v, 'country').replace('countrys', 'countries') },
   ],
   business: [
     { id: 'b-retired', name: 'Carbon retired', metric: sum, ladder: () => ladder125(100_000), label: v => `${mass(v)} retired`, fmt: mass },
-    { id: 'b-offsets', name: 'Offsets made', metric: h => count(h), ladder: ladderCount, label: v => pl(v, 'offset') },
+    { id: 'b-retirements', name: 'Retirements made', metric: h => count(h), ladder: ladderCount, label: v => pl(v, 'retirement') },
     { id: 'b-per-head', name: 'Retired per employee', metric: (h, ctx) => sum(h) / Math.max(1, ctx.employees || 1), ladder: () => ladder125(1000), label: v => `${mass(v)} per employee`, fmt: mass },
     { id: 'b-months', name: 'Active months', metric: months, ladder: ladderCount, label: v => pl(v, 'month') },
     { id: 'b-areas', name: 'Areas covered', metric: h => new Set(h.flatMap(r => r.areas || [])).size, ladder: function* () { for (let i = 1; i <= 6; i++) yield i; }, label: v => v === 6 ? 'Every area covered' : pl(v, 'area') },
-    { id: 'b-frontline', name: 'Frontline offsets', metric: h => h.filter(r => r.mode === 'frontline').length, ladder: ladderCount, label: v => pl(v, 'Frontline offset') },
+    { id: 'b-frontline', name: 'Frontline retirements', metric: h => h.filter(r => r.mode === 'frontline').length, ladder: ladderCount, label: v => pl(v, 'Frontline retirement') },
     { id: 'b-finisher', name: 'Countries finished', metric: h => h.filter(r => r.finished).length, ladder: ladderCount, label: v => `Finished ${pl(v, 'country').replace('countrys', 'countries')}` },
     { id: 'b-countries', name: 'Countries supported', metric: countries, ladder: ladderCount, label: v => pl(v, 'country').replace('countrys', 'countries') },
   ],
@@ -84,7 +84,7 @@ export function badgeBook(account = 'personal', ctx = {}) {
 }
 
 // ---- Countries ----
-// Each country's progress = offsets directed to it + its part of the simulated community total.
+// Each country's progress = retirements directed to it + its part of the simulated community total.
 // The simulated total always goes to the Frontline: the smallest country not yet cleared.
 // status: 'cleared' | 'front' (Frontline, in progress) | 'supported' (some progress) | 'waiting'
 export function countryQueue(extraTonnes = settings.communityTonnes(), history = ledger.history()) {

@@ -2,12 +2,12 @@
 import { ENERGY, MEALS, TRAVEL_SOURCE } from '../data/travel.js';
 import { PN_SOURCE } from '../data/factors.js';
 import { $, esc, mass } from './dom.js';
-import { confirmOffset, offsetButtonLabel } from './offset.js';
+import { confirmRetirement, retireButtonLabel } from './retire.js';
 
 export function mountDaily(root) {
   root.innerHTML = `
     <section class="panel">
-      <h1 class="h1">Offset everyday life</h1>
+      <h1 class="h1">Retire pilot units for everyday life</h1>
       <p class="lead">Add up a day, a week or a month. Meter readings are on your energy bill or app.</p>
       <form class="form" id="daily-form">
         <h2 class="h3">Home energy</h2>
@@ -35,8 +35,8 @@ export function mountDaily(root) {
     });
     const total = lines.reduce((s, l) => s + l.grams, 0), out = $('#daily-result', root);
     out.innerHTML = total ? `<div class="total-row"><span>${lines.length} activit${lines.length === 1 ? 'y' : 'ies'}</span><strong>${mass(total)} CO₂e</strong></div>
-      <button class="btn primary block" id="offset-daily">${offsetButtonLabel(total)}</button>` : `<p class="muted">Enter some activity to see its footprint.</p>`;
-    $('#offset-daily', out)?.addEventListener('click', () => confirmOffset({ grams: total, kind: 'daily', label: 'Everyday activities', lines }));
+      <button class="btn primary block" id="retire-daily">${retireButtonLabel(total)}</button>` : `<p class="muted">Enter some activity to see its footprint.</p>`;
+    $('#retire-daily', out)?.addEventListener('click', () => confirmRetirement({ grams: total, kind: 'daily', label: 'Everyday activities', lines }));
   }
   update();
 }

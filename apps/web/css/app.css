@@ -256,3 +256,8 @@ input[type=range] { padding: 0; border: 0; accent-color: var(--green); backgroun
 .levels li.done { color: var(--ink); } .levels li.done span:last-child { color: var(--green); font-weight: 500; }
 .levels .lv { font-family: var(--serif); }
 .locked-note { border: 1px dashed var(--rule-strong); border-radius: var(--radius); padding: 8px 10px; font-size: .88rem; }
+
+/* Claims discipline: every unit count carries the simulated tag. */
+.tag { display: inline-block; font: 500 .68rem/1.4 DM Sans, sans-serif; letter-spacing: .02em; text-transform: uppercase; color: var(--amber, #8a5a00); background: var(--amber-bg, #fff4dc); border-radius: 999px; padding: 1px 7px; margin-left: 6px; vertical-align: middle; white-space: nowrap; }
+.credits { padding: 18px 16px 90px; font-size: .78rem; color: var(--muted, #666); line-height: 1.5; }
+.credits p { margin: 0 0 8px; }

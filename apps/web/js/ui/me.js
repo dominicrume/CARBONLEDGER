@@ -4,7 +4,7 @@ import { levelFor, badgeBook } from '../core/game.js';
 import { PARTNERS, EXAMPLE_PLAYERS } from '../data/partners.js';
 import { store } from '../core/store.js';
 import { $, esc, mass } from './dom.js';
-import { showReceipt, confirmOffset } from './offset.js';
+import { showReceipt, confirmRetirement } from './retire.js';
 import { badgeBookHTML } from './badges.js';
 import { skillTreeHTML, bindSkillTree } from './skilltree.js';
 
@@ -16,7 +16,7 @@ export function mountMe(root) {
     <section class="panel"><h2 class="h2">League</h2><ol class="league" id="league"></ol></section>
     <section class="panel">
       <h2 class="h2">Earn with partners</h2>
-      <p class="note">Partners pay for CLT units that are issued in your name. These partners are examples.</p>
+      <p class="note">Partners pay for simulated pilot units retired in your name. These partners are examples.</p>
       <ul class="partners">${PARTNERS.map(p => `<li><div><strong>${esc(p.name)}</strong><small>${esc(p.kind)}. ${esc(p.note)}.</small></div>
         <button class="btn ghost small" data-partner="${p.id}">${esc(p.action)}: earn ${mass(p.grams)}</button></li>`).join('')}</ul>
     </section>
@@ -29,7 +29,7 @@ export function mountMe(root) {
   nameEl.addEventListener('change', () => { store.set('name', nameEl.value.trim()); refreshMe(); });
   root.querySelectorAll('[data-partner]').forEach(b => b.addEventListener('click', () => {
     const p = PARTNERS.find(x => x.id === b.dataset.partner);
-    confirmOffset({ grams: p.grams, kind: 'partner', label: `${p.name} reward`, paidBy: p.name, account: 'personal', lines: [{ name: p.action, grams: p.grams }] }, refreshMe);
+    confirmRetirement({ grams: p.grams, kind: 'partner', label: `${p.name} reward`, paidBy: p.name, account: 'personal', lines: [{ name: p.action, grams: p.grams }] }, refreshMe);
   }));
   refreshMe();
 }
@@ -44,7 +44,7 @@ export function levelHTML(total, lv, unitNote) {
 
 export function historyHTML(h) {
   return h.length ? h.map(r => `<li><button class="hist" data-rec="${r.id}"><span>${esc(r.label)}<small>${new Date(r.ts).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })} · ${esc(r.countryName || '')}</small></span><span>${mass(r.grams)}</span></button></li>`).join('')
-    : `<li class="empty">No offsets yet.</li>`;
+    : `<li class="empty">No retirements yet.</li>`;
 }
 
 export function refreshMe() {

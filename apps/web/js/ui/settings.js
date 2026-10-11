@@ -15,13 +15,13 @@ export function openSettings(onChange) {
       <small>Set by trustees. That is ${gbp(settings.pricePerTonne() / 1000)} per kilogram. Default ${gbp(CONFIG.pricePerTonneGBP)}.</small>
       <label class="label" for="s-community">Simulated community total (tonnes)</label>
       <input id="s-community" type="number" min="0" step="any" value="${settings.communityTonnes()}" class="num">
-      <small>Added to real offsets so the Countries view shows progress during demos. Set to 0 to show real offsets only.</small>
+      <small>Added to your own retirements so the Countries view shows progress during demos. Set to 0 to show your own retirements only.</small>
       <div class="row"><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn primary" type="submit">Save</button></div>
     </form>
     <h3 class="h3">About the figures</h3>
     <p class="note">Each product's footprint comes from the first available of: ${Object.values(TIERS).join('; ')}. Where an international and a national figure both exist, the higher is used, and estimates include a safety margin. One CLT is one tonne of CO₂ from the historical stock and divides down to a gram. Ledger: ${esc(ledger.info.name)}. Product data: Open Food Facts (ODbL). Map: Natural Earth.</p>
     <h3 class="h3">Demo data</h3>
-    <button class="link" id="s-reset" type="button">Clear all offsets, badges and basket on this device</button>
+    <button class="link" id="s-reset" type="button">Clear all retirements, badges and basket on this device</button>
     <p class="note" id="s-reset-confirm" hidden>This cannot be undone. <button class="link" id="s-reset-yes" type="button">Yes, clear everything</button></p>
   `, { onOpen: (root, close) => {
     root.querySelector('#settings-form').addEventListener('submit', e => {
