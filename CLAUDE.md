@@ -40,7 +40,8 @@ unit definition, what backs a unit, or adds a payment is a new brief. Write a de
 - Grams are integers. Money is Decimal. A float near either is a bug.
 - A gram is retired once. Every retirement takes a fresh serial range.
 - Nothing is issued unless a verifier attested the project, and issued never exceeds attested.
-- A failed chain write records nothing.
+- A chain that cannot be reached records nothing. Nothing is called recorded on-chain until the chain confirmed it.
+  A failed anchor is shown as failed, never claimed.
 - Receipts are hash-chained. Only the hash goes on a public chain, never personal data.
 - Pilot units are labelled simulated in every API response and every screen.
 - No key, token or wallet seed enters the repo. Only .env.example, with placeholders.

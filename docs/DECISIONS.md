@@ -43,3 +43,14 @@ Decision: The Countries game is labelled symbolic on screen. A CLT is a tonne of
 against a project today, never a tonne of the 1850 stock.
 Why: Keeps the unit definition clean and avoids the "immutable greenwashing" trap in docs/MRV-LAYERS.md.
 Who agreed: Engineering, during the autonomous run. Awaiting Rume and the partner.
+
+---
+Date: 2026-10-11
+Decision: Rule 6 refined. The API checks chain health before committing (if the chain is down, nothing is recorded).
+The receipt then commits under the lock and an anchor worker submits and confirms outside the lock, retrying a
+dropped transaction up to five times. Nothing is called "recorded on Solana" until confirmed. A failed anchor is
+shown as failed on the receipt, in /health and in /v1/audit/verify.
+Why: Holding the lock across a network call serialised every retirement behind one RPC round trip, and the old
+flow said "recorded" on submission, before confirmation (D5). Merkle batch anchoring (SCALING item 2) needs
+receipts to commit before the anchor anyway. The health check keeps the honest behaviour when the chain is down.
+Who agreed: Engineering, during the autonomous run. Awaiting Rume.

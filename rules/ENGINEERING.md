@@ -8,7 +8,10 @@ Each rule has a number. Tests and reviews cite the number. A rule marked ENFORCE
 4. ENFORCED. Fail loud. An error says what happened and what was NOT recorded. No silent defaults.
 5. ENFORCED. Every write endpoint takes an idempotency key. The same key and request returns the same answer.
    The same key with a different request is refused.
-6. ENFORCED. Commit after the outside world agrees. Work on a copy, call the chain, then swap in the new state.
+6. ENFORCED. Refined 2026-10-11. Before committing, the API checks that the chain is reachable. If it is not,
+   nothing is recorded. Under the lock it retires on a copy, appends the receipt and commits. The anchor worker then
+   submits and confirms outside the lock. Nothing is called "recorded on Solana" until the chain confirmed it. A
+   receipt whose anchor fails after retries is shown as failed, never claimed. Tests: tests/test_api.py anchor tests.
 7. PARTLY. The receipt chain is append-only and tamper-checked in code (enforced). The database triggers are written and not yet run (DEBT D4).
 8. Secrets live in the environment or a secret store. scripts/scan_secrets.py must pass before every commit. It runs in CI once CI has run (DEBT D6).
 9. Dependencies are pinned. Run `pip-audit` and `npm audit` in CI. CDN scripts are pinned to exact versions, then
