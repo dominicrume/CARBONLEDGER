@@ -198,3 +198,13 @@ footer{padding-block:40px;color:var(--dim);font-size:.82rem}
 footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px}
 
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+/* X (social) links: an icon in the nav, a button by the closing call to action, a handle in the footer */
+.nav-actions{display:flex;align-items:center;gap:10px}
+.social{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:999px;border:1px solid var(--line-strong);color:var(--fg);transition:border-color .2s,color .2s}
+.social:hover{border-color:var(--accent);color:var(--accent)}
+.x-logo{width:16px;height:16px;fill:currentColor;flex:none}
+.btn .x-logo{margin-right:2px}
+.social-link{display:inline-flex;align-items:center;gap:8px;color:var(--muted);text-decoration:none}
+.social-link:hover{color:var(--accent)}
+.nav-actions .btn{white-space:nowrap}
+@media (max-width:380px){.nav-actions .btn{padding-inline:14px}.social{width:40px;height:40px}}
