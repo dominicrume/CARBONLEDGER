@@ -376,7 +376,7 @@ input[type=range] { padding: 0; border: 0; min-height: 0; accent-color: var(--pr
 @media (hover: hover) { .tree-scroll { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; padding-bottom: 12px; } }
 /* Small phones: the brand never shrinks under the connection state. The level ring keeps its number and drops its
    words, and the state wraps to two lines rather than being cut off, so "Ledger not reachable" is always readable. */
-@media (max-width: 420px) {
+@media (max-width: 480px) {
   #level-text { display: none; } .chip { padding-right: 4px; }
   .conn { white-space: normal; max-width: 5.6rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 }
@@ -466,3 +466,16 @@ input:hover, select:hover { border-color: color-mix(in srgb, var(--primary) 55%,
 @media (min-width: 1440px) { body { padding-left: 288px; } .tabs { width: 248px; } }
 /* A wide child (the skill tree scrolls sideways) must never widen the screen */
 .views { grid-template-columns: minmax(0, 1fr); } .view { min-width: 0; }
+
+/* The app names itself, and always has a way back to the website */
+.app-tag { display: inline-block; margin-left: 8px; vertical-align: 4px; font: 600 .6rem/1 var(--mono); letter-spacing: .12em; text-transform: uppercase;
+  color: var(--on-primary); background: var(--primary); border-radius: 6px; padding: 4px 6px; }
+.brand:hover .wordmark em { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+.rail-links { display: none; }
+.app-links { display: flex; flex-wrap: wrap; gap: 6px 18px; } .app-links a { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+@media (min-width: 1024px) {
+  .rail-links { display: grid; gap: 2px; margin-top: auto; padding-top: 16px; border-top: 1px solid var(--line); }
+  .rail-links a { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--r-ctl); color: var(--fg-3); text-decoration: none; font-size: .9rem; transition: background var(--t), color var(--t); }
+  .rail-links a:hover { background: var(--primary-soft); color: var(--fg); }
+}
+@media (max-width: 380px) { .app-tag { display: none; } }

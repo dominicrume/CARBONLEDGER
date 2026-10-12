@@ -113,6 +113,7 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
             resp.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
         else:                                    # the app's own pages carry their policy in a meta tag (apps/web/index.html)
             resp.headers["Content-Security-Policy"] = "frame-ancestors 'none'"
+            resp.headers.setdefault("Cache-Control", "no-cache")   # revalidate by ETag, so a deploy shows at once
         return resp
 
     @app.get("/health")

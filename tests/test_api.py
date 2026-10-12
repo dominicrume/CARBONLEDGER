@@ -474,6 +474,7 @@ def test_the_api_serves_the_app_when_web_dir_is_set(monkeypatch):
     assert page.status_code == 200 and "<title>CarbonLedger</title>" in page.text
     assert page.headers["content-security-policy"] == "frame-ancestors 'none'"        # the page's own meta CSP governs
     assert "no-store" not in page.headers.get("cache-control", "")
+    assert home.headers["cache-control"] == "no-cache" and page.headers["cache-control"] == "no-cache"   # a deploy shows at once
     assert c.get("/css/app.css").status_code == 200 and c.get("/js/landing.js").status_code == 200
     api = c.get("/health")
     assert api.headers["content-security-policy"].startswith("default-src 'none'") and api.headers["cache-control"] == "no-store"

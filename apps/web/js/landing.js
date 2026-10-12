@@ -1,7 +1,8 @@
 // Landing page behaviour. Same origin as the API, so the live figures come from /v1/audit/verify with no CORS.
-// Old links into the app (/#verify?id=..., /#shop) predate the landing page: send them on to /app with the hash intact.
-const APP_TABS = /^#(shop|travel|daily|countries|me|business|verify|settings)\b/;
-if (APP_TABS.test(location.hash)) location.replace(`/app${location.search}${location.hash}`);
+// Receipt links shared before the website existed (/#verify?id=CL-...) go straight to that receipt in the app.
+// Any other address shows the website first: visitors choose to open the app.
+const toReceipt = () => { if (/^#verify\?id=/.test(location.hash)) location.replace(`/app${location.hash}`); };
+toReceipt(); addEventListener('hashchange', toReceipt);
 
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = (s) => document.querySelector(s);

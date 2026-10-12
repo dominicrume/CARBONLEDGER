@@ -25,9 +25,9 @@
 <body>
 
 <header class="top">
-  <a class="brand" href="#shop" aria-label="CarbonLedger home">
+  <a class="brand" href="/" aria-label="CarbonLedger website" title="Back to the CarbonLedger website">
     <picture><source srcset="brand/mark-dark-64.png" media="(prefers-color-scheme: dark)"><img class="brand-mark" src="brand/mark-64.png" alt="" width="28" height="28"></picture>
-    <span class="wordmark">Carbon<em>Ledger</em><span>Pilot units on Solana</span></span>
+    <span class="wordmark">Carbon<em>Ledger</em><b class="app-tag">App</b><span>Pilot units on Solana</span></span>
   </a>
   <div class="top-actions">
     <span class="conn" id="conn" role="status">Working on this device only</span>
@@ -54,12 +54,14 @@
   <button data-tab="me"><svg class="ico" aria-hidden="true"><use href="vendor/icons.svg#i-user-regular"/></svg>Me</button>
   <button data-tab="business"><svg class="ico" aria-hidden="true"><use href="vendor/icons.svg#i-buildings-regular"/></svg>Business</button>
   <button data-tab="verify"><svg class="ico" aria-hidden="true"><use href="vendor/icons.svg#i-shield-check-regular"/></svg>Verify</button>
+  <div class="rail-links"><a href="/"><span aria-hidden="true">←</span> Back to the website</a><a href="https://x.com/Carbon_Ledger" target="_blank" rel="noopener"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Follow on X</a></div>
 </nav>
 
 <footer class="credits">
   <p>Pilot units are not yet verified credits. Nothing here is an offset, a carbon-neutral claim or a verified credit until a named verifier attests a real project.</p>
   <p>Data: food factors from Poore and Nemecek (2018) via Our World in Data (CC BY); Agribalyse (Etalab open licence) via Open Food Facts (ODbL); travel and energy factors from UK Government GHG conversion factors (DESNZ); country shares from the Global Carbon Project via Our World in Data (CC BY); map from Natural Earth (public domain).</p>
-  <p><a href="#verify">Verify a receipt</a>. Icons: Phosphor (MIT).</p>
+  <p class="app-links"><a href="/">CarbonLedger website</a><a href="https://x.com/Carbon_Ledger" target="_blank" rel="noopener"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> @Carbon_Ledger</a><a href="#verify">Verify a receipt</a></p>
+  <p>Icons: Phosphor (MIT).</p>
 </footer>
 <div id="toast" class="toast" role="status" hidden></div>
 <div id="sheet" class="sheet" hidden></div>
