@@ -17,7 +17,7 @@ function loopbackOverride(name) {
 export const CONFIG = {
   appName: 'CarbonLedger',
   // Trustee-set price (demo, no payment taken).
-  pricePerTonneGBP: 250,
+  pricePerTonneGBP: 100,
   // 1 CLT = 1 tonne CO2e. 6 decimals = whole grams.
   cltDecimals: 6,
   // Which ledger records retirements: 'local' (this device) now; 'solana-devnet' once the CLT is live.

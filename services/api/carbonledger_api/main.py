@@ -318,6 +318,16 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
 
     web_dir = Path(os.environ.get("WEB_DIR", "")) if os.environ.get("WEB_DIR") else None
     if web_dir and web_dir.is_dir():          # one origin for app and API (deploy): no CORS, the page's CSP 'self' covers the API
+        from fastapi.responses import FileResponse
+        landing, shell = web_dir / "landing.html", web_dir / "index.html"
+
+        @app.get("/", include_in_schema=False)
+        def home():                           # the public landing page; the app itself lives at /app
+            return FileResponse(landing if landing.is_file() else shell)
+
+        @app.get("/app", include_in_schema=False)
+        def app_shell():                      # /app has no trailing slash, so the app's relative asset paths still resolve from /
+            return FileResponse(shell)
         app.mount("/", StaticFiles(directory=str(web_dir), html=True), name="web")
     return app
 

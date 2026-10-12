@@ -11,7 +11,7 @@ ALLOWED = [r"not yet verified credits", r"not an offset", r"never \"offset\"", r
 
 
 def _user_facing_lines():
-    files = [WEB / "index.html"] + [p for p in (WEB / "js").rglob("*.js") if "data" not in p.parts]
+    files = [WEB / "index.html", WEB / "landing.html"] + [p for p in (WEB / "js").rglob("*.js") if "data" not in p.parts]
     for f in files:
         for n, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
             code = re.sub(r"(^|\s)//.*$", "", line)         # strip line comments
@@ -39,3 +39,10 @@ def test_footer_credits_every_data_source():
     html = (WEB / "index.html").read_text(encoding="utf-8")
     for src in ["Poore and Nemecek", "Agribalyse", "Open Food Facts", "Global Carbon Project", "Natural Earth", "DESNZ", "Verify a receipt"]:
         assert src in html, src
+
+
+def test_landing_page_says_pilot_units_and_never_claims_backing_it_lacks():
+    html = (WEB / "landing.html").read_text(encoding="utf-8")
+    assert html.count("not yet verified credits") >= 3 and "Solana devnet" in html
+    for claim in ["open source", "multisig control", "Liechtenstein", "UN emissions", "permanently"]:
+        assert claim not in html, claim

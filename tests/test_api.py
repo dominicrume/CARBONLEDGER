@@ -468,10 +468,13 @@ def test_the_api_serves_the_app_when_web_dir_is_set(monkeypatch):
     from pathlib import Path
     monkeypatch.setenv("WEB_DIR", str(Path(__file__).resolve().parents[1] / "apps" / "web"))
     c = make()
-    page = c.get("/")
+    home = c.get("/")                                                                 # the landing page leads to the app
+    assert home.status_code == 200 and "recorded to the gram" in home.text and 'href="/app"' in home.text
+    page = c.get("/app")
     assert page.status_code == 200 and "<title>CarbonLedger</title>" in page.text
     assert page.headers["content-security-policy"] == "frame-ancestors 'none'"        # the page's own meta CSP governs
     assert "no-store" not in page.headers.get("cache-control", "")
+    assert c.get("/css/app.css").status_code == 200 and c.get("/js/landing.js").status_code == 200
     api = c.get("/health")
     assert api.headers["content-security-policy"].startswith("default-src 'none'") and api.headers["cache-control"] == "no-store"
     assert c.get("/js/config.js").status_code == 200 and c.get("/nope.js").status_code == 404

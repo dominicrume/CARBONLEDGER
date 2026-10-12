@@ -47,3 +47,12 @@ def test_content_security_policy_allows_scripts_from_self_only():
     assert csp["default-src"] == ["'none'"] and csp["script-src"] == ["'self'"] and csp["object-src"] == ["'none'"]
     assert "'unsafe-inline'" not in csp["script-src"] and "'unsafe-eval'" not in csp["script-src"]
     assert "https://world.openfoodfacts.org" in csp["connect-src"] and csp["base-uri"] == ["'none'"]
+
+
+def test_landing_page_loads_no_remote_script_and_keeps_its_policy():
+    html = (WEB / "landing.html").read_text(encoding="utf-8")
+    for attrs in re.findall(r'<script\b([^>]*)>', html):
+        src = re.search(r'src="([^"]+)"', attrs)
+        assert src and not src.group(1).startswith(("http:", "https:", "//")), attrs
+    csp = re.search(r'http-equiv="Content-Security-Policy" content="([^"]+)"', html).group(1)
+    assert "script-src 'self'" in csp and "connect-src 'self'" in csp and "unsafe-eval" not in csp
