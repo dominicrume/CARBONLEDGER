@@ -1,4 +1,4 @@
-// Rotatable globe. Countries are coloured by queue status: green cleared, amber in progress, red waiting.
+// Rotatable globe. Countries are coloured by queue status: green cleared, amber in progress, a calm muted tone waiting.
 // Drag to turn it, tap a country for details. Needs d3 and topojson-client (loaded in index.html).
 import { WORLD } from '../data/geo.js';
 
@@ -27,7 +27,7 @@ export function createGlobe(canvas, { statusOf, onSelect }) {
   function draw() {
     if (!size && !fit()) return;
     projection.rotate(rotate);
-    const col = { cleared: css('--ok'), current: css('--warn'), waiting: css('--bad') };
+    const col = { cleared: css('--ok'), current: css('--warn'), waiting: css('--globe-wait') };   // waiting is not an error: no alarm red
     ctx.clearRect(0, 0, size, size);
     ctx.beginPath(); path({ type: 'Sphere' }); ctx.fillStyle = css('--globe-sea'); ctx.fill();
     ctx.lineWidth = 0.4; ctx.strokeStyle = css('--globe-line');

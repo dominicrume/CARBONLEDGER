@@ -32,7 +32,7 @@ export function mountCountries(root) {
         <canvas id="globe" class="globe" aria-label="Globe showing which countries are cleared, in progress or waiting"></canvas>
         <p class="globe-fallback muted" hidden>The globe could not load. The queue below shows the same information.</p>
       </div>
-      <div class="legend"><span class="sw ok"></span>Cleared <span class="sw warn"></span>In progress <span class="sw bad"></span>Waiting</div>
+      <div class="legend"><span class="sw ok"></span>Cleared <span class="sw warn"></span>In progress <span class="sw wait"></span>Waiting</div>
       <p class="hint muted">Drag to turn the globe. Tap a country for details.</p>
       <div id="front"></div>
       <div id="picked" class="picked" hidden></div>
