@@ -34,9 +34,9 @@ export function mountTravel(root) {
       <p class="note">Factors: ${esc(TRAVEL_SOURCE)}. Flights include the warming effect of high-altitude emissions and an 8% routing uplift.</p>
     </section>`;
   $('#to', root).value = 'BCN';
+  let mode = 'flight';
   const mission = () => { const el = $('#mission-travel'); if (el) el.innerHTML = missionHTML(countryQueue(), world.get()); };
   mission(); document.addEventListener('carbonledger:world', mission);
-  let mode = 'flight';
   root.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => {
     mode = b.dataset.mode;
     root.querySelectorAll('[data-mode]').forEach(x => x.classList.toggle('on', x === b));
@@ -51,10 +51,10 @@ export function mountTravel(root) {
       const f = flightGrams({ from: $('#from').value, to: $('#to').value, cabin: $('#cabin').value, ret: $('#ret').checked, people: Math.max(1, +$('#fpeople').value || 1) });
       return f && { ...f, travelMode: 'flight', item: { type: 'flight', from: $('#from').value, to: $('#to').value, cabin: $('#cabin').value, ret: $('#ret').checked, people: Math.max(1, +$('#fpeople').value || 1) }, sub: `${f.dist.toLocaleString('en-GB')} km each way, ${f.band === 'long' ? 'long-haul' : f.band === 'short' ? 'short-haul' : 'domestic'}`, longHaul: f.band === 'long' };
     }
-    const mode = $('#gmode').value, dist = Math.max(0, +$('#gkm').value || 0), people = Math.max(1, +$('#gpeople').value || 1);
-    const r = groundGrams({ mode, km: dist, people });
+    const gmode = $('#gmode').value, dist = Math.max(0, +$('#gkm').value || 0), people = Math.max(1, +$('#gpeople').value || 1);
+    const r = groundGrams({ mode: gmode, km: dist, people });
     if (!r) return null;
-    return { travelMode: mode, grams: r.grams, label: r.label, sub: r.share > 1 ? `your share of ${r.share} people` : '', item: { type: 'ground', mode, km: dist, people } };
+    return { travelMode: gmode, grams: r.grams, label: r.label, sub: r.share > 1 ? `your share of ${r.share} people` : '', item: { type: 'ground', mode: gmode, km: dist, people } };
   }
   function update() {
     const r = calc(), out = $('#travel-result', root);

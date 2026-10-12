@@ -7,7 +7,7 @@ import { badgeBook, countryQueue } from '../core/game.js';
 import { target, resolveTarget } from '../core/target.js';
 import { COUNTRIES } from '../data/countries.js';
 import { sheet, esc, mass, gbp } from './dom.js';
-import { icon, rewardHTML, buzz, xp } from './hud.js';
+import { icon, rewardHTML, buzz, xp, countUp, brandMark } from './hud.js';
 import { levelFor } from '../core/game.js';
 
 export const SIM_TAG = '<span class="tag">Simulated pilot units</span>';
@@ -94,7 +94,7 @@ export function showReceipt(rec, newBadges = [], reward = null) {
   sheet(`
     ${reward ? rewardHTML({ grams: rec.grams, before: reward.before, after: reward.after, badges: newBadges, countryName: rec.countryName, finished: rec.finished, base }) : ''}
     <div class="receipt">
-      <div class="r-head"><strong>CarbonLedger</strong><span>Retirement receipt</span></div>
+      <div class="r-head"><strong class="r-brand">${brandMark(20)}CarbonLedger</strong><span>Retirement receipt</span></div>
       <div class="r-meta mono">${esc(rec.id)}<br>${new Date(rec.ts).toLocaleString('en-GB')}</div>
       <div class="r-sub">${esc(rec.note || rec.label)}</div>
       ${lines}
@@ -107,5 +107,5 @@ export function showReceipt(rec, newBadges = [], reward = null) {
     </div>
     ${!reward && newBadges.length ? `<div class="new-badges">${newBadges.map((b, i) => `<span class="chip-badge" style="--i:${i}">${icon('medal')}${esc(b.name)}</span>`).join('')}</div>` : ''}
     <div class="row"><button class="btn ghost" id="receipt-verify" data-close>Verify it</button><button class="btn primary" data-close>Done</button></div>
-  `, { onOpen: (root) => { root.querySelector('#receipt-verify')?.addEventListener('click', () => { location.hash = `verify?id=${encodeURIComponent(rec.id)}`; document.querySelector('[data-tab="verify"]')?.click(); }); } });
+  `, { onOpen: (root) => { countUp(root.querySelector('#reward-count'), rec.grams); root.querySelector('#receipt-verify')?.addEventListener('click', () => { location.hash = `verify?id=${encodeURIComponent(rec.id)}`; document.querySelector('[data-tab="verify"]')?.click(); }); } });
 }

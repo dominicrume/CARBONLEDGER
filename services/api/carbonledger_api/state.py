@@ -141,7 +141,7 @@ def keys_from_env() -> ApiKeyStore:
     if env in ("dev", "test", "demo") and (demo or demo_biz):
         from carbonledger.auth import hash_key
         if demo:
-            store.add_hashed("personal", "demo", hash_key(pepper, demo), "key-demo")
+            store.add_hashed("personal", "demo-player", hash_key(pepper, demo), "key-demo")
         if demo_biz:
             store.add_hashed("business", "demo-business", hash_key(pepper, demo_biz), "key-demo-business")
     elif env == "dev" and store.count() == 0:

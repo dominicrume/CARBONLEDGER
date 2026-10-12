@@ -9,12 +9,12 @@ const BUSINESS_KEY = process.env.E2E_BUSINESS_KEY || '';
 
 // The key is a login. The test puts it where Settings would: this browser's storage.
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(k => { try { localStorage.setItem('carbonledger.apiKey', JSON.stringify(k)); } catch {} }, KEY);
+  await page.addInitScript(k => { try { localStorage.setItem('carbonledger.apiKey', JSON.stringify(k)); localStorage.setItem('carbonledger.onboarded', 'true'); } catch {} }, KEY);
 });
 
 test('retire pilot units from the demo shelf, see the receipt, verify the chain', async ({ page }) => {
   await page.goto(`${APP}/?ledger=solana-devnet&api=${encodeURIComponent(API)}#shop`);
-  await expect(page.locator('#conn')).toHaveText(/Connected to the ledger/);
+  await expect(page.locator('#conn')).toHaveText(/Ledger: /);
   await page.click('#shelf-btn');
   await page.locator('.shelf-item').first().click();
   await page.click('.sheet-body button[data-close]');
@@ -76,7 +76,7 @@ test('no banned claim words on any screen', async ({ page }) => {
 test('without a login the demo makes one for you and the retirement goes through', async ({ page }) => {
   await page.addInitScript(() => { try { localStorage.removeItem('carbonledger.apiKey'); } catch {} });
   await page.goto(`${APP}/?ledger=solana-devnet&api=${encodeURIComponent(API)}#shop`);
-  await expect(page.locator('#conn')).toContainText('Connected to the ledger');
+  await expect(page.locator('#conn')).toContainText('Ledger: ');
   await expect(page.locator('#conn')).not.toContainText('no login', { timeout: 10000 });
   await page.click('#shelf-btn');
   await page.locator('.shelf-item').first().click();
@@ -133,10 +133,46 @@ test('a business sets a mandate for an agent key, sees use against cap, and revo
   await expect(page.locator('#mandate-error')).toContainText(/public key/);
 });
 
-test('a personal key cannot write a mandate', async ({ page }) => {
+test('on the demo, one login writes a mandate too (off the demo a personal key is refused: tests/test_api.py)', async ({ page }) => {
   await page.goto(`${APP}/?ledger=solana-devnet&api=${encodeURIComponent(API)}#business`);
   await page.reload();
   await page.fill('#m-agent', '11111111111111111111111111111111');
   await page.click('#mandate-create');
-  await expect(page.locator('#mandate-error')).toContainText(/business key/);
+  await expect(page.locator('#mandate-list .mandate').first()).toContainText('used of');
+  await expect(page.locator('#mandate-error')).toHaveText('');
+});
+
+test('first visit shows the three-step welcome once, and its button opens the demo shelf', async ({ page }) => {
+  await page.addInitScript(() => { try { localStorage.removeItem('carbonledger.onboarded'); } catch {} });
+  await page.goto(`${APP}/?ledger=solana-devnet&api=${encodeURIComponent(API)}#me`);
+  await expect(page.locator('.onboard h2')).toContainText('Every gram you retire moves the world');
+  await page.click('#onboard-go');
+  await expect(page.locator('.shelf')).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem('carbonledger.onboarded'))).toBe('true');
+});
+
+test('travel offers a retire button for a flight and for a train, and both retire', async ({ page }) => {
+  await page.goto(`${APP}/?ledger=solana-devnet&api=${encodeURIComponent(API)}#travel`);
+  await expect(page.locator('#retire-trip')).toContainText('XP');
+  await page.click('#retire-trip'); await page.click('#confirm-retire');
+  await expect(page.locator('.receipt')).toContainText('Retirement receipt');
+  await page.click('.sheet-body button.primary[data-close]');
+  await page.click('[data-mode="ground"]');
+  await page.selectOption('#gmode', 'rail');
+  await expect(page.locator('#retire-trip')).toBeVisible();
+  await page.click('#retire-trip'); await page.click('#confirm-retire');
+  await expect(page.locator('.receipt')).toContainText('Retirement receipt');
+});
+
+test('business retires with the same demo login, and the display name saves with a button', async ({ page }) => {
+  await page.goto(`${APP}/?ledger=solana-devnet&api=${encodeURIComponent(API)}#business`);
+  await page.click('#retire-biz'); await page.click('#confirm-retire');
+  await expect(page.locator('.receipt')).toContainText('Retirement receipt');
+  await page.click('.sheet-body button.primary[data-close]');
+  await page.click('[data-tab="me"]');
+  await page.fill('#name', 'Ada Okafor');
+  await page.click('#name-save');
+  await expect(page.locator('#toast')).toContainText('Saved. You are Ada Okafor.');
+  await expect(page.locator('#me-level .hero-title')).toContainText('Ada Okafor');
+  await expect(page.locator('#today')).toContainText('of 3');
 });

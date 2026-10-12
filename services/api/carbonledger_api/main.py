@@ -72,6 +72,11 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
         errors = [{"loc": [str(x) for x in e.get("loc", [])], "msg": e.get("msg", ""), "type": e.get("type", "")} for e in exc.errors()[:5]]
         return JSONResponse({"detail": "Invalid request. " + "; ".join(parts) + ". Nothing was recorded.", "errors": errors}, status_code=422)
 
+    def acts_for_business(caller: KeyRecord) -> bool:
+        """Business, agent and authority keys act for a business. On a demo server every demo login does too:
+        a visitor plays both leagues with one login, from the first tap (D28). Never true outside demo mode."""
+        return caller.role in ("business", "agent", "authority") or (st.limits.demo_keys and caller.owner.startswith("demo-"))
+
     def require_key(request: Request) -> KeyRecord:
         """Every write needs a key (D2). Then the key's bucket must have a token (rate limit)."""
         auth = request.headers.get("authorization", "")
@@ -141,7 +146,7 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
 
     @app.post("/v1/mandates", status_code=201)
     def create_mandate(body: MandateIn, caller: KeyRecord = Depends(require_key)):
-        if caller.role not in ("business", "authority"):
+        if not acts_for_business(caller) or caller.role == "agent":
             raise HTTPException(403, "Only a business key can write a mandate. Nothing was recorded.")
         with st.lock:
             mid = "mnd-" + digest({"n": len(st.mandates), "o": caller.owner, "a": body.agent})[:12]
@@ -169,8 +174,8 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
 
     @app.post("/v1/retire")
     def retire(body: RetireIn, caller: KeyRecord = Depends(require_key)):
-        if body.account == "business" and caller.role not in ("business", "agent", "authority"):
-            raise HTTPException(403, "This key cannot retire for a business. Nothing was recorded.")
+        if body.account == "business" and not acts_for_business(caller):
+            raise HTTPException(403, "This key cannot retire for a business. Use a business login. Nothing was recorded.")
         payload_digest = digest({**body.model_dump(exclude={"idempotency_key"}), "caller": caller.owner})
         with st.lock:
             prior = st.idem.get(body.idempotency_key)

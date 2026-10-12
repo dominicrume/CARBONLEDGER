@@ -553,3 +553,16 @@ def test_world_stats_are_public_count_only_accepted_and_carry_no_personal_data()
     assert w["countries"]["KIR"] == {"grams": 1500, "retirements": 2, "players": 1} and w["countries"]["GBR"]["players"] == 1
     assert w["register"]["remaining_g"] == DEMO_ISSUED_G - 1550
     assert "p1" not in c.anon().get("/v1/stats/world").text and "owner" not in w
+
+
+def test_a_demo_login_plays_both_leagues_but_only_on_a_demo_server():
+    c = make(limits=Limits(demo_keys=True, demo_keys_per_hour=5))
+    k = c.anon().post("/v1/demo/key").json()["api_key"]
+    d = TestClient(c.app); d.headers["authorization"] = f"Bearer {k}"
+    assert d.post("/v1/retire", json=body(account="business", kind="business", label="Business period")).status_code == 200
+    agent = Keypair()
+    assert d.post("/v1/mandates", json={"agent": str(agent.pubkey()), "cap_g": 1000, "ttl_seconds": 60}).status_code == 201
+    # the same personal role off a demo server is still refused for a business
+    off = make()
+    r = off.post("/v1/retire", json=body(account="business", kind="business", label="Business period"))
+    assert r.status_code == 403 and "business login" in r.json()["detail"]

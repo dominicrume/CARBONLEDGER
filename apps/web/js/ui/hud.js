@@ -7,9 +7,46 @@ import { esc, mass } from './dom.js';
 export const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="vendor/icons.svg#i-${name}-regular"/></svg>`;
 export const xp = g => `${Math.round(g).toLocaleString('en-GB')} XP`;
 
+// The brand mark (LOGO/ cropped into apps/web/brand), light and dark.
+export const brandMark = (size = 40, cls = '') => `<picture class="${cls}"><source srcset="brand/mark-dark-128.png" media="(prefers-color-scheme: dark)"><img src="brand/mark-128.png" alt="" width="${size}" height="${size}" style="width:${size}px;height:${size}px"></picture>`;
+
+// A name for every level, so a level is an identity and not only a number.
+const TITLES = [[100, 'Earthkeeper'], [75, 'Guardian'], [50, 'Canopy'], [35, 'Forest'], [20, 'Grove'], [10, 'Sapling'], [5, 'Seedling'], [2, 'Sprout'], [1, 'Seed']];
+export const levelTitle = n => TITLES.find(([min]) => n >= min)[1];
+
+// Today's three quests, from this account's history. They reset at midnight and feed the weekly streak.
+export function dailyQuests(h) {
+  const today = new Date().toDateString();
+  const t = h.filter(r => new Date(r.ts).toDateString() === today);
+  const kinds = new Set(t.map(r => r.kind));
+  return [
+    { id: 'retire', name: 'Retire anything today', done: t.length > 0, icon: 'leaf' },
+    { id: 'front', name: 'Send one to the Frontline', done: t.some(r => r.mode === 'frontline'), icon: 'target' },
+    { id: 'two', name: 'Act in two different ways', done: kinds.size >= 2, icon: 'lightning', sub: `${Math.min(kinds.size, 2)} of 2` },
+  ];
+}
+
+export function dailyHTML(h) {
+  const q = dailyQuests(h), n = q.filter(x => x.done).length;
+  return `<div class="daily-card">
+    <div class="daily-head"><strong>${icon('flame')} Today</strong><span class="daily-count ${n === 3 ? 'all' : ''}">${n} of 3</span></div>
+    <ul class="daily-list">${q.map(x => `<li class="${x.done ? 'done' : ''}">${icon(x.done ? 'check-circle' : x.icon)}<span>${esc(x.name)}${x.sub && !x.done ? ` <small>${esc(x.sub)}</small>` : ''}</span></li>`).join('')}</ul>
+    ${n === 3 ? '<p class="daily-done">All three done. Come back tomorrow to keep the streak.</p>' : ''}
+  </div>`;
+}
+
+// Count a number up to its value: feedback that the score moved. Instant under reduced motion.
+export function countUp(el, to, fmt = v => Math.round(v).toLocaleString('en-GB')) {
+  if (!el) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = fmt(to); return; }
+  const t0 = performance.now(), d = 900;
+  const step = now => { const k = Math.min(1, (now - t0) / d), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(to * e); if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+
 export function levelChip(total, base) {
   const lv = levelFor(total, base);
-  return { ...lv, ring: Math.round(Math.max(0, Math.min(1, lv.progress)) * 100), text: `Level ${lv.n}`, toNext: `${mass(lv.toNext)} to level ${lv.n + 1}` };
+  return { ...lv, ring: Math.round(Math.max(0, Math.min(1, lv.progress)) * 100), title: levelTitle(lv.n), text: `Level ${lv.n}`, toNext: `${mass(lv.toNext)} to level ${lv.n + 1}` };
 }
 
 // The Frontline strip: the smallest country still to clear, how far it is, how many players are on it.
@@ -41,9 +78,10 @@ export function rewardHTML({ grams, before, after, badges = [], countryName, fin
   const chips = badges.map((x, i) => `<span class="chip-badge ${x.id.startsWith('cleared') ? 'gold' : ''}" style="--i:${i}">${icon(x.id.startsWith('cleared') ? 'crown' : 'medal')}${esc(x.name)}</span>`).join('');
   return `<div class="reward" data-xp="${Math.round(grams)}">
     ${up || badges.length ? confettiHTML() : ''}
-    <div class="reward-xp">+${esc(xp(grams))}</div>
+    ${brandMark(36, 'reward-mark')}
+    <div class="reward-xp">+<span id="reward-count">0</span> XP</div>
     <div class="reward-sub">${esc(mass(grams))} of simulated pilot units retired${countryName ? ` for ${esc(countryName)}` : ''}</div>
-    ${up ? `<div class="levelup">${icon('sparkle')} Level up! You are level ${a.n}</div>` : ''}
+    ${up ? `<div class="levelup">${icon('sparkle')} Level up! Level ${a.n}, ${esc(levelTitle(a.n))}</div>` : ''}
     <div class="bar gold"><span style="width:${(a.progress * 100).toFixed(1)}%"></span></div>
     <div class="reward-lv"><span>Level ${a.n}</span><span>${esc(mass(a.toNext))} to level ${a.n + 1}</span></div>
     ${finished ? `<div class="levelup">${icon('crown')} You finished ${esc(countryName)}'s symbolic share</div>` : ''}

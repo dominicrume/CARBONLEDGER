@@ -5,6 +5,7 @@ import { ledger } from '../core/ledger.js';
 import { $, esc, mass } from './dom.js';
 import { SIM_TAG } from './retire.js';
 import { verifyProof } from '../core/merkle.js';
+import { brandMark } from './hud.js';
 
 const ANCHOR_WORDS = {
   anchored: 'Confirmed on Solana devnet, a test network.',
@@ -15,8 +16,7 @@ const ANCHOR_WORDS = {
 export function mountVerify(root) {
   root.innerHTML = `
     <section class="panel">
-      <p class="eyebrow">Show your working</p>
-      <h1 class="h1">Verify a receipt</h1>
+      <div class="verify-head">${brandMark(44)}<div><p class="eyebrow">Show your working</p><h1 class="h1">Verify a receipt</h1></div></div>
       <p class="lead">Paste a receipt id. You will see its hash, its serial range and whether the chain confirmed it. ${SIM_TAG}</p>
       <form id="verify-form" class="row code-row">
         <label for="verify-id" class="sr">Receipt id</label>

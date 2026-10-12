@@ -8,15 +8,27 @@
      A deployed copy must replace the loopback entries with the real API origin (see README). -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' http://127.0.0.1:* http://localhost:* https://world.openfoodfacts.org; worker-src 'self' blob:; base-uri 'none'; form-action 'self'; object-src 'none'">
 <title>CarbonLedger</title>
+<meta name="description" content="Scan, log and retire simulated pilot carbon units, watch countries clear, verify every receipt on Solana devnet.">
+<link rel="icon" type="image/png" sizes="32x32" href="brand/mark-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="brand/mark-192.png">
+<link rel="apple-touch-icon" href="brand/mark-192.png">
+<meta name="theme-color" content="#0d1712" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f3f6f2" media="(prefers-color-scheme: light)">
+<meta property="og:title" content="CarbonLedger">
+<meta property="og:description" content="Retire simulated pilot units, watch countries clear, verify every receipt.">
+<meta property="og:image" content="brand/social-1280x640.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&family=Outfit:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
 
 <header class="top">
-  <div class="wordmark">Carbon<em>Ledger</em><span>Demo: simulated pilot units</span></div>
+  <a class="brand" href="#shop" aria-label="CarbonLedger home">
+    <picture><source srcset="brand/mark-dark-64.png" media="(prefers-color-scheme: dark)"><img class="brand-mark" src="brand/mark-64.png" alt="" width="28" height="28"></picture>
+    <span class="wordmark">Carbon<em>Ledger</em><span>Simulated pilot units</span></span>
+  </a>
   <div class="top-actions">
     <span class="conn" id="conn" role="status">Working on this device only</span>
     <button class="chip" id="level-chip" aria-label="Your level"><span class="ring" id="level-ring"><b id="level-num">1</b></span><span id="level-text">Level 1</span></button>

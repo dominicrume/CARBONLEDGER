@@ -8,7 +8,7 @@ const API = process.env.API_URL || 'http://127.0.0.1:8000';
 const KEY = process.env.E2E_API_KEY || '';
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(k => { try { localStorage.setItem('carbonledger.apiKey', JSON.stringify(k)); } catch {} }, KEY);
+  await page.addInitScript(k => { try { localStorage.setItem('carbonledger.apiKey', JSON.stringify(k)); localStorage.setItem('carbonledger.onboarded', 'true'); } catch {} }, KEY);
 });
 
 async function audit(page, where) {

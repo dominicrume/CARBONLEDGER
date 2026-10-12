@@ -10,6 +10,7 @@ import { mountVerify } from './ui/verify.js';
 import { openSettings } from './ui/settings.js';
 import { ledger, apiKey, getDemoLogin } from './core/ledger.js';
 import { levelChip } from './ui/hud.js';
+import { maybeOnboard } from './ui/onboard.js';
 import { world } from './core/world.js';
 import { $ } from './ui/dom.js';
 
@@ -29,7 +30,7 @@ function updateChip() {
   const lv = levelChip(total);
   $('#level-ring').style.setProperty('--p', lv.ring);
   $('#level-num').textContent = lv.n;
-  $('#level-text').textContent = lv.text;
+  $('#level-text').innerHTML = `${lv.text}<small>${lv.title}</small>`;
   $('#level-chip').setAttribute('aria-label', `${lv.text}, ${lv.toNext}`);
 }
 
@@ -57,7 +58,7 @@ async function showConnection() {
     const h = await r.json();
     // Demo servers mint logins: a first-time visitor gets one here, silently, so the first retirement just works (D27).
     if (!apiKey.get() && h.demo_keys) { try { await getDemoLogin('personal'); document.dispatchEvent(new CustomEvent('carbonledger:login')); } catch {} }
-    el.textContent = `Connected to the ledger (${h.chain})${apiKey.get() ? '' : ', no login yet'}`; el.dataset.state = 'connected';
+    el.textContent = `Ledger: ${h.chain === 'dry-run' ? 'dry run' : `Solana ${h.chain}`}${apiKey.get() ? '' : ', no login yet'}`; el.title = 'Connected to the CarbonLedger API'; el.dataset.state = 'connected';
     ledger.info.name = h.chain === 'dry-run' ? 'the CarbonLedger API, dry-run chain (nothing is sent to Solana)' : `the CarbonLedger API, Solana ${h.chain}`;
   } catch { el.textContent = 'Ledger not reachable'; el.dataset.state = 'down'; }
 }
@@ -80,6 +81,7 @@ $('#settings-btn').addEventListener('click', () => openSettings(() => { Object.e
 const retire = ledger.retire.bind(ledger);
 ledger.retire = async (e) => { const r = await retire(e); await ledger.sync(); await world.refresh(); updateChip(); VIEWS[currentView].refresh?.(); return r; };
 ledger.sync().then(fromServer => { if (fromServer) { updateChip(); VIEWS[currentView].refresh?.(); } });
+maybeOnboard((tab) => show(tab));
 let start = 'shop';
 try { start = (location.hash.slice(1) || localStorage.getItem('carbonledger.tab') || 'shop'); } catch {}
 show(start);

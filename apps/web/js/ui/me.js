@@ -5,11 +5,11 @@ import { levelFor, badgeBook } from '../core/game.js';
 import { skillTree } from '../core/skills.js';
 import { PARTNERS, EXAMPLE_PLAYERS } from '../data/partners.js';
 import { store } from '../core/store.js';
-import { $, esc, mass } from './dom.js';
+import { $, esc, mass, toast } from './dom.js';
 import { showReceipt, confirmRetirement } from './retire.js';
 import { badgeBookHTML, BADGE_ICON } from './badges.js';
 import { skillTreeHTML, bindSkillTree } from './skilltree.js';
-import { icon, xp, levelChip } from './hud.js';
+import { icon, xp, levelChip, dailyHTML, brandMark } from './hud.js';
 
 const weeksActive = h => new Set(h.map(r => { const d = new Date(r.ts); d.setUTCHours(0, 0, 0, 0); d.setUTCDate(d.getUTCDate() - d.getUTCDay()); return +d; })).size;
 const streak = h => {   // consecutive weeks ending this week with at least one retirement
@@ -22,6 +22,7 @@ const streak = h => {   // consecutive weeks ending this week with at least one 
 export function mountMe(root) {
   root.innerHTML = `
     <section class="panel plain" id="me-level"></section>
+    <section class="panel" id="today"></section>
     <section class="panel"><h2 class="h2">${icon('target')} Next quests</h2><ul class="quests" id="quests"></ul></section>
     <section class="panel plain"><h2 class="h2">${icon('medal')} Badge shelf</h2><div class="shelf-row" id="badge-shelf" tabindex="0" role="region" aria-label="Badge shelf, scrolls sideways"></div></section>
     <section class="panel"><h2 class="h2">${icon('path')} Skill tree</h2><div id="skills"></div></section>
@@ -35,11 +36,20 @@ export function mountMe(root) {
     <section class="panel"><h2 class="h2">${icon('receipt')} All badges</h2><div id="badges"></div></section>
     <section class="panel"><h2 class="h2">History</h2><ul class="history" id="history"></ul></section>
     <section class="panel">
-      <div class="row"><label class="label inline" for="name">Your display name</label><input id="name" placeholder="You" maxlength="24"></div>
+      <form id="name-form" class="form">
+        <label class="label" for="name">Your display name</label>
+        <div class="row" style="margin-top:0"><input id="name" placeholder="You" maxlength="24" autocomplete="nickname"><button class="btn primary" type="submit" id="name-save">Save</button></div>
+        <small>Shown in the league on this device. Not sent to the ledger.</small>
+      </form>
     </section>`;
   const nameEl = $('#name', root);
   nameEl.value = store.get('name', '');
-  nameEl.addEventListener('change', () => { store.set('name', nameEl.value.trim()); refreshMe(); });
+  $('#name-form', root).addEventListener('submit', (e) => {
+    e.preventDefault();
+    store.set('name', nameEl.value.trim());
+    refreshMe();
+    toast(nameEl.value.trim() ? `Saved. You are ${nameEl.value.trim()}.` : 'Saved. You show as You.');
+  });
   root.querySelectorAll('[data-partner]').forEach(b => b.addEventListener('click', () => {
     const p = PARTNERS.find(x => x.id === b.dataset.partner);
     confirmRetirement({ grams: p.grams, kind: 'partner', label: 'Partner reward', note: `${p.name} reward`, paidBy: p.name, account: 'personal', lines: [{ name: p.action, grams: p.grams }], items: [{ type: 'partner', id: p.id }] }, refreshMe);
@@ -55,7 +65,7 @@ export function heroHTML(account, h, ctx = {}) {
   return `<div class="hero-card">
     <div class="hero-top">
       <span class="ring big" style="--p:${lv.ring}"><b>${lv.n}</b></span>
-      <div><div class="hero-title">${esc(name)}, level ${lv.n}</div>
+      <div><div class="hero-title">${esc(name)}, level ${lv.n}</div><div class="hero-rank">${icon('tree-evergreen')} ${esc(lv.title)}</div>
         <div class="hero-sub">${esc(lv.toNext)}, totals from ${esc(ledger.info.source)}.</div>
         <div class="bar gold thin"><span style="width:${lv.ring}%"></span></div></div>
     </div>
@@ -105,6 +115,7 @@ export function leagueHTML(entries, me) {
 export function refreshMe() {
   const h = ledger.history('personal'), total = h.reduce((s, r) => s + r.grams, 0);
   $('#me-level').innerHTML = heroHTML('personal', h);
+  $('#today').innerHTML = dailyHTML(h);
   $('#quests').innerHTML = questsHTML('personal');
   $('#badge-shelf').innerHTML = shelfHTML(badgeBook('personal'));
   $('#skills').innerHTML = skillTreeHTML('personal'); bindSkillTree($('#skills'), 'personal'); bindSkillTree($('#quests'), 'personal');
