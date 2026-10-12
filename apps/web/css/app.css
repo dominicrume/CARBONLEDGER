@@ -107,11 +107,12 @@ input.num { width: 7rem; } input.num.small { width: 4.5rem; text-align: center; 
 .form { display: grid; gap: 4px; } .form .label { margin-top: 10px; } .form .row .label { margin-top: 0; }
 .check { display: flex; gap: 8px; align-items: center; font-size: .9rem; } .check input { width: auto; min-height: 0; }
 .code-row input { flex: 1; }
-.seg { display: inline-flex; background: var(--bg-2); border: 1px solid var(--line-strong); border-radius: 999px; padding: 3px; margin: 4px 0 8px; }
-.seg button { border: 0; background: transparent; padding: 8px 16px; border-radius: 999px; font-size: .86rem; font-weight: 600; color: var(--fg); min-height: 36px; }
-.seg button:hover:not(.on) { background: var(--primary-soft); }
+.seg { display: inline-flex; gap: 6px; background: var(--bg-2); border: 1px solid var(--line-strong); border-radius: 999px; padding: 4px; margin: 4px 0 8px; }
+/* Every option looks like a button, chosen or not, so nobody thinks one is missing. */
+.seg button { border: 1px solid var(--line-strong); background: var(--surface-2); padding: 8px 16px; border-radius: 999px; font-size: .86rem; font-weight: 600; color: var(--fg); min-height: 36px; }
+.seg button:hover:not(.on) { background: var(--primary-soft); border-color: var(--primary); }
 /* The chosen option must read at a glance in both themes: brand fill, not a near-match surface. */
-.seg button.on { background: var(--primary); color: var(--on-primary); box-shadow: var(--shadow); }
+.seg button.on { background: var(--primary); border-color: var(--primary); color: var(--on-primary); box-shadow: var(--shadow); }
 video { width: 100%; border-radius: var(--r); margin-top: 12px; background: #000; aspect-ratio: 4 / 3; object-fit: cover; }
 input[type=range] { padding: 0; border: 0; min-height: 0; accent-color: var(--primary); background: transparent; }
 
