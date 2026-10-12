@@ -91,7 +91,8 @@ export function badgeBook(account = 'personal', ctx = {}) {
 let WORLD = null;
 export function setWorldTotals(totals) { WORLD = totals; }
 
-export function countryQueue(extraTonnes = settings.communityTonnes(), history = ledger.history()) {
+// On the live ledger only real retirements count; the community total is a what-if for the device-only demo.
+export function countryQueue(extraTonnes = WORLD ? 0 : settings.communityTonnes(), history = ledger.history()) {
   const direct = new Map();
   if (WORLD) for (const [iso, g] of Object.entries(WORLD)) direct.set(iso, g);
   else for (const r of history) if (r.countryIso3) direct.set(r.countryIso3, (direct.get(r.countryIso3) || 0) + r.grams);

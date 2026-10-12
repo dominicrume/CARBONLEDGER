@@ -21,11 +21,11 @@ test('retire pilot units from the demo shelf, see the receipt, verify the chain'
   await expect(page.locator('#items .item')).toHaveCount(1);
   await page.click('#retire-basket');
   await expect(page.locator('.sheet-title')).toHaveText('Confirm retirement');
-  await expect(page.locator('.sheet-body')).toContainText('Simulated pilot units');
+  await expect(page.locator('.sheet-body')).toContainText('Pilot units');
   await page.click('#confirm-retire');
   const receipt = page.locator('.receipt');
   await expect(receipt).toContainText('Retirement receipt');
-  await expect(receipt).toContainText('Simulated pilot units, not verified credits');
+  await expect(receipt).toContainText('Pilot units, not yet verified credits');
   const id = (await receipt.locator('.r-meta').innerText()).split('\n')[0].trim();
   expect(id).toMatch(/^CL-[0-9A-F]{12}$/);
   await page.click('.sheet-body button[data-close]');

@@ -27,7 +27,7 @@ export function mountBusiness(root) {
     <section class="panel">
       <p class="eyebrow">For organisations</p>
       <h1 class="h1">Business</h1>
-      <p class="lead">Work out your organisation's footprint for a period and retire simulated pilot units for it. Businesses play their own league.</p>
+      <p class="lead">Work out your organisation's footprint for a period and retire pilot units for it. Businesses play their own league.</p>
       <div class="grid2">
         <div><label class="label" for="biz-name">Business name</label><input id="biz-name" maxlength="40" placeholder="Your business" value="${esc(p.name)}"></div>
         <div><label class="label" for="biz-emp">Employees</label><input id="biz-emp" type="number" min="1" value="${p.employees}" class="num"></div>

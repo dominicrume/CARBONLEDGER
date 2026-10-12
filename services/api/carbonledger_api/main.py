@@ -1,5 +1,5 @@
 """CarbonLedger API. Server holds the register, the receipt chain and the signing key. Browsers hold nothing.
-Units are SIMULATED pilot units until a verifier attests real ones. The API says so in every response.
+Units are pilot units, not yet verified credits, until a verifier attests a real project. The API says so in every response.
 No login yet (see DEBT.md): do not expose this to the public internet before it exists.
 
 The retire flow (rule 6 as refined on 2026-10-11):
@@ -122,7 +122,7 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
 
     @app.post("/v1/demo/key", status_code=201)
     def demo_key(request: Request, role: str = "personal"):
-        """A self-serve login for the demo (simulated units only). Off unless DEMO_LOGINS=1 and APP_ENV=demo: then
+        """A self-serve login for the demo (pilot units only). Off unless DEMO_LOGINS=1 and APP_ENV=demo: then
         a few per hour per client address, personal or business, stored like any other key. The plaintext is
         shown once, to the caller, and never logged."""
         if not st.limits.demo_keys:
@@ -136,7 +136,7 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
         key, rec = st.keys.issue(role, owner)
         st.store.insert_api_key(rec)
         return {"api_key": key, "role": role, "owner": owner, "units": UNITS_STATUS,
-                "note": "A demo login for simulated pilot units. It signs nothing. Keep it in this browser's Settings."}
+                "note": "A demo login for pilot units. It signs nothing. Keep it in this browser's Settings."}
 
     @app.get("/v1/registry/summary")
     def summary():
@@ -203,14 +203,15 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
         ACCEPTED with its serial range, or REFUSED with the rule that stopped it. Returns the accepted receipt id."""
         now = int(st.now())
         at = datetime.fromtimestamp(now, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-        ledger = f"CarbonLedger API, chain {getattr(st.chain_client, 'cluster', 'unknown')} (simulated pilot units)"
+        cluster = getattr(st.chain_client, 'cluster', 'unknown')
+        ledger = f"CarbonLedger API, {'dry run' if cluster == 'dry-run' else 'Solana ' + cluster} (pilot units, not yet verified)"
         lines_digest = digest({"lines": [l.model_dump() for l in body.lines]})
         note_digest = digest({"note": body.note}) if body.note else None
         items_digest = digest({"items": [i.model_dump(by_alias=True) for i in body.items]})
         base = {"ts": datetime.fromtimestamp(now, timezone.utc).isoformat(), "account": body.account, "owner": caller.owner,
                 "grams": body.grams, "kind": body.kind, "label": body.label, "lines_digest": lines_digest, "note_digest": note_digest,
                 "items_digest": items_digest, "target_iso3": body.target_iso3, "project_id": DEMO_PROJECT, "batch_id": DEMO_BATCH, "units": UNITS_STATUS}
-        what = f"retire {body.grams} g of simulated pilot units: {body.label}"
+        what = f"retire {body.grams} g of pilot units: {body.label}"
         mandate = st.mandates.get(body.mandate_id) if body.mandate_id is not None else None
         if body.mandate_id is not None and mandate is None:
             raise HTTPException(404, "No such mandate.")

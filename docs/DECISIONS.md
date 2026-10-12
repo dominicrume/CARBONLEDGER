@@ -127,3 +127,14 @@ partner's seven sections even though the guideline is five, because the demo nee
 Why: the partner said it plainly: this is a highly gamified project, and the screens were dry. Wording rules,
 the simulated tag and the server as the only source of truth are unchanged.
 Who agreed: Rume asked for it after the call (2026-10-11). Engineering built it. Awaiting the partner's eye.
+
+---
+Date: 2026-10-12
+Decision: The word "simulated" is retired from screens, the API and the video. Units are called "pilot units", and
+the claim line is "not yet verified credits", kept once wherever a unit amount or a claim appears. On the live
+ledger the World clock counts only real retirements (the invented community total is off when connected).
+Why: Rume asked to remove "simulated" now that receipts anchor on Solana for real (first transaction 393qHy9N...KMJ7).
+The chain record is real. The carbon behind the units is not: no verifier has attested a project (DEBT D11). A
+unit with no qualifier would read as a verified credit (rules/COMPLIANCE.md C5). Engineering kept one honest
+qualifier and offered to remove it fully if Rume decides so after reading the reason.
+Who agreed: Rume asked; Engineering proposed the wording. Awaiting Rume's confirmation of the wording.

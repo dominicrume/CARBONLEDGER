@@ -57,7 +57,7 @@ def body(**kw):
 def test_health_headers_and_docs_off():
     c = make()
     r = c.get("/health")
-    assert r.status_code == 200 and "Simulated" in r.json()["units"]
+    assert r.status_code == 200 and "Not yet verified" in r.json()["units"]
     assert r.headers["x-content-type-options"] == "nosniff" and r.headers["cache-control"] == "no-store"
     assert c.get("/docs").status_code == 404 and c.get("/openapi.json").status_code == 404
 
@@ -68,7 +68,7 @@ def test_retire_gives_a_receipt_with_a_fresh_serial_range():
     b = c.post("/v1/retire", json=body(idempotency_key="key-0000002", grams=500)).json()
     assert (a["serial_start"], a["serial_end"]) == (0, 1200)
     assert (b["serial_start"], b["serial_end"]) == (1200, 1700)         # a gram is never retired twice
-    assert a["signature"].startswith("dryrun-") and "Simulated" in a["units_status"] and a["anchor_status"] == "anchored"
+    assert a["signature"].startswith("dryrun-") and "Not yet verified" in a["units_status"] and a["anchor_status"] == "anchored"
     s = c.get("/v1/registry/summary").json()
     assert s["retired_g"] == 1700 and s["remaining_g"] == DEMO_ISSUED_G - 1700
 
@@ -412,7 +412,7 @@ def test_totals_and_history_come_from_the_server_and_are_the_owners_own():
     c.as_("personal", "someone-else").post("/v1/retire", json=body(grams=999, idempotency_key="key-0000003"))
     t = c.get("/v1/accounts/me/totals").json()
     assert t["owner"] == "p1" and t["source"] == "ledger" and t["personal"] == {"grams": 1500, "count": 2, "by_kind": {"shop": 1200, "travel": 300}}
-    assert t["business"]["count"] == 0 and "Simulated" in t["units"]
+    assert t["business"]["count"] == 0 and "Not yet verified" in t["units"]
     h = c.get("/v1/accounts/me/history").json()["records"]
     assert [r["grams"] for r in h] == [300, 1200] and all(r["anchor_status"] == "anchored" for r in h)
     assert h[0]["id"].startswith("CL-") and h[0]["receipt_hash"] and "note" not in h[0]
@@ -490,7 +490,7 @@ def test_a_refused_attempt_is_a_sealed_receipt_and_never_a_retirement():
     e = c.get(f"/v1/receipts/{rid}").json()
     r = e["entry"]["receipt"]
     assert r["outcome"] == "REFUSED" and r["rule"].startswith("OVER_CAP") and r["instrument"] == "nothing moved" and "serial_start" not in r
-    assert r["approved_by"] == f"mandate {mid} of acme" and "simulated" in r["ledger"] and r["amount"] == "401" and r["currency"] == "gCO2e"
+    assert r["approved_by"] == f"mandate {mid} of acme" and "not yet verified" in r["ledger"] and r["amount"] == "401" and r["currency"] == "gCO2e"
     assert e["chain"]["anchor_status"] == "anchored"                    # a refusal is anchored like any other receipt
     v = c.get("/v1/audit/verify").json()
     assert v["intact"] and v["count"] == 2 and v["accepted"] == 1 and v["refused"] == 1
@@ -527,7 +527,7 @@ def test_demo_logins_are_off_unless_enabled_and_then_rate_limited_per_address():
     a = c.anon()
     assert c.get("/health").json()["demo_keys"] is True
     r = a.post("/v1/demo/key").json()
-    assert r["api_key"].startswith("clk_personal_") and r["owner"].startswith("demo-personal-") and "Simulated" in r["units"]
+    assert r["api_key"].startswith("clk_personal_") and r["owner"].startswith("demo-personal-") and "Not yet verified" in r["units"]
     b = a.post("/v1/demo/key?role=business").json()
     assert b["api_key"].startswith("clk_business_")
     assert a.post("/v1/demo/key").status_code == 429                      # two an hour per address in this test
@@ -549,7 +549,7 @@ def test_world_stats_are_public_count_only_accepted_and_carry_no_personal_data()
     c.as_("personal", "p2").post("/v1/retire", json=body(grams=50, target_iso3="GBR", idempotency_key="key-0000003"))
     c.post("/v1/retire", json=body(grams=DEMO_ISSUED_G + 1, target_iso3="KIR", idempotency_key="key-0000004"))     # refused: not counted
     w = c.anon().get("/v1/stats/world").json()
-    assert w["retired_g"] == 1550 and w["retirements"] == 3 and w["players"] == 2 and "Simulated" in w["units"]
+    assert w["retired_g"] == 1550 and w["retirements"] == 3 and w["players"] == 2 and "Not yet verified" in w["units"]
     assert w["countries"]["KIR"] == {"grams": 1500, "retirements": 2, "players": 1} and w["countries"]["GBR"]["players"] == 1
     assert w["register"]["remaining_g"] == DEMO_ISSUED_G - 1550
     assert "p1" not in c.anon().get("/v1/stats/world").text and "owner" not in w

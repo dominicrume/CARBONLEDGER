@@ -1,0 +1,77 @@
+{
+  "title": "Being smart is not the hard part. Keeping score is.",
+  "format": "YouTube Short, 1080x1920, 30 fps, target 71 seconds",
+  "voice_draft": "macOS say, Daniel (en_GB), rate 172. Replace with an AI voice by setting VOICE_PROVIDER in media/short-01/README.md",
+  "scenes": [
+    {
+      "id": "hook",
+      "caption": [
+        "COUNTED",
+        "TWICE?"
+      ],
+      "accent": 1,
+      "line": "Everyone is selling carbon credits. Almost nobody can show you which ones were counted twice.",
+      "voice_s": 5.8
+    },
+    {
+      "id": "books",
+      "caption": [
+        "26 SETS",
+        "OF BOOKS"
+      ],
+      "accent": 0,
+      "line": "There are about twenty six registries. Each keeps its own books. One tonne can turn up in two of them.",
+      "voice_s": 6.15
+    },
+    {
+      "id": "register",
+      "caption": [
+        "ONE",
+        "REGISTER"
+      ],
+      "accent": 1,
+      "line": "So we built CarbonLedger. Not a new chain. One register on Solana, where every gram gets a serial number, and can be retired once.",
+      "voice_s": 8.94
+    },
+    {
+      "id": "files",
+      "caption": [
+        "RULES LIVE",
+        "IN FILES"
+      ],
+      "accent": 1,
+      "line": "Here is the part nobody shows you. The rules do not live in a chatbot. They live in files. The same ten test cases run against the server, the database, and the program on chain.",
+      "voice_s": 11.56
+    },
+    {
+      "id": "receipt",
+      "caption": [
+        "CHECK IT",
+        "YOURSELF"
+      ],
+      "accent": 1,
+      "line": "Every retirement gets a receipt, sealed to the one before it. One fingerprint of the whole batch goes on Solana. Anyone can check it, without trusting us.",
+      "voice_s": 9.57
+    },
+    {
+      "id": "game",
+      "caption": [
+        "CLEAR THE",
+        "SMALLEST FIRST"
+      ],
+      "accent": 1,
+      "line": "Then it becomes a game. Every gram is a point. Together, we clear the smallest country first. Right now, that is Kiribati.",
+      "voice_s": 8.36
+    },
+    {
+      "id": "close",
+      "caption": [
+        "KEEPING",
+        "SCORE"
+      ],
+      "accent": 1,
+      "line": "The machine is smart. Keeping score honestly is the hard part. CarbonLedger.",
+      "voice_s": 4.88
+    }
+  ]
+}

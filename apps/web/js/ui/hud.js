@@ -80,7 +80,7 @@ export function rewardHTML({ grams, before, after, badges = [], countryName, fin
     ${up || badges.length ? confettiHTML() : ''}
     ${brandMark(36, 'reward-mark')}
     <div class="reward-xp">+<span id="reward-count">0</span> XP</div>
-    <div class="reward-sub">${esc(mass(grams))} of simulated pilot units retired${countryName ? ` for ${esc(countryName)}` : ''}</div>
+    <div class="reward-sub">${esc(mass(grams))} of pilot units retired${countryName ? ` for ${esc(countryName)}` : ''}</div>
     ${up ? `<div class="levelup">${icon('sparkle')} Level up! Level ${a.n}, ${esc(levelTitle(a.n))}</div>` : ''}
     <div class="bar gold"><span style="width:${(a.progress * 100).toFixed(1)}%"></span></div>
     <div class="reward-lv"><span>Level ${a.n}</span><span>${esc(mass(a.toNext))} to level ${a.n + 1}</span></div>

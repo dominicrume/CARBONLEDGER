@@ -14,7 +14,7 @@ export function maybeOnboard(go) {
         <li>${icon('leaf')}<div><strong>Retire pilot units</strong><small>One gram is one point. Level up, earn badges, keep a weekly streak.</small></div></li>
         <li>${icon('globe')}<div><strong>Clear the world together</strong><small>Everyone's retirements clear the smallest country first. Every receipt is checkable on Solana devnet.</small></div></li>
       </ol>
-      <p class="note">A demo with simulated pilot units, not verified credits. No payment is taken.</p>
+      <p class="note">Pilot units recorded on Solana devnet. Not yet verified credits. No payment is taken.</p>
       <div class="row"><button class="btn ghost" data-close id="onboard-skip">Look around</button><button class="btn primary" data-close id="onboard-go">${icon('basket')} Start with a basket</button></div>
     </div>`, { onOpen: (root) => {
       root.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => store.set('onboarded', true)));

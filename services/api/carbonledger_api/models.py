@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from carbonledger.agentsig import is_pubkey
 
-UNITS_STATUS = "Simulated pilot units. Not verified credits."
+UNITS_STATUS = "Pilot units. Not yet verified credits."
 # Receipt labels are a closed vocabulary (D8, T18). Free text goes in `note`, which is hashed and never stored.
 LABELS = ("Shopping basket", "Journey", "Everyday activities", "Business period", "Partner reward")
 KINDS = ("shop", "travel", "daily", "business", "partner", "other")

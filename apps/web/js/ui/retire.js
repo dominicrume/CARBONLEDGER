@@ -1,5 +1,5 @@
 // Shared "retire" action: shows the confirmation, records on the ledger, then shows the receipt.
-// Wording follows rules/HARDENING-PRODUCT.md: pilot units are retired, never "offset", and are labelled simulated.
+// Wording follows rules/HARDENING-PRODUCT.md: pilot units are retired, never "offset", and are labelled as pilot units, not yet verified credits.
 import { settings } from '../core/settings.js';
 import { store } from '../core/store.js';
 import { ledger, gramsToClt, priceGBP, ref, getDemoLogin } from '../core/ledger.js';
@@ -10,7 +10,7 @@ import { sheet, esc, mass, gbp } from './dom.js';
 import { icon, rewardHTML, buzz, xp, countUp, brandMark } from './hud.js';
 import { levelFor } from '../core/game.js';
 
-export const SIM_TAG = '<span class="tag">Simulated pilot units</span>';
+export const SIM_TAG = '<span class="tag">Pilot units</span>';
 export function retireButtonLabel(grams) { return `Retire ${mass(grams)} for ${gbp(priceGBP(grams))} <span class="xp">+${xp(grams)}</span>`; }
 
 // entry: { grams, kind, label, lines: [{name, grams}], ...extra }
@@ -36,7 +36,7 @@ export function confirmRetirement(entry, onDone) {
         <span><strong>A country I choose</strong><select id="tgt-country" aria-label="Country">${countryOptions(t.iso3 || 'GBR')}</select></span></label>
     </fieldset>
     <p class="note" id="tgt-note"></p>
-    <p class="note">Demo only. No payment is taken. These are simulated pilot units, not verified credits.</p>
+    <p class="note">No payment is taken. Pilot units, not yet verified credits.</p>
     <p class="note bad" id="retire-error" role="alert"></p>
     <p class="row" id="retire-login" hidden><button class="btn ghost small" type="button" id="get-demo-login">Get a demo login</button><span class="note">A login for simulated units, kept in this browser. Then confirm again.</span></p>
     <div class="row"><button class="btn ghost" data-close>Cancel</button><button class="btn primary" id="confirm-retire">Confirm retirement</button></div>
@@ -103,7 +103,7 @@ export function showReceipt(rec, newBadges = [], reward = null) {
       <div class="r-line"><span>${rec.paidBy ? `Paid by ${esc(rec.paidBy)}` : 'Price (demo, unpaid)'}</span><span>${gbp(rec.priceGBP)}</span></div>
       <div class="r-line"><span>Credited to</span><span>${esc(rec.countryName || '—')}${rec.mode === 'frontline' ? ' (Frontline)' : ''}</span></div>
       ${rec.finished ? `<div class="r-line r-total"><span>This retirement finished clearing the symbolic share of ${esc(rec.countryName)}</span><span></span></div>` : ''}
-      <div class="r-foot">${rec.explorerUrl ? `Recorded on Solana devnet, a test network. <a href="${esc(rec.explorerUrl)}" target="_blank" rel="noopener">View on the Solana explorer</a>` : rec.ledger === 'solana-devnet' ? 'Recorded by the CarbonLedger API. Awaiting the Solana devnet record.' : 'Recorded on this device only.'} Simulated pilot units, not verified credits.</div>
+      <div class="r-foot">${rec.explorerUrl ? `Recorded on Solana devnet, a test network. <a href="${esc(rec.explorerUrl)}" target="_blank" rel="noopener">View on the Solana explorer</a>` : rec.ledger === 'solana-devnet' ? 'Recorded by the CarbonLedger API. Awaiting the Solana devnet record.' : 'Recorded on this device only.'} Pilot units, not yet verified credits.</div>
     </div>
     ${!reward && newBadges.length ? `<div class="new-badges">${newBadges.map((b, i) => `<span class="chip-badge" style="--i:${i}">${icon('medal')}${esc(b.name)}</span>`).join('')}</div>` : ''}
     <div class="row"><button class="btn ghost" id="receipt-verify" data-close>Verify it</button><button class="btn primary" data-close>Done</button></div>

@@ -29,7 +29,7 @@ export function mountMe(root) {
     <section class="panel"><h2 class="h2">${icon('trophy')} League</h2><p class="note">Example entries beside your own total from ${esc(ledger.info.source)}. A browser total is never a score.</p><ol class="league" id="league"></ol></section>
     <section class="panel">
       <h2 class="h2">${icon('hand-coins')} Partner quests</h2>
-      <p class="note">Partners pay for simulated pilot units retired in your name. These partners are examples.</p>
+      <p class="note">Partners pay for pilot units retired in your name. These partners are examples.</p>
       <ul class="partners">${PARTNERS.map(p => `<li><div><strong>${esc(p.name)}</strong><small>${esc(p.kind)}. ${esc(p.note)}.</small></div>
         <button class="btn ghost small" data-partner="${p.id}">${esc(p.action)} <span class="xp">+${xp(p.grams)}</span></button></li>`).join('')}</ul>
     </section>
@@ -70,7 +70,7 @@ export function heroHTML(account, h, ctx = {}) {
         <div class="bar gold thin"><span style="width:${lv.ring}%"></span></div></div>
     </div>
     <div class="stats">
-      <div class="stat-tile">${icon('leaf')}<b>${esc(mass(total))}</b><small>retired <span class="tag">Simulated pilot units</span></small></div>
+      <div class="stat-tile">${icon('leaf')}<b>${esc(mass(total))}</b><small>retired <span class="tag">Pilot units</span></small></div>
       <div class="stat-tile">${icon('fire')}<b>${s} wk</b><small>streak${s ? '' : ', retire this week to start'}</small></div>
       <div class="stat-tile">${icon('medal')}<b>${book.total}</b><small>badge${book.total === 1 ? '' : 's'}</small></div>
     </div>

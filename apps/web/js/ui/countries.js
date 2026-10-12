@@ -26,7 +26,7 @@ export function mountCountries(root) {
   root.innerHTML = `
     <section class="panel plain">
       <div class="clock" id="clock" aria-live="polite"></div>
-      <p class="lead">Each country carries its share of the ${tonnes(TOTAL_T)} of CO₂ emitted since 1850. Clear the smallest share first, together, then the next. A symbolic game: a CLT is a tonne of simulated pilot units retired today, not a tonne of the 1850 stock.</p>
+      <p class="lead">Each country carries its share of the ${tonnes(TOTAL_T)} of CO₂ emitted since 1850. Clear the smallest share first, together, then the next. A symbolic game: a CLT is a tonne of pilot units retired today, not a tonne of the 1850 stock.</p>
       <div class="target-box" id="target-box"></div>
       <div class="globe-wrap">
         <canvas id="globe" class="globe" aria-label="Globe showing which countries are cleared, in progress or waiting"></canvas>
@@ -47,7 +47,7 @@ export function mountCountries(root) {
     </section>
     <section class="panel">
       <h2 class="h3">How shares are worked out</h2>
-      <p class="note">Each country's cumulative CO₂ emissions within its borders from 1850 to 2019, including land-use change (Global Carbon Project, via Our World in Data). These are scaled so the total equals the IPCC AR6 figure of 2,400 billion tonnes. The game is symbolic: clearing a share here does not remove historical emissions, and a CLT is a tonne of simulated pilot units retired against a project today. Other methods, such as consumption-based accounting, would give different shares. Map: Natural Earth.</p>
+      <p class="note">Each country's cumulative CO₂ emissions within its borders from 1850 to 2019, including land-use change (Global Carbon Project, via Our World in Data). These are scaled so the total equals the IPCC AR6 figure of 2,400 billion tonnes. The game is symbolic: clearing a share here does not remove historical emissions, and a CLT is a tonne of pilot units retired against a project today. Other methods, such as consumption-based accounting, would give different shares. Map: Natural Earth.</p>
     </section>`;
   computeStatus();
   globe = createGlobe($('#globe', root), { statusOf: id => status.get(id) || null, onSelect: showPicked });

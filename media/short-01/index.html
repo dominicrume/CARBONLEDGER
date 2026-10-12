@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en-GB"><head><meta charset="utf-8">
+<title>CarbonLedger short 01</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&family=Outfit:wght@500;700;800;900&display=swap">
+<style>
+  /* Chalkboard explainer grammar: wood-framed board, thin chalk lines that draw themselves, one big caption with an
+     orange keyword, a pixel presenter beside the board. Our own presenter (Leaf, from the CarbonLedger mark). */
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: #160f0d; }
+  #stage { position: relative; width: 1080px; height: 1920px; font-family: Outfit, sans-serif; color: #f4ecdc;
+    background: radial-gradient(120% 70% at 50% 30%, #2a1a16 0%, #160f0d 70%),
+      repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 2px, transparent 2px 46px),
+      repeating-linear-gradient(90deg, rgba(0,0,0,.12) 0 2px, transparent 2px 92px); }
+  .progress { position: absolute; left: 0; top: 0; height: 8px; background: linear-gradient(90deg, #f59e0b, #f97316); }
+  .brand { position: absolute; left: 60px; top: 70px; display: flex; gap: 16px; align-items: center; }
+  .brand img { width: 56px; height: 56px; }
+  .brand b { font: 400 50px/1 'DM Serif Display', serif; } .brand i { font: italic 400 50px/1 'DM Serif Display', serif; color: #3ddc97; }
+  .demo { position: absolute; right: 60px; top: 84px; font: 700 22px Outfit; letter-spacing: .06em; text-transform: uppercase; color: #7a4a00; background: #fff4dc; border-radius: 999px; padding: 8px 18px; }
+  .board { position: absolute; left: 50px; top: 190px; width: 980px; height: 1000px; border-radius: 10px;
+    background: linear-gradient(#5a3420, #3e2416); padding: 26px; box-shadow: 0 30px 60px rgba(0,0,0,.55), inset 0 2px 0 rgba(255,255,255,.12); }
+  .slate { position: relative; width: 100%; height: 100%; border-radius: 4px; overflow: hidden;
+    background: radial-gradient(90% 70% at 40% 40%, #24342c, #18231e 75%); box-shadow: inset 0 0 80px rgba(0,0,0,.6); }
+  .ledge { position: absolute; left: 30px; right: 30px; bottom: -36px; height: 18px; background: #3a2214; border-radius: 4px; }
+  .ledge::before, .ledge::after { content: ""; position: absolute; top: -10px; width: 60px; height: 10px; border-radius: 3px; background: #d9d4c7; left: 80px; }
+  .ledge::after { left: 160px; background: #c98a4b; }
+  svg.chalk { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .chalk * { vector-effect: non-scaling-stroke; }
+  .c { fill: none; stroke: #efe6cf; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+  .g { fill: none; stroke: #e0b25c; stroke-width: 3.6; stroke-linecap: round; stroke-linejoin: round; }
+  .o { fill: none; stroke: #f97316; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+  .t { fill: #efe6cf; font: 600 34px Outfit; letter-spacing: .04em; }
+  .tg { fill: #e0b25c; font: 700 30px Outfit; letter-spacing: .1em; }
+  .to { fill: #f97316; font: 800 40px Outfit; letter-spacing: .06em; }
+  .mono { fill: #efe6cf; font: 400 33px 'DM Mono', monospace; }
+  .mono.hot { fill: #f5b041; }
+  .caption { position: absolute; left: 60px; right: 60px; top: 1250px; font: 900 128px/0.98 Outfit; letter-spacing: -.02em; text-transform: uppercase; }
+  .caption span { display: block; }
+  .caption .hot { background: linear-gradient(90deg, #f97316, #f5b041); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { position: absolute; left: 60px; width: 640px; top: 1540px; font: 600 40px/1.25 Outfit; color: #f4ecdc; text-shadow: 0 2px 10px rgba(0,0,0,.6); }
+  .sub em { font-style: normal; color: #f5b041; }
+  #leaf { position: absolute; right: 70px; bottom: 90px; width: 280px; height: 400px; }
+  .scene { opacity: 0; }
+</style></head>
+<body><div id="stage">
+  <div class="progress" id="progress"></div>
+  <div class="brand"><img src="mark.png" alt=""><span><b>Carbon</b><i>Ledger</i></span></div>
+  <div class="demo">Live on Solana</div>
+  <div class="board"><div class="slate">
+    <svg class="chalk" viewBox="0 0 928 948" preserveAspectRatio="xMidYMid meet">
+      <defs><filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="4"/><feDisplacementMap in="SourceGraphic" scale="2.2"/></filter>
+        <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#efe6cf"/></marker></defs>
+      <g filter="url(#rough)">
+
+      <!-- 1 hook: one tonne, two registries -->
+      <g class="scene" data-scene="hook">
+        <circle class="g" cx="464" cy="300" r="110" pathLength="1" data-a="draw .02 .25"/>
+        <text class="to" x="464" y="296" text-anchor="middle" data-a="fade .18 .3">1 t</text>
+        <text class="tg" x="464" y="338" text-anchor="middle" data-a="fade .22 .34">CO2</text>
+        <path class="c" d="M390 380 L230 600" pathLength="1" marker-end="url(#ah)" data-a="draw .3 .48"/>
+        <path class="c" d="M538 380 L698 600" pathLength="1" marker-end="url(#ah)" data-a="draw .34 .52"/>
+        <rect class="c" x="90" y="610" width="250" height="190" rx="10" pathLength="1" data-a="draw .45 .62"/>
+        <path class="c" d="M215 610 V800" pathLength="1" data-a="draw .55 .66"/>
+        <text class="t" x="215" y="850" text-anchor="middle" data-a="fade .6 .7">REGISTRY A</text>
+        <rect class="c" x="588" y="610" width="250" height="190" rx="10" pathLength="1" data-a="draw .5 .67"/>
+        <path class="c" d="M713 610 V800" pathLength="1" data-a="draw .6 .7"/>
+        <text class="t" x="713" y="850" text-anchor="middle" data-a="fade .64 .74">REGISTRY B</text>
+        <text class="to" x="464" y="760" text-anchor="middle" style="font-size:150px" data-a="pop .7 .82">?</text>
+      </g>
+
+      <!-- 2 books: twenty-six sets of books, one tonne in two -->
+      <g class="scene" data-scene="books" id="books"></g>
+
+      <!-- 3 one register, serial ranges, retired once -->
+      <g class="scene" data-scene="register">
+        <rect class="g" x="80" y="110" width="768" height="640" rx="16" pathLength="1" data-a="draw .02 .2"/>
+        <text class="tg" x="464" y="185" text-anchor="middle" data-a="fade .12 .24">ONE REGISTER  ON SOLANA</text>
+        <rect class="c" x="140" y="330" width="648" height="80" rx="8" pathLength="1" data-a="draw .25 .4"/>
+        <rect x="142" y="332" width="0" height="76" fill="#3ddc97" opacity=".55" data-a="grow .38 .5 260"/>
+        <rect x="402" y="332" width="0" height="76" fill="#e0b25c" opacity=".6" data-a="grow .52 .62 130"/>
+        <text class="mono" x="160" y="460" data-a="fade .44 .52">0 to 1,200 g</text>
+        <text class="mono hot" x="420" y="460" data-a="fade .58 .66">to 1,700 g</text>
+        <text class="t" x="464" y="285" text-anchor="middle" data-a="fade .3 .38">EVERY GRAM HAS A SERIAL NUMBER</text>
+        <g data-a="pop .7 .8"><rect class="o" x="250" y="540" width="428" height="110" rx="12" transform="rotate(-6 464 595)"/>
+          <text class="to" x="464" y="612" text-anchor="middle" transform="rotate(-6 464 595)" style="font-size:52px">RETIRED ONCE</text></g>
+      </g>
+
+      <!-- 4 the rules live in files: our own folder architecture -->
+      <g class="scene" data-scene="files">
+        <text class="mono" x="70"  y="120" data-a="fade .02 .08">CARBONLEDGER/</text>
+        <text class="mono" x="70"  y="185" data-a="fade .06 .12">├─ CLAUDE.md</text><text class="tg" x="400" y="185" data-a="fade .1 .16">ROUTER</text>
+        <text class="mono" x="70"  y="250" data-a="fade .1 .16">├─ rules/</text>
+        <text class="mono" x="70"  y="315" data-a="fade .14 .2">│  └─ ENGINEERING.md</text>
+        <text class="mono" x="70"  y="380" data-a="fade .18 .24">├─ conformance/</text>
+        <text class="mono hot" x="70" y="445" data-a="fade .22 .3">│  └─ registry_vectors.json</text>
+        <text class="mono" x="70"  y="560" data-a="fade .5 .56">├─ services/api</text>
+        <text class="mono" x="70"  y="625" data-a="fade .54 .6">├─ db/migrations</text>
+        <text class="mono" x="70"  y="690" data-a="fade .58 .64">└─ programs/carbon_registry</text>
+        <path class="g" d="M640 432 C 820 432, 840 470, 840 520 V 680" pathLength="1" data-a="draw .4 .62"/>
+        <path class="g" d="M840 548 H 700" pathLength="1" marker-end="url(#ah)" data-a="draw .6 .66"/>
+        <path class="g" d="M840 613 H 700" pathLength="1" marker-end="url(#ah)" data-a="draw .63 .69"/>
+        <path class="g" d="M840 678 H 700" pathLength="1" marker-end="url(#ah)" data-a="draw .66 .72"/>
+        <text class="to" x="464" y="820" text-anchor="middle" data-a="pop .74 .84">SAME 10 TESTS, 3 PLACES</text>
+      </g>
+
+      <!-- 5 receipts sealed in a chain, one root on Solana -->
+      <g class="scene" data-scene="receipt" id="receipt"></g>
+
+      <!-- 6 the game -->
+      <g class="scene" data-scene="game">
+        <circle class="c" cx="270" cy="420" r="210" pathLength="1" data-a="draw .02 .2"/>
+        <ellipse class="c" cx="270" cy="420" rx="90" ry="210" pathLength="1" data-a="draw .12 .26"/>
+        <path class="c" d="M60 420 H480 M95 300 H445 M95 540 H445" pathLength="1" data-a="draw .16 .3"/>
+        <circle cx="200" cy="350" r="12" fill="#3ddc97" data-a="pop .3 .36"/><circle cx="330" cy="470" r="12" fill="#f0b429" data-a="pop .33 .39"/>
+        <circle cx="240" cy="520" r="12" fill="#f87171" data-a="pop .36 .42"/><circle cx="350" cy="320" r="12" fill="#f87171" data-a="pop .38 .44"/>
+        <text class="tg" x="540" y="250" data-a="fade .4 .48">THE FRONTLINE</text>
+        <text class="t" x="540" y="320" style="font-size:64px;font-weight:800" data-a="fade .44 .52">KIRIBATI</text>
+        <rect class="c" x="540" y="350" width="330" height="34" rx="17" pathLength="1" data-a="draw .5 .58"/>
+        <rect x="542" y="352" width="0" height="30" rx="15" fill="#3ddc97" data-a="grow .56 .66 40"/>
+        <text class="mono" x="540" y="430" data-a="fade .6 .66">1.9% cleared</text>
+        <circle class="g" cx="700" cy="640" r="105" pathLength="1" data-a="draw .66 .8"/>
+        <text class="to" x="700" y="632" text-anchor="middle" data-a="pop .74 .82">1 g</text>
+        <text class="tg" x="700" y="676" text-anchor="middle" data-a="fade .76 .84">= 1 XP</text>
+      </g>
+
+      <!-- 7 close -->
+      <g class="scene" data-scene="close">
+        <image href="mark.png" x="354" y="150" width="220" height="220" data-a="pop .02 .16"/>
+        <text x="464" y="520" text-anchor="middle" data-a="fade .14 .3"><tspan style="font:400 104px 'DM Serif Display',serif;fill:#efe6cf">Carbon</tspan><tspan style="font:italic 400 104px 'DM Serif Display',serif;fill:#3ddc97">Ledger</tspan></text>
+        <text class="t" x="464" y="600" text-anchor="middle" data-a="fade .3 .44">Every gram retired once. Checkable by anyone.</text>
+        <text class="tg" x="464" y="700" text-anchor="middle" data-a="fade .44 .58">LIVE ON SOLANA DEVNET</text>
+        <text class="t" x="464" y="770" text-anchor="middle" style="font-size:26px;opacity:.8" data-a="fade .5 .64">Pilot units, not yet verified credits</text>
+      </g>
+      </g>
+    </svg>
+  </div><div class="ledge"></div></div>
+  <div class="caption" id="caption"></div>
+  <div class="sub" id="sub"></div>
+  <svg id="leaf" viewBox="0 0 14 20" shape-rendering="crispEdges"></svg>
+</div>
+<script>
+// ---- the presenter: Leaf, a pixel-art take on the CarbonLedger mark --------------------------------------------
+const LEAF = [
+'......kk......','.....kggk.....','....kgggGk....','...kggvgGGk...','..kgggvggGGk..','..kgwkvgwkGk..',
+'.kggwkvgwkGGk.','.kgggvvvggGGk.','.kggvvgvvgGGk.','.kgggggvgggGk.','.kgggLLLggGGk.','..kggMMMgGGk..',
+'..kgggvggGGk..','...kggvgGGk...','....kgvgGk....','.....kvGk.....','......bb......','.....b..b.....','....b....b....','...bb....bb...'];
+const COL = { k: '#0b1a12', g: '#3ddc97', G: '#1e8f5e', v: '#d8f5e6', w: '#ffffff', b: '#8a5a2b', L: '#0b1a12', M: '#5b1d1d' };
+function leafSVG(talking, blink) {
+  let s = '';
+  LEAF.forEach((row, y) => [...row].forEach((ch, x) => {
+    if (ch === '.') return;
+    let c = COL[ch];
+    if (ch === 'M' && !talking) c = COL.g;   // the mouth opens only while Leaf is speaking
+    if (ch === 'w' && blink) c = COL.k;
+    s += `<rect x="${x}" y="${y}" width="1.02" height="1.02" fill="${c}"/>`;
+  }));
+  return s;
+}
+
+// ---- timeline -----------------------------------------------------------------------------------------------------
+let S = null, T = 0, TOTAL = 0;
+const HOLD = 1.6, LEAD = 0.45, CLOSE_HOLD = 3.4;
+async function load() {
+  S = await (await fetch('script.json')).json();
+  let t = 0;
+  S.scenes.forEach((sc, i) => { sc.start = t; sc.speak = t + LEAD; sc.dur = LEAD + sc.voice_s + (i === S.scenes.length - 1 ? CLOSE_HOLD : HOLD); t += sc.dur; });
+  TOTAL = t; S.total = t;
+  buildBooks(); buildReceipts();
+  window.__ready = true;
+  return S;
+}
+function buildBooks() {
+  const g = document.getElementById('books'); let h = '';
+  for (let i = 0; i < 26; i++) {
+    const col = i % 6, row = Math.floor(i / 6), x = 70 + col * 135, y = 120 + row * 120, a = (0.03 + i * 0.016).toFixed(3), b = (0.08 + i * 0.016).toFixed(3);
+    const hot = i === 8 || i === 21;
+    h += `<rect class="${hot ? 'c' : 'c'}" x="${x}" y="${y}" width="105" height="84" rx="6" pathLength="1" data-a="draw ${a} ${b}"/><path class="c" d="M${x + 52} ${y} V${y + 84}" pathLength="1" data-a="draw ${a} ${b}"/>`;
+    if (hot) h += `<rect class="o" x="${x - 6}" y="${y - 6}" width="117" height="96" rx="9" pathLength="1" data-a="draw .62 .72"/><circle cx="${x + 52}" cy="${y + 42}" r="20" fill="#f97316" data-a="pop .66 .74"/>`;
+  }
+  h += `<path class="o" d="M${70 + 2 * 135 + 52} ${120 + 1 * 120 + 62} C 520 560, 700 600, ${70 + 3 * 135 + 52} ${120 + 3 * 120 + 22}" pathLength="1" stroke-dasharray="1" data-a="draw .72 .84"/>`;
+  h += `<text class="to" x="464" y="880" text-anchor="middle" data-a="pop .8 .9">SAME TONNE, TWO BOOKS</text>`;
+  g.innerHTML = h;
+}
+function buildReceipts() {
+  const g = document.getElementById('receipt'); let h = ''; const xs = [50, 270, 490, 710];
+  const hashes = ['a3f9', '7c21', 'e04b', '19d6'];
+  xs.forEach((x, i) => {
+    const a = (0.02 + i * 0.08).toFixed(2), b = (0.1 + i * 0.08).toFixed(2);
+    h += `<rect class="c" x="${x}" y="110" width="170" height="210" rx="8" pathLength="1" data-a="draw ${a} ${b}"/>`;
+    h += `<text class="tg" x="${x + 85}" y="165" text-anchor="middle" data-a="fade ${b} ${(+b + .05).toFixed(2)}">#${i + 1}</text>`;
+    h += `<path class="c" d="M${x + 25} 205 H${x + 145} M${x + 25} 240 H${x + 120}" pathLength="1" data-a="draw ${b} ${(+b + .05).toFixed(2)}"/>`;
+    h += `<text class="mono" x="${x + 85}" y="295" text-anchor="middle" style="font-size:28px" data-a="fade ${b} ${(+b + .06).toFixed(2)}">${hashes[i]}…</text>`;
+    if (i) h += `<path class="g" d="M${x - 50} 215 H${x}" pathLength="1" marker-end="url(#ah)" data-a="draw ${b} ${(+b + .04).toFixed(2)}"/>`;
+    h += `<path class="c" d="M${x + 85} 320 L464 470" pathLength="1" data-a="draw .4 .54"/>`;
+  });
+  h += `<circle class="g" cx="464" cy="510" r="48" pathLength="1" data-a="draw .52 .6"/><text class="tg" x="464" y="521" text-anchor="middle" data-a="fade .56 .62">ROOT</text>`;
+  h += `<path class="c" d="M464 560 V640" pathLength="1" marker-end="url(#ah)" data-a="draw .6 .66"/>`;
+  h += `<circle class="c" cx="464" cy="740" r="95" pathLength="1" data-a="draw .64 .74"/><text class="t" x="464" y="732" text-anchor="middle" data-a="fade .7 .76">SOLANA</text><text class="tg" x="464" y="772" text-anchor="middle" style="font-size:24px" data-a="fade .72 .78">DEVNET</text>`;
+  h += `<path class="o" d="M600 730 l30 30 l60 -70" pathLength="1" data-a="draw .8 .88"/>`;
+  g.innerHTML = h;
+}
+const clamp = v => Math.max(0, Math.min(1, v));
+const ease = k => 1 - Math.pow(1 - k, 3);
+function render(t) {
+  T = t;
+  document.getElementById('progress').style.width = `${(t / TOTAL) * 100}%`;
+  const cur = S.scenes.find(sc => t >= sc.start && t < sc.start + sc.dur) || S.scenes.at(-1);
+  for (const sc of S.scenes) {
+    const g = document.querySelector(`[data-scene="${sc.id}"]`);
+    const local = t - sc.start, span = sc.voice_s + LEAD + 0.6;
+    const inScene = t >= sc.start && t < sc.start + sc.dur;
+    const out = clamp((sc.start + sc.dur - t) / 0.35), inn = clamp(local / 0.25);
+    g.style.opacity = inScene ? Math.min(out, inn) : 0;
+    if (!inScene) continue;
+    g.querySelectorAll('[data-a]').forEach(el => {
+      const [kind, a, b, extra] = el.dataset.a.split(' ');
+      const p = ease(clamp((local / span - +a) / (+b - +a)));
+      if (kind === 'draw') { el.style.strokeDasharray = '1 1'; el.style.strokeDashoffset = 1 - p; }
+      else if (kind === 'fade') el.style.opacity = p;
+      else if (kind === 'pop') { const s = p < 1 ? 0.6 + 0.55 * p - 0.15 * Math.sin(p * Math.PI) : 1; el.style.opacity = p; el.style.transformBox = 'fill-box'; el.style.transformOrigin = 'center'; el.style.transform = `scale(${p ? s : 0.6})`; }
+      else if (kind === 'grow') el.setAttribute('width', (+extra) * p);
+    });
+  }
+  // caption: two lines, the accent one in orange; words slide in
+  const k = ease(clamp((t - cur.start) / 0.35));
+  document.getElementById('caption').innerHTML = cur.caption.map((w, i) => `<span class="${i === cur.accent ? 'hot' : ''}" style="opacity:${k};transform:translateY(${(1 - k) * 40}px)">${w}</span>`).join('');
+  // subtitle: the spoken line, revealed word by word with the voice
+  const words = cur.line.split(' '), said = clamp((t - cur.speak) / cur.voice_s) * words.length;
+  document.getElementById('sub').innerHTML = words.map((w, i) => i < said ? (i > said - 1.5 ? `<em>${w}</em>` : w) : '').join(' ');
+  // presenter: talks while the line plays, blinks now and then, breathes
+  const talking = t > cur.speak && t < cur.speak + cur.voice_s && Math.floor(t * 9) % 2 === 0;
+  const blink = (t % 3.7) < 0.12;
+  const leaf = document.getElementById('leaf');
+  leaf.innerHTML = leafSVG(talking, blink);
+  leaf.style.transform = `translateY(${Math.sin(t * 2.2) * 6}px)`;
+}
+window.render = render; window.load = load;
+// preview mode: open index.html?play in a browser to watch it in real time (silent)
+if (location.search.includes('play')) load().then(() => { const t0 = performance.now(); const f = () => { render((performance.now() - t0) / 1000 % TOTAL); requestAnimationFrame(f); }; f(); });
+</script></body></html>
