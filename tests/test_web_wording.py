@@ -44,5 +44,8 @@ def test_footer_credits_every_data_source():
 def test_landing_page_says_pilot_units_and_never_claims_backing_it_lacks():
     html = (WEB / "landing.html").read_text(encoding="utf-8")
     assert html.count("not yet verified credits") >= 3 and "Solana devnet" in html
-    for claim in ["open source", "multisig control", "Liechtenstein", "UN emissions", "permanently"]:
+    # claims the deployed registry program and the app do not support today
+    for claim in ["open source", "multisig control", "multisig authority", "UN emissions", "official UN", "non-transferable",
+                  "frozen on purchase", "permanently", "mint CLTs"]:
         assert claim not in html, claim
+    assert "Permanence · the plan" in html and "would acquire and hold" in html      # the foundation is a plan, said as one

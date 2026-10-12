@@ -3,168 +3,310 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<!-- Landing page (served at /). Same policy as the app: scripts only from this origin, data only from this origin. -->
+<!-- The public website, served at /. The app lives at /app. Same policy as the app: scripts and data from this origin only. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'self'; object-src 'none'">
 <title>CarbonLedger: the debt we owe the atmosphere, recorded to the gram</title>
-<meta name="description" content="Scan your shopping, log a journey, retire pilot units to the gram, and check every receipt on Solana devnet. Pilot units, not yet verified credits.">
+<meta name="description" content="A public ledger for the world's carbon debt. Retire pilot units to the gram and check every receipt on Solana devnet. Pilot units, not yet verified credits.">
 <link rel="icon" type="image/png" sizes="32x32" href="brand/mark-32.png">
 <link rel="apple-touch-icon" href="brand/mark-192.png">
-<meta name="theme-color" content="#0b1510">
+<meta name="theme-color" content="#07090A">
 <meta property="og:title" content="CarbonLedger">
 <meta property="og:description" content="The debt we owe the atmosphere, recorded to the gram. Every receipt checkable on Solana devnet.">
 <meta property="og:image" content="brand/social-1280x640.png">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&family=Outfit:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="css/landing.css">
 <script src="js/landing.js" defer></script>
 </head>
 <body>
-<a class="skip" href="#main">Skip to content</a>
-<header class="nav">
-  <a class="brand" href="/" aria-label="CarbonLedger home"><img src="brand/mark-dark-64.png" alt="" width="30" height="30"><span>Carbon<em>Ledger</em></span></a>
-  <nav aria-label="Sections">
-    <a href="#how">How it works</a><a href="#app">The app</a><a href="#proof">Check it</a><a href="#next">What comes next</a><a href="#faq">FAQ</a>
-  </nav>
-  <a class="btn primary small" href="/app">Open the app</a>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="leaf" viewBox="0 0 64 64">
+      <path d="M32 4C17 14 10 26 10 38c0 12 9.8 22 22 22s22-10 22-22C54 26 47 14 32 4z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M32 12v48" stroke="currentColor" stroke-width="2.4"/>
+      <path d="M16 28h32M13 36h38M13 44h38M17 52h30" stroke="currentColor" stroke-width="1.6" opacity=".75"/>
+    </symbol>
+  </defs>
+</svg>
+
+<nav class="nav" aria-label="Main">
+  <div class="wrap">
+    <a class="brand" href="#top"><svg style="color:var(--accent)"><use href="#leaf"/></svg>CarbonLedger</a>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#everyday">Everyday</a>
+      <a href="#permanence">Permanence</a>
+      <a href="#onchain">On-chain</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <a class="btn primary" href="/app">Open the app</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <canvas id="field" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <span class="eyebrow reveal">Live on Solana devnet · Pilot units, not yet verified credits</span>
+    <h1 class="reveal d1">The debt we owe <em>the atmosphere</em>, recorded to the gram.</h1>
+    <p class="lede reveal d2">CarbonLedger is a public ledger for the world's carbon debt. Scan your shopping, log a journey or an everyday activity, and retire pilot units for the CO₂ it caused, from a single gram. Every retirement gets a receipt that anyone can check on Solana.</p>
+    <div class="cta-row reveal d3">
+      <a class="btn primary" href="/app">Try the live app →</a>
+      <a class="btn" href="https://youtu.be/Ay8GyrqsWRY" target="_blank" rel="noopener">▶ Watch the demo</a>
+      <a class="btn" href="#onchain">Check the ledger</a>
+    </div>
+    <div class="unit reveal d3"><span><b>1 CLT</b> = 1 tonne CO₂</span><span><b>Smallest unit</b> 1 gram</span><span><b>Price</b> £100 per tonne, demo, no payment taken</span></div>
+  </div>
 </header>
 
-<main id="main">
-  <section class="hero">
-    <canvas id="field" aria-hidden="true"></canvas>
-    <div class="wrap hero-in">
-      <p class="pill"><span class="dot" aria-hidden="true"></span>Live on Solana devnet · Pilot units, not yet verified credits</p>
-      <h1>The debt we owe the atmosphere, <em>recorded to the gram.</em></h1>
-      <p class="lead">Scan your shopping, log a journey or add up a day, and retire pilot units for the CO₂ involved, from a single gram. Every retirement gets a receipt, sealed to the one before it, that anyone can check on Solana. No crypto wallet needed.</p>
-      <div class="ctas">
-        <a class="btn primary" href="/app">Try the live app</a>
-        <a class="btn ghost" href="https://youtu.be/Ay8GyrqsWRY" target="_blank" rel="noopener">Watch the demo</a>
-        <a class="btn ghost" href="#proof">Check the ledger</a>
-      </div>
-      <dl class="units">
-        <div><dt>1 CLT</dt><dd>1 tonne of CO₂</dd></div>
-        <div><dt>Smallest unit</dt><dd>1 gram</dd></div>
-        <div><dt>Demo price</dt><dd>£100 a tonne, no payment taken</dd></div>
-      </dl>
+<section class="live" aria-labelledby="live-h">
+  <div class="wrap">
+    <div class="live-head">
+      <h2 id="live-h" class="eyebrow" style="font-family:var(--f-mono);font-size:.75rem">The public record right now</h2>
+      <span class="pill"><span class="dot"></span><span id="live-state">Snapshot · 12 Oct 2026, 23:37 BST</span></span>
     </div>
-  </section>
-
-  <section class="wrap record" aria-labelledby="record-h">
-    <div class="record-head"><h2 id="record-h">The public record</h2><p class="live" id="live-state">Snapshot · 12 Oct 2026</p></div>
     <div class="stats">
-      <div><b id="s-receipts">35</b><span>receipts</span></div>
-      <div><b id="s-accepted">34</b><span>retirements accepted</span></div>
-      <div><b id="s-refused">1</b><span>refused, kept on the record</span></div>
-      <div><b id="s-anchored">35</b><span>anchored on Solana devnet</span></div>
-      <div><b id="s-failed">0</b><span>anchors failed</span></div>
+      <div class="stat"><span class="n" id="s-receipts">35</span><span class="l">Receipts issued</span></div>
+      <div class="stat"><span class="n" id="s-accepted">34</span><span class="l">Retirements accepted</span></div>
+      <div class="stat"><span class="n" id="s-refused">1</span><span class="l">Refused, and kept on the record</span></div>
+      <div class="stat"><span class="n" id="s-anchored">35<small>/35</small></span><span class="l">Anchored on Solana · <span id="s-failed">0</span> failed</span></div>
     </div>
-    <p class="note" id="live-note">Read from the public audit endpoint. Anyone can run the same check.</p>
-    <p class="links"><a href="/v1/audit/verify">Audit check</a><a href="/v1/audit/receipts.json">All receipts (JSON)</a><a href="https://explorer.solana.com/address/7DQZmWuTomLpBSHD44D3whxjPUja2Rt7Mm3LNGNewiyh?cluster=devnet" target="_blank" rel="noopener">Anchors on Solana Explorer</a><a href="/health">System health</a></p>
-  </section>
-
-  <section class="wrap" aria-labelledby="why-h">
-    <p class="eyebrow">The problem</p>
-    <h2 id="why-h">Carbon markets are broken by design, not by a few bad actors.</h2>
-    <div class="grid3">
-      <article class="card"><h3>Many sets of books</h3><p>There are about 26 carbon registries, each keeping its own books. The same tonne can turn up in two of them, and nobody can see it.</p></article>
-      <article class="card"><h3>Nobody keeps the total</h3><p>The market counts small reductions, one project at a time. Nobody keeps the running total of what each country has put into the atmosphere.</p></article>
-      <article class="card"><h3>Trust me, not check me</h3><p>Buyers are asked to trust a certificate. They cannot check for themselves which tonne they bought, or whether it was sold before.</p></article>
+    <div class="live-links">
+      <a href="/v1/audit/verify" target="_blank" rel="noopener">Verify the receipt chain ↗</a>
+      <a href="/v1/audit/receipts.json" target="_blank" rel="noopener">Download every receipt (JSON) ↗</a>
+      <a href="https://explorer.solana.com/address/7DQZmWuTomLpBSHD44D3whxjPUja2Rt7Mm3LNGNewiyh?cluster=devnet" target="_blank" rel="noopener">See every anchor on Solana Explorer ↗</a>
+      <a href="/health" target="_blank" rel="noopener">System health ↗</a>
     </div>
-  </section>
+    <p class="live-note" id="live-note">Receipt chain intact. Figures refresh from the public audit endpoint when this page can reach it.</p>
+  </div>
+</section>
 
-  <section class="wrap" id="how" aria-labelledby="how-h">
-    <p class="eyebrow">How it works</p>
-    <h2 id="how-h">The rules live in the code. Every gram is retired once.</h2>
-    <ol class="steps">
-      <li><b>Measure</b><p>The app estimates the CO₂ of a basket, a journey or a day, in grams, rounded up. Every line shows where its figure comes from.</p></li>
-      <li><b>Retire</b><p>The server prices the items itself and retires that many pilot units. Each gram has its own serial number and can be retired only once.</p></li>
-      <li><b>Record</b><p>You get a receipt, sealed to the one before it. Receipts are gathered into one fingerprint that is written to Solana devnet.</p></li>
-      <li class="later"><b>Back it <span class="tag">next</span></b><p>A named verifier attests a real removal project, with field video and satellite evidence for each tonne. Until then, units are pilot units.</p></li>
-    </ol>
-    <p class="note">Each country's share is sized from cumulative CO₂ since 1850 (Global Carbon Project, via Our World in Data), scaled to the IPCC's 2,400 billion tonne total.</p>
-  </section>
-
-  <section class="wrap" id="app" aria-labelledby="app-h">
-    <p class="eyebrow">The app</p>
-    <h2 id="app-h">Retire pilot units for everyday life, one gram at a time.</h2>
-    <div class="grid3">
-      <article class="card"><h3>Scan your shopping</h3><p>Scan a barcode or pick from the shelf. Figures come from international sources first, then national ones, then recognised organisations, and a cautious high guess only as a last resort.</p></article>
-      <article class="card"><h3>Log a journey</h3><p>Flights between airports, or a car, train or bus trip by distance. Flights include the warming effect of high-altitude emissions.</p></article>
-      <article class="card"><h3>Add up a day</h3><p>Home electricity and gas from your meter readings, and your meals, for a day, a week or a month.</p></article>
+<section class="block" id="problem">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">The problem</span>
+      <h2>Today's carbon market is <em>broken by design</em>.</h2>
+      <p class="lede">The voluntary carbon market moves billions a year, yet buyers still can't be sure that a tonne they paid for was removed, stays removed, and wasn't sold to someone else too.</p>
     </div>
-    <div class="calc card" aria-labelledby="calc-h">
-      <h3 id="calc-h">What a retirement costs</h3>
-      <label for="grams" class="sr">Amount of CO₂</label>
-      <input id="grams" type="range" min="0" max="100" step="1" value="57">
-      <div class="calc-out"><b id="out-mass">2.5 kg</b><span id="out-price">£0.25</span><span id="out-clt" class="mono">0.002500 CLT</span></div>
+    <div class="problems">
+      <div class="problem"><h3>Credits don't last</h3><p>Credits are issued year by year, but CO₂ stays in the air for centuries. A forest that burns down in thirty years has stored nothing, even though its credits were already used.</p></div>
+      <div class="problem"><h3>No one keeps the total</h3><p>The market counts small reductions. Nobody counts the full amount each country has ever emitted, so nobody can say how much is left to clear.</p></div>
+      <div class="problem"><h3>Counting twice is easy</h3><p>When credits can be traded, re-sold and checked only once in a while, the same tonne gets claimed twice and greenwashing pays. More rules haven't fixed it.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="block ruled" id="how">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">How it works</span>
+      <h2>One token per tonne. <em>Divisible to the gram.</em> Never traded.</h2>
+      <p class="lede">CarbonLedger starts from the total. Each country's historic emissions, from the Global Carbon Project via Our World in Data, become a pool of carbon debt. People and companies clear that debt one gram at a time.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><span class="k">Step 1</span><h3>Measure</h3><p>Scan a shopping basket, log a journey or pick an everyday activity. The app estimates the CO₂ in grams.</p><span class="arrow">→</span></div>
+      <div class="step"><span class="k">Step 2</span><h3>Retire</h3><p>Retire those grams as pilot units, credited to a country's pool. Each gram has its own serial number and is retired once, so no gram is used twice.</p><span class="arrow">→</span></div>
+      <div class="step"><span class="k">Step 3</span><h3>Record</h3><p>You get a receipt chained to every receipt before it. Its fingerprint is written to Solana devnet, where anyone can check it.</p><span class="arrow">→</span></div>
+      <div class="step"><span class="k">Step 4 · next</span><h3>Remove</h3><p>Next, each tonne is linked to a real removal project with published evidence, so you can trace your grams to carbon taken out of the air.</p></div>
+    </div>
+    <div class="equation"><b>1 CLT</b><span>=</span><b>1 tonne CO₂</b><span>=</span><b>1,000,000 grams</b><span>·</span><span>6 decimal places, so 0.000001 CLT is a single gram</span></div>
+  </div>
+</section>
+
+<section class="block" id="everyday">
+  <div class="wrap split">
+    <div>
+      <div class="head" style="margin-bottom:28px">
+        <span class="eyebrow">Retire your everyday footprint</span>
+        <h2>From a shopping basket to a <em>flight</em>.</h2>
+        <p class="lede">You don't need a crypto wallet or any crypto at all. The system pays every network fee for you.</p>
+      </div>
+      <div class="uses">
+        <div class="use"><svg viewBox="0 0 24 24"><path d="M3 5v14M6 5v14M9 5v14M13 5v14M15 5v14M19 5v14M21 5v14"/></svg><div><h3>Scan your shopping</h3><p>Scan supermarket barcodes into a basket. Each product gets a CO₂ estimate, and the basket total is ready to retire.</p></div></div>
+        <div class="use"><svg viewBox="0 0 24 24"><path d="M2 16l20-8-4 10-6-3-3 4v-5"/></svg><div><h3>Log your travel</h3><p>Flights, train rides and car journeys, worked out from distance and mode of transport.</p></div></div>
+        <div class="use"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg><div><h3>Add up your day</h3><p>Home electricity and gas from your meter readings, and your meals, retired as you go.</p></div></div>
+      </div>
+      <div class="sources">
+        <span class="eyebrow">Where the estimates come from, in order</span>
+        <ol>
+          <li>International figures</li>
+          <li>National figures</li>
+          <li>Widely accepted organisations</li>
+          <li>A careful estimate, set high on purpose so the figure is never too small</li>
+        </ol>
+      </div>
+    </div>
+    <div class="calc" aria-labelledby="calc-h">
+      <span class="eyebrow" id="calc-h">What it costs</span>
       <div class="presets" role="group" aria-label="Examples">
-        <button type="button" data-g="1">1 g</button><button type="button" data-g="2500">Weekly shop, about 2.5 kg</button><button type="button" data-g="25000">Train trip, about 25 kg</button><button type="button" data-g="250000">Short-haul flight, about 250 kg</button>
+        <button type="button" data-g="1">1 gram</button>
+        <button type="button" data-g="2500">Weekly shop, about 2.5 kg</button>
+        <button type="button" data-g="25000">Train trip, about 25 kg</button>
+        <button type="button" data-g="250000">Short-haul flight, about 250 kg</button>
       </div>
-      <p class="note">Illustrative figures at the demo price of £100 a tonne. No payment is taken: this is a test-network pilot.</p>
+      <div>
+        <label for="grams">CO₂ to retire</label>
+        <input id="grams" type="range" min="0" max="100" step="1" value="40">
+      </div>
+      <div class="row"><span class="big" id="out-mass">2.5 kg</span><span class="big" id="out-price">£0.25</span></div>
+      <div class="row"><span class="clt" id="out-clt">0.002500 CLT</span><span class="fine">at the £100 per tonne demo price</span></div>
+      <p class="fine">Example amounts are typical rough values for illustration. The app works out your real figure. No payment is taken in the pilot.</p>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section class="wrap" aria-labelledby="game-h">
-    <p class="eyebrow">Together</p>
-    <h2 id="game-h">Clear the smallest country's pilot target first, or choose any country.</h2>
-    <p class="lead narrow">Every gram is a point. Together we work through each country's pilot target, smallest first, so progress is visible from day one. Or retire for any country you choose. Badges, levels and daily quests, with no streak that punishes a missed day.</p>
-  </section>
+<section class="block ruled" id="debt">
+  <div class="wrap debt">
+    <div class="head" style="margin-bottom:0">
+      <span class="eyebrow">The world's carbon debt</span>
+      <h2>Clear whole countries, <em>smallest first</em>.</h2>
+      <p class="lede">Every country has its own pool, sized from its cumulative CO₂ since 1850 (Global Carbon Project, via Our World in Data), scaled to the IPCC's 2,400 billion tonne total. Today each pool is a pilot target.</p>
+      <p class="lede">The plan is to make clearing that debt a shared goal. Members work through the smallest pools first and earn badges and levels others can see, or retire for any country they choose. People and companies can also set their own targets.</p>
+    </div>
+    <div>
+      <div class="ladder" aria-hidden="true">
+        <div class="rung"><span>Smallest pool</span><span class="bar"><i style="width:100%"></i></span><span class="badge">CLEARED</span></div>
+        <div class="rung"><span>Next pool</span><span class="bar"><i style="width:72%;animation-delay:.2s"></i></span><span class="badge">72%</span></div>
+        <div class="rung"><span>Next pool</span><span class="bar"><i style="width:31%;animation-delay:.4s"></i></span><span class="badge">31%</span></div>
+        <div class="rung"><span>Next pool</span><span class="bar"><i style="width:8%;animation-delay:.6s"></i></span><span class="badge">8%</span></div>
+        <div class="rung"><span>Largest pool</span><span class="bar"><i style="width:1%;animation-delay:.8s"></i></span><span class="badge">&lt;1%</span></div>
+      </div>
+      <p class="ladder-cap">Diagram of how the country ladder works. It doesn't show real progress figures.</p>
+    </div>
+  </div>
+</section>
 
-  <section class="wrap" id="proof" aria-labelledby="proof-h">
-    <p class="eyebrow">Check it yourself</p>
-    <h2 id="proof-h">Don't trust us. Check the record.</h2>
-    <div class="grid2">
-      <ul class="checks">
-        <li>Every gram has a serial number, and a gram is retired once.</li>
-        <li>Receipts are hash-chained: an edit, a deletion or a swap breaks the chain at that point.</li>
-        <li>Refused attempts are kept on the record with equal weight.</li>
-        <li>One fingerprint per batch of receipts is anchored on Solana devnet. Only hashes go on-chain, never names, places or baskets.</li>
-        <li>Any receipt can be verified in the app or the browser, without an account.</li>
-        <li>The registry rules pass the same 10 test cases in the server, the database and the on-chain program.</li>
-      </ul>
-      <div class="addresses">
-        <div class="addr"><span>Registry program (devnet)</span><code id="a-prog">3dGd2V1ykcmahyCQvhri4R2WhabT83hmm2WNz2r788Zj</code>
-          <div><button type="button" data-copy="a-prog">Copy</button><a href="https://explorer.solana.com/address/3dGd2V1ykcmahyCQvhri4R2WhabT83hmm2WNz2r788Zj?cluster=devnet" target="_blank" rel="noopener">Explorer</a></div></div>
-        <div class="addr"><span>Anchoring key</span><code id="a-key">7DQZmWuTomLpBSHD44D3whxjPUja2Rt7Mm3LNGNewiyh</code>
-          <div><button type="button" data-copy="a-key">Copy</button><a href="https://explorer.solana.com/address/7DQZmWuTomLpBSHD44D3whxjPUja2Rt7Mm3LNGNewiyh?cluster=devnet" target="_blank" rel="noopener">Explorer</a></div></div>
-        <div class="addr"><span>Example anchor transaction</span><code id="a-tx">4RcsSjuJkuiy2rAPUoLcJPSxV7vZE3BDUzUXPnNUUzcNA1iwMK7UNkUs8cZFjXS9kGnw74ULJhNNqvtFhFNRXkAi</code>
-          <div><button type="button" data-copy="a-tx">Copy</button><a href="https://explorer.solana.com/tx/4RcsSjuJkuiy2rAPUoLcJPSxV7vZE3BDUzUXPnNUUzcNA1iwMK7UNkUs8cZFjXS9kGnw74ULJhNNqvtFhFNRXkAi?cluster=devnet" target="_blank" rel="noopener">Explorer</a></div></div>
-        <p class="note">Today retirements are anchored by memo. The registry program is deployed on devnet and passes its 10 test cases; connecting the app to it is the next step.</p>
+<section class="block" id="trust">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Why you can trust it</span>
+      <h2>The rules are <em>written into the code</em>, not a policy document.</h2>
+      <p class="lede">The registry program enforces these rules. It is deployed on Solana devnet and passes all ten registry test cases. The app does not call it yet: today it anchors receipts by memo.</p>
+    </div>
+    <div class="rules">
+      <div class="rule"><code>attested before issued</code><h3>Nothing issued without a verifier</h3><p>A named verifier must attest a project before any units are issued from it, and issued can never exceed attested.</p></div>
+      <div class="rule"><code>serial ranges</code><h3>Retired once, for good</h3><p>Every retirement takes the next block of serial numbers. A gram that has been retired can never be retired again.</p></div>
+      <div class="rule"><code>one external link</code><h3>No credit counted twice</h3><p>A credit from another registry can be linked to the ledger once only, so the same tonne can't be counted in two places.</p></div>
+      <div class="rule"><code>contiguous anchors</code><h3>No gaps in the record</h3><p>Each anchored batch of receipts starts exactly where the last one ended, so nothing can be slipped in or left out.</p></div>
+      <div class="rule"><code>suspend lever</code><h3>A failing project can be stopped</h3><p>If a project's evidence fails, it can be suspended, and no more units are issued or retired from it.</p></div>
+      <div class="rule"><code>public by default</code><h3>Anyone can check</h3><p>Every action is readable on standard Solana explorers. Refused retirements stay on the record too.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="block ruled" id="permanence">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Permanence · the plan</span>
+      <h2>Built to last as long as <em>the carbon does</em>.</h2>
+      <p class="lede">A permanent record only means something if the carbon removal behind it is permanent too. CarbonLedger plans to back the ledger with a physical removal method and a legal structure that holds the assets for good.</p>
+    </div>
+    <div class="layers">
+      <div class="layer">
+        <div><span class="tag">Custodian</span><h3>A permanent foundation</h3></div>
+        <div>
+          <p>A Liechtenstein foundation (Stiftung) would acquire and hold the land and physical removal assets. By law it couldn't be dissolved, sold or turned to another purpose.</p>
+          <ul>
+            <li>It would hold a golden share, so the mission couldn't be changed by any later owner or investor.</li>
+            <li>Part of the income from every CLT would go to buying land that the foundation keeps for good.</li>
+            <li>The guarantee would come from the law, not from a contract that could be renegotiated.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="layer">
+        <div><span class="tag">Operations</span><h3>Operating companies</h3></div>
+        <div><p>An international operating company would run the ledger, the app and day-to-day partnerships, with a UK company serving UK customers. They would run the service but never own the permanent assets.</p></div>
+      </div>
+      <div class="layer">
+        <div><span class="tag">Record</span><h3>The public ledger</h3></div>
+        <div><p>Every receipt's fingerprint is written to Solana, today on devnet, a test network. The record stays readable even if the ledger later moves to its own network.</p></div>
       </div>
     </div>
-  </section>
+    <div class="biochar">
+      <div class="bc"><span class="k">Removal method</span><h3>Biochar</h3><p>Plant-based material is heated without oxygen, which turns its carbon into a stable solid that lasts for centuries.</p></div>
+      <div class="bc"><span class="k">Feedstock</span><h3>Paper that can't be recycled</h3><p>The biochar would be made from end-of-line paper that would otherwise go to landfill or be burned. Taking it in would also earn a waste-handling fee.</p></div>
+      <div class="bc"><span class="k">Evidence</span><h3>Traceable to the project</h3><p>Each project will have its own ID. Its field video, satellite imagery, batch serial numbers and other evidence will be published under that ID, so every tonne can be followed back.</p></div>
+    </div>
+  </div>
+</section>
 
-  <section class="wrap" id="next" aria-labelledby="next-h">
-    <p class="eyebrow">What comes next</p>
-    <h2 id="next-h">Honest about what is real today.</h2>
+<section class="block" id="onchain">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">On-chain</span>
+      <h2>Don't take our word for it. <em>Check it.</em></h2>
+      <p class="lede">Everything below is live on the Solana devnet, Solana's free public test network.</p>
+    </div>
+    <div class="chain">
+      <div class="addr">
+        <div class="what">Registry program<small>Deployed, passes all 10 registry test cases</small></div>
+        <span class="hash" id="h1">3dGd2V1ykcmahyCQvhri4R2WhabT83hmm2WNz2r788Zj</span>
+        <div class="acts"><button class="mini" type="button" data-copy="h1">Copy</button><a class="mini" href="https://explorer.solana.com/address/3dGd2V1ykcmahyCQvhri4R2WhabT83hmm2WNz2r788Zj?cluster=devnet" target="_blank" rel="noopener">Explorer ↗</a></div>
+      </div>
+      <div class="addr">
+        <div class="what">Anchoring key<small>Signs every receipt anchor</small></div>
+        <span class="hash" id="h2">7DQZmWuTomLpBSHD44D3whxjPUja2Rt7Mm3LNGNewiyh</span>
+        <div class="acts"><button class="mini" type="button" data-copy="h2">Copy</button><a class="mini" href="https://explorer.solana.com/address/7DQZmWuTomLpBSHD44D3whxjPUja2Rt7Mm3LNGNewiyh?cluster=devnet" target="_blank" rel="noopener">Explorer ↗</a></div>
+      </div>
+      <div class="addr">
+        <div class="what">Example anchor<small>A real retirement receipt on-chain</small></div>
+        <span class="hash" id="h3">4RcsSjuJkuiy2rAPUoLcJPSxV7vZE3BDUzUXPnNUUzcNA1iwMK7UNkUs8cZFjXS9kGnw74ULJhNNqvtFhFNRXkAi</span>
+        <div class="acts"><button class="mini" type="button" data-copy="h3">Copy</button><a class="mini" href="https://explorer.solana.com/tx/4RcsSjuJkuiy2rAPUoLcJPSxV7vZE3BDUzUXPnNUUzcNA1iwMK7UNkUs8cZFjXS9kGnw74ULJhNNqvtFhFNRXkAi?cluster=devnet" target="_blank" rel="noopener">Explorer ↗</a></div>
+      </div>
+    </div>
+    <div class="status">
+      <div class="now"><h3>Working today</h3><p>Each retirement in the app produces a receipt that is chained to the one before it. The receipt's fingerprint is written to Solana devnet as a memo transaction. Anyone can rerun the chain check at the public audit endpoint.</p></div>
+      <div><h3>Next step</h3><p>The registry program, with verifier attestation, serial-range retirement and external-credit links, is deployed and tested. The next build connects the app to it, so retirements are recorded by the program instead of anchored by memo.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="block ruled" id="roadmap">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Roadmap</span>
+      <h2>From test network to a <em>public carbon chain</em>.</h2>
+    </div>
     <div class="road">
-      <div class="col now"><h3>Real today</h3><ul><li>Live app on Solana devnet</li><li>Hash-chained receipts, anchored on-chain</li><li>Registry program deployed on devnet</li><li>Public audit endpoint and receipt verification</li></ul></div>
-      <div class="col"><h3>Next</h3><ul><li>The app retires through the registry program</li><li>Registry control moves to a multisig</li><li>A named verifier, with field video and satellite evidence per tonne</li><li>First biochar removal projects</li></ul></div>
-      <div class="col"><h3>Later</h3><ul><li>Card payments, after consumer-law checks</li><li>Partner products that reward fractions of a CLT</li><li>A permanent holding structure for removal assets</li></ul></div>
+      <div class="stage done"><span class="k">Now</span><h3>Live app on devnet</h3><p>Scan, travel and daily retirements of pilot units, with chained receipts anchored on Solana and a public audit trail.</p></div>
+      <div class="stage done"><span class="k">Built</span><h3>Registry program</h3><p>Verifier attestation, serial-range retirement, external-credit links and contiguous anchors, deployed on devnet and tested.</p></div>
+      <div class="stage"><span class="k">Next</span><h3>App on the registry, a named verifier</h3><p>Retirements go through the registry program, with registry control moved to a multisig. A named verifier, card payments and the first biochar removal projects follow.</p></div>
+      <div class="stage"><span class="k">Later</span><h3>Its own public chain</h3><p>A dedicated Solana-based network that anyone can read, where CLT is the only token. Partner products will let people earn fractions of a CLT just by using them.</p></div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section class="wrap" id="faq" aria-labelledby="faq-h">
-    <p class="eyebrow">FAQ</p>
-    <h2 id="faq-h">Questions people ask</h2>
+<section class="block" id="faq">
+  <div class="wrap">
+    <div class="head"><span class="eyebrow">Questions</span><h2>Frequently asked</h2></div>
     <div class="faq">
-      <details><summary>Is this a crypto investment?</summary><p>No. A retired unit cannot be sold or transferred. It is a record that a gram was retired, once.</p></details>
-      <details><summary>Do I need a crypto wallet?</summary><p>No. The app records everything for you. You never hold a key or pay a network fee.</p></details>
-      <details><summary>What does it cost?</summary><p>The demo price is £100 a tonne, from a single gram. No payment is taken: this is a pilot on a test network.</p></details>
-      <details><summary>Are these real carbon credits?</summary><p>Not yet. They are pilot units, not yet verified credits. The record is real; the backing comes when a named verifier attests a real project.</p></details>
-      <details><summary>What happens to a refused retirement?</summary><p>It is kept in the receipt chain with a refusal receipt, so an auditor can see what was attempted and stopped. No units are retired.</p></details>
-      <details><summary>Where do the country figures come from?</summary><p>Cumulative CO₂ since 1850 from the Global Carbon Project, via Our World in Data, scaled to the IPCC's 2,400 billion tonne total.</p></details>
+      <details><summary>Is CLT a cryptocurrency investment?</summary><p>No. Retired units can't be sold, traded or transferred, and they have no market price. A retirement is a record that grams of carbon debt were retired, once. Today they are pilot units, not yet verified credits.</p></details>
+      <details><summary>Do I need a crypto wallet or any crypto?</summary><p>No. The system pays every network fee and handles the blockchain side. You just use the app.</p></details>
+      <details><summary>How much does it cost?</summary><p>The demo price is £100 per tonne of CO₂, which works out at one penny per 100 grams. You can retire as little as one gram. No payment is taken in the pilot.</p></details>
+      <details><summary>Is this real money today?</summary><p>Not yet. The live demo runs on Solana devnet, a free public test network, and payments are simulated. The receipts and on-chain anchors are real and can be checked.</p></details>
+      <details><summary>Why is a refused retirement on the record?</summary><p>Because a public ledger has to show everything. When a retirement is refused, the refusal and its reason are kept in the receipt chain instead of quietly disappearing.</p></details>
+      <details><summary>Where do the country figures come from?</summary><p>From the Global Carbon Project, via Our World in Data: each country's cumulative CO₂ since 1850, scaled to the IPCC's 2,400 billion tonne total. The source is credited in the app.</p></details>
+      <details><summary>Can I check a receipt myself?</summary><p>Yes. Paste a receipt id into Verify in the app, or download every receipt and rerun the chain check yourself. No account is needed.</p></details>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section class="wrap cta-end">
-    <h2>One gram at a time.</h2>
-    <p class="lead narrow">Imagine a ledger where the world pays down its carbon debt, one gram at a time.</p>
-    <div class="ctas"><a class="btn primary" href="/app">Open the app</a><a class="btn ghost" href="https://youtu.be/Ay8GyrqsWRY" target="_blank" rel="noopener">Watch the demo</a></div>
-  </section>
-</main>
+<section class="block closing">
+  <div class="wrap" style="display:grid;gap:24px">
+    <span class="eyebrow">Start with a single gram</span>
+    <h2>Every tonne ever emitted, <em>accounted for</em>.</h2>
+    <div class="cta-row">
+      <a class="btn primary" href="/app">Open the live app →</a>
+      <a class="btn" href="https://youtu.be/Ay8GyrqsWRY" target="_blank" rel="noopener">▶ Watch the demo</a>
+    </div>
+    <p class="fine">Pilot units, not yet verified credits. Recorded on Solana devnet, a test network.</p>
+  </div>
+</section>
 
-<footer class="wrap foot">
-  <p><b>Pilot units, not yet verified credits.</b> Recorded on Solana devnet, a test network. No payments are taken; receipts and anchors are real.</p>
-  <p>© 2026 CarbonLedger · Built for the Colosseum hackathon · <a href="/app#verify">Verify a receipt</a></p>
+<footer>
+  <div class="wrap">
+    <span>© 2026 CarbonLedger. Built on Solana for the Colosseum hackathon.</span>
+    <span>Demo on Solana devnet: payments are simulated, receipts and anchors are real.</span>
+  </div>
 </footer>
 </body>
 </html>
