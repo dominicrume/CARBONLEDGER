@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.1 (2026-10-12)
+- QA sweep fixes. Back and forward move between tabs, and a reloaded verify link opens Verify with its id. A second
+  "Verify it" shows the second receipt. Verify says where a receipt was recorded: dry-run chain or Solana cluster.
+- Sheets close on Escape and return focus. Long display names wrap. Settings shows one demo login button, asks before
+  a key change, and Clear only clears basket and settings. Feedback where there was none: letters-only barcode,
+  send-here, a distance over 20,000 km.
+- Test server only: a higher per-key burst, because the browser suite now makes more than 20 writes with one key.
+  Production keeps 20.
+
 ## 0.2.0 (2026-10-11)
 - Front end rebuilt around the game loop: level ring, Frontline mission strip, XP on every retire button, reward
   moment with level-up and badges, Me command centre with quests and a badge shelf, World clock from the public

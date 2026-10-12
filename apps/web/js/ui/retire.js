@@ -107,5 +107,5 @@ export function showReceipt(rec, newBadges = [], reward = null) {
     </div>
     ${!reward && newBadges.length ? `<div class="new-badges">${newBadges.map((b, i) => `<span class="chip-badge" style="--i:${i}">${icon('medal')}${esc(b.name)}</span>`).join('')}</div>` : ''}
     <div class="row"><button class="btn ghost" id="receipt-verify" data-close>Verify it</button><button class="btn primary" data-close>Done</button></div>
-  `, { onOpen: (root) => { countUp(root.querySelector('#reward-count'), rec.grams); root.querySelector('#receipt-verify')?.addEventListener('click', () => { location.hash = `verify?id=${encodeURIComponent(rec.id)}`; document.querySelector('[data-tab="verify"]')?.click(); }); } });
+  `, { onOpen: (root) => { countUp(root.querySelector('#reward-count'), rec.grams); root.querySelector('#receipt-verify')?.addEventListener('click', () => { history.pushState(null, '', `#verify?id=${encodeURIComponent(rec.id)}`); window.dispatchEvent(new PopStateEvent('popstate')); }); } });
 }

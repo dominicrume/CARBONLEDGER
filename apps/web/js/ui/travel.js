@@ -22,13 +22,13 @@ export function mountTravel(root) {
         <label class="label" for="cabin">Cabin</label>
         <select id="cabin"><option value="economy">Economy</option><option value="business">Business or first</option></select>
         <div class="row"><label class="check"><input type="checkbox" id="ret" checked> Return trip</label>
-        <label class="label inline" for="fpeople">People</label><input id="fpeople" type="number" min="1" value="1" class="num"></div>
+        <label class="label inline" for="fpeople">People</label><input id="fpeople" type="number" min="1" max="500" step="1" value="1" class="num"></div>
       </form>
       <form id="ground-form" class="form" hidden>
         <label class="label" for="gmode">How you travelled</label>
         <select id="gmode">${GROUND.map(g => `<option value="${g.id}">${esc(g.label)}</option>`).join('')}</select>
-        <label class="label" for="gkm">Distance in km</label><input id="gkm" type="number" min="0" value="25" class="num">
-        <label class="label" for="gpeople">People in the car (cars only)</label><input id="gpeople" type="number" min="1" value="1" class="num">
+        <label class="label" for="gkm">Distance in km</label><input id="gkm" type="number" min="0" max="20000" value="25" class="num">
+        <label class="label" for="gpeople">People in the car (cars only)</label><input id="gpeople" type="number" min="1" max="9" step="1" value="1" class="num">
       </form>
       <div class="result" id="travel-result"></div>
       <p class="note">Factors: ${esc(TRAVEL_SOURCE)}. Flights include the warming effect of high-altitude emissions and an 8% routing uplift.</p>
@@ -51,13 +51,15 @@ export function mountTravel(root) {
       const f = flightGrams({ from: $('#from').value, to: $('#to').value, cabin: $('#cabin').value, ret: $('#ret').checked, people: Math.max(1, +$('#fpeople').value || 1) });
       return f && { ...f, travelMode: 'flight', item: { type: 'flight', from: $('#from').value, to: $('#to').value, cabin: $('#cabin').value, ret: $('#ret').checked, people: Math.max(1, +$('#fpeople').value || 1) }, sub: `${f.dist.toLocaleString('en-GB')} km each way, ${f.band === 'long' ? 'long-haul' : f.band === 'short' ? 'short-haul' : 'domestic'}`, longHaul: f.band === 'long' };
     }
-    const gmode = $('#gmode').value, dist = Math.max(0, +$('#gkm').value || 0), people = Math.max(1, +$('#gpeople').value || 1);
+    const gmode = $('#gmode').value, dist = Math.max(0, +$('#gkm').value || 0), people = Math.max(1, Math.round(+$('#gpeople').value) || 1);
+    if (dist > 20000) return { error: 'That is more than halfway round the world. Enter one journey, up to 20,000 km.' };
     const r = groundGrams({ mode: gmode, km: dist, people });
     if (!r) return null;
     return { travelMode: gmode, grams: r.grams, label: r.label, sub: r.share > 1 ? `your share of ${r.share} people` : '', item: { type: 'ground', mode: gmode, km: dist, people } };
   }
   function update() {
     const r = calc(), out = $('#travel-result', root);
+    if (r?.error) { out.innerHTML = `<p class="note bad" role="alert">${esc(r.error)}</p>`; return; }
     if (!r) { out.innerHTML = `<p class="muted">Choose two different places, or enter a distance.</p>`; return; }
     out.innerHTML = `<div class="total-row"><span>${esc(r.label)}<br><small class="muted">${esc(r.sub || '')}</small></span><strong>${mass(r.grams)} CO₂e</strong></div>
       <button class="btn primary block" id="retire-trip">${retireButtonLabel(r.grams)}</button>`;

@@ -32,7 +32,7 @@ export function skillTreeHTML(account, ctx) {
           ${b.skills.map(node).join('<span class="link-line"></span>')}</div>`).join('')}</div></div>
       <div class="tree-root mastery">${node(t.mastery)}</div>
     </div>
-    <p class="note">Tap a skill to see each level. Locked skills open when the skill above them reaches level I. Swipe sideways to see every branch.</p>`;
+    <p class="note">Tap a skill to see each level. Locked skills open when the skill above them reaches level I. Swipe or scroll sideways to see every branch.</p>`;
 }
 
 export function bindSkillTree(root, account, ctx) {

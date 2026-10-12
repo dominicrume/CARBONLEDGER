@@ -6,7 +6,7 @@ import { mountDaily } from './ui/daily.js';
 import { mountCountries, refreshCountries } from './ui/countries.js';
 import { mountMe, refreshMe } from './ui/me.js';
 import { mountBusiness, refreshBusiness } from './ui/business.js';
-import { mountVerify } from './ui/verify.js';
+import { mountVerify, refreshVerify } from './ui/verify.js';
 import { openSettings } from './ui/settings.js';
 import { ledger, apiKey, getDemoLogin } from './core/ledger.js';
 import { levelChip } from './ui/hud.js';
@@ -21,7 +21,7 @@ const VIEWS = {
   countries: { mount: mountCountries, refresh: refreshCountries },
   me: { mount: mountMe, refresh: refreshMe },
   business: { mount: mountBusiness, refresh: refreshBusiness },
-  verify: { mount: mountVerify },
+  verify: { mount: mountVerify, refresh: refreshVerify },
 };
 let currentView = 'shop';
 
@@ -34,10 +34,14 @@ function updateChip() {
   $('#level-chip').setAttribute('aria-label', `${lv.text}, ${lv.toNext}`);
 }
 
-function show(name) {
+// The tab lives in the URL hash (#tab or #tab?query), so Back, reload and shared links all land on the right screen.
+const tabOf = h => (h || '').replace(/^#/, '').split('?')[0];
+function show(name, { push = true } = {}) {
   if (!VIEWS[name]) name = 'shop';
+  const changed = currentView !== name;
   currentView = name;
-  window.scrollTo({ top: 0, behavior: 'instant' });
+  if (push && tabOf(location.hash) !== name) history.pushState(null, '', `#${name}`);
+  if (changed) window.scrollTo({ top: 0, behavior: 'instant' });
   for (const [k, v] of Object.entries(VIEWS)) {
     const el = $(`#view-${k}`);
     el.hidden = k !== name;
@@ -66,13 +70,11 @@ showConnection();
 world.refresh().then(() => { updateChip(); VIEWS[currentView].refresh?.(); });
 document.addEventListener('carbonledger:world', () => VIEWS[currentView].refresh?.());
 // Any Frontline strip opens the World tab on that country.
-document.addEventListener('click', (e) => { const m = e.target.closest?.('[data-mission]'); if (m) { location.hash = `countries?pick=${m.dataset.mission}`; show('countries'); } });
-document.addEventListener('carbonledger:login', async () => { showConnection();
-world.refresh().then(() => { updateChip(); VIEWS[currentView].refresh?.(); });
-document.addEventListener('carbonledger:world', () => VIEWS[currentView].refresh?.());
-// Any Frontline strip opens the World tab on that country.
-document.addEventListener('click', (e) => { const m = e.target.closest?.('[data-mission]'); if (m) { location.hash = `countries?pick=${m.dataset.mission}`; show('countries'); } }); if (await ledger.sync()) { updateChip(); VIEWS[currentView].refresh?.(); } });
-window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (VIEWS[h]) show(h); });
+document.addEventListener('click', (e) => { const m = e.target.closest?.('[data-mission]'); if (m) { history.pushState(null, '', `#countries?pick=${m.dataset.mission}`); show('countries', { push: false }); } });
+document.addEventListener('carbonledger:login', async () => { showConnection(); if (await ledger.sync()) { updateChip(); VIEWS[currentView].refresh?.(); } });
+// Back, forward, links and typed hashes: the hash decides the tab (a query such as ?id= is read by the view).
+window.addEventListener('popstate', () => show(tabOf(location.hash) || 'shop', { push: false }));
+window.addEventListener('hashchange', () => show(tabOf(location.hash) || 'shop', { push: false }));
 document.querySelectorAll('.tabs [data-tab]').forEach(b => b.addEventListener('click', () => show(b.dataset.tab)));
 $('#level-chip').addEventListener('click', () => show('me'));
 // Settings changes (price, community total) redraw the open view; price labels refresh on next render.
@@ -83,5 +85,6 @@ ledger.retire = async (e) => { const r = await retire(e); await ledger.sync(); a
 ledger.sync().then(fromServer => { if (fromServer) { updateChip(); VIEWS[currentView].refresh?.(); } });
 maybeOnboard((tab) => show(tab));
 let start = 'shop';
-try { start = (location.hash.slice(1) || localStorage.getItem('carbonledger.tab') || 'shop'); } catch {}
-show(start);
+try { start = (tabOf(location.hash) || localStorage.getItem('carbonledger.tab') || 'shop'); } catch {}
+show(start, { push: false });
+if (!location.hash) history.replaceState(null, '', `#${currentView}`);

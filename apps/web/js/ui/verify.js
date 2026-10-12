@@ -7,10 +7,10 @@ import { SIM_TAG } from './retire.js';
 import { verifyProof } from '../core/merkle.js';
 import { brandMark } from './hud.js';
 
-const ANCHOR_WORDS = {
-  anchored: 'Confirmed on Solana devnet, a test network.',
-  pending: 'Submitted to Solana devnet, not yet confirmed.',
-  failed: 'The anchor failed after retries. The receipt exists and is marked failed. Nothing claims it is on-chain.',
+const anchorWords = (status, cluster) => {
+  const where = cluster === 'dry-run' ? 'the dry-run chain (nothing was sent to Solana)' : `Solana ${cluster || 'devnet'}, a test network`;
+  return { anchored: `Confirmed on ${where}.`, pending: `Submitted to ${where}, not yet confirmed.`,
+    failed: 'The anchor failed after retries. The receipt exists and is marked failed. Nothing claims it is on-chain.' }[status] || status;
 };
 
 export function mountVerify(root) {
@@ -35,8 +35,14 @@ export function mountVerify(root) {
     </section>`;
   $('#verify-form', root).addEventListener('submit', async (e) => { e.preventDefault(); await lookup($('#verify-id', root).value.trim()); });
   $('#verify-all', root).addEventListener('click', checkAll);
-  const fromHash = new URLSearchParams(location.hash.split('?')[1] || '').get('id');
-  if (fromHash) { $('#verify-id', root).value = fromHash; lookup(fromHash); }
+  refreshVerify();
+}
+
+// On mount and every time the tab is shown: a ?id= in the URL is looked up, so "Verify it" always shows the new receipt.
+export function refreshVerify() {
+  const id = new URLSearchParams(location.hash.split('?')[1] || '').get('id');
+  const field = $('#verify-id');
+  if (id && field && field.value !== id) { field.value = id; lookup(id); }
 }
 
 async function lookup(id) {
@@ -63,7 +69,7 @@ async function lookup(id) {
         <div><dt>Decided by</dt><dd>${esc(rc.ledger)}, under ${esc(rc.approved_by)}</dd></div>
         <div><dt>Receipt hash</dt><dd class="mono wrap">${esc(entry.hash)}</dd></div>
         <div><dt>Previous hash</dt><dd class="mono wrap">${esc(entry.prev_hash)}</dd></div>
-        <div><dt>Chain</dt><dd data-anchor="${esc(a.anchor_status)}">${esc(ANCHOR_WORDS[a.anchor_status] || a.anchor_status)}${a.slot != null ? ` Slot ${a.slot}.` : ''}
+        <div><dt>Chain</dt><dd data-anchor="${esc(a.anchor_status)}">${esc(anchorWords(a.anchor_status, a.cluster))}${a.slot ? ` Slot ${a.slot}.` : ''}
           ${a.explorer_url ? ` <a href="${esc(a.explorer_url)}" target="_blank" rel="noopener">View on the Solana explorer</a>` : ''}</dd></div>
         <div><dt>Proof</dt><dd id="verify-proof" data-proof="">${a.anchor_status === 'anchored' ? 'Checking the Merkle proof in this browser…' : 'No proof until the anchor is confirmed.'}</dd></div>
       </dl>

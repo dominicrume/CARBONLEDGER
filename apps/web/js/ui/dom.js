@@ -24,8 +24,12 @@ export function sheet(html, { onOpen } = {}) {
   const root = $('#sheet');
   root.innerHTML = `<div class="sheet-scrim" data-close></div><div class="sheet-body" role="dialog" aria-modal="true">${html}</div>`;
   root.hidden = false;
-  const close = () => { root.hidden = true; root.innerHTML = ''; };
+  const back = document.activeElement;
+  const onKey = e => { if (e.key === 'Escape') close(); };
+  const close = () => { root.hidden = true; root.innerHTML = ''; document.removeEventListener('keydown', onKey); try { back?.focus?.({ preventScroll: true }); } catch {} };
+  document.addEventListener('keydown', onKey);
   root.querySelectorAll('[data-close]').forEach(el => el.addEventListener('click', close));
   onOpen?.(root, close);
+  root.querySelector('.sheet-body button, .sheet-body input, .sheet-body select, .sheet-body a')?.focus({ preventScroll: true });
   return close;
 }

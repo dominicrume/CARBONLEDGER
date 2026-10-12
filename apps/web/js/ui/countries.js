@@ -4,7 +4,7 @@ import { settings } from '../core/settings.js';
 import { COUNTRIES } from '../data/countries.js';
 import { createGlobe } from './globe.js';
 import { target } from '../core/target.js';
-import { $, esc, tonnes, sheet, mass } from './dom.js';
+import { $, esc, tonnes, sheet, mass, toast } from './dom.js';
 import { icon, confettiHTML } from './hud.js';
 import { world } from '../core/world.js';
 
@@ -94,7 +94,7 @@ function showPicked(iso3, mapName) {
     <span class="pill ${s || ''}">${label}</span>
     <small>${c ? `Share ${tonnes(c.tonnes)}, ${Math.floor((q?.progress || 0) * 100)}% cleared. Position ${pos} of ${COUNTRIES.length} in the queue.` : 'No separate share in the emissions data.'}</small>
     ${c && s !== 'cleared' ? `<button class="btn ghost small" id="send-here">Send my retirements to ${esc(c.name)}</button>` : ''}`;
-  $('#send-here')?.addEventListener('click', () => { target.set({ mode: 'chosen', iso3 }); drawTarget(); });
+  $('#send-here')?.addEventListener('click', (e) => { target.set({ mode: 'chosen', iso3 }); drawTarget(); e.target.disabled = true; e.target.textContent = `Your retirements now go to ${c.name}`; toast(`Your next retirements go to ${c.name}.`); });
 }
 
 function drawTarget() {

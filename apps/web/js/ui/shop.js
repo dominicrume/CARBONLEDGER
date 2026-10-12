@@ -43,7 +43,7 @@ export function mountShop(root) {
   $('#shelf-btn', root).addEventListener('click', openShelf);
   $('#clear', root).addEventListener('click', () => basket.clear());
   $('#code-form', root).addEventListener('submit', (e) => {
-    e.preventDefault(); const v = $('#code').value.replace(/\D/g, ''); if (v) { handleCode(v); $('#code').value = ''; }
+    e.preventDefault(); const v = $('#code').value.replace(/\D/g, ''); if (v) { handleCode(v); $('#code').value = ''; } else toast('A barcode is the number under the stripes. Type the digits, or tap the demo shelf.');
   });
   basket.onChange(drawBasket);
   drawBasket();

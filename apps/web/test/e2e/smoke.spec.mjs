@@ -176,3 +176,50 @@ test('business retires with the same demo login, and the display name saves with
   await expect(page.locator('#me-level .hero-title')).toContainText('Ada Okafor');
   await expect(page.locator('#today')).toContainText('of 3');
 });
+
+// ---- regressions from the QA sweep of 2026-10-12 ----
+test('Back returns to the previous tab, and a reloaded verify link opens Verify with its id', async ({ page }) => {
+  await page.goto(`${APP}/?ledger=solana-devnet&api=${encodeURIComponent(API)}#shop`);
+  await page.click('[data-tab="travel"]'); await page.click('[data-tab="daily"]');
+  await page.goBack();
+  await expect(page.locator('#view-travel')).toBeVisible();
+  await page.goBack();
+  await expect(page.locator('#view-shop')).toBeVisible();
+  await page.click('[data-tab="travel"]');
+  await page.click('#retire-trip'); await page.click('#confirm-retire');
+  const id1 = (await page.locator('.receipt .r-meta').innerText()).split('\n')[0].trim();
+  await page.click('#receipt-verify');
+  await expect(page.locator('#verify-id')).toHaveValue(id1);
+  await page.click('[data-tab="daily"]'); await page.click('#retire-daily'); await page.click('#confirm-retire');
+  const id2 = (await page.locator('.receipt .r-meta').innerText()).split('\n')[0].trim();
+  await page.click('#receipt-verify');
+  await expect(page.locator('#verify-id')).toHaveValue(id2);            // the second "Verify it" shows the second receipt
+  await expect(page.locator('#verify-out [data-anchor]')).toContainText('dry-run chain');   // honest about where it was recorded
+  await page.reload();
+  await expect(page.locator('#view-verify')).toBeVisible();
+  await expect(page.locator('#verify-id')).toHaveValue(id2);
+});
+
+test('a long display name wraps and never pushes the tab bar off screen; Escape closes a sheet', async ({ page }) => {
+  await page.setViewportSize({ width: 430, height: 932 });
+  await page.goto(`${APP}/?ledger=solana-devnet&api=${encodeURIComponent(API)}#me`);
+  await page.fill('#name', 'X'.repeat(24)); await page.click('#name-save');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(430);
+  await page.click('[data-tab="shop"]');
+  await page.click('#shelf-btn'); await expect(page.locator('.shelf')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.shelf')).toHaveCount(0);
+});
+
+test('feedback where there was none: letters-only barcode, send-here, an impossible distance', async ({ page }) => {
+  await page.goto(`${APP}/?ledger=solana-devnet&api=${encodeURIComponent(API)}#shop`);
+  await page.fill('#code', 'abc'); await page.click('#code-form button[type=submit]');
+  await expect(page.locator('#toast')).toContainText('Type the digits');
+  await page.click('[data-tab="travel"]'); await page.click('[data-mode="ground"]');
+  await page.fill('#gkm', '99999999');
+  await expect(page.locator('#travel-result')).toContainText('up to 20,000 km');
+  await expect(page.locator('#retire-trip')).toHaveCount(0);
+  await page.goto(`${APP}/?ledger=solana-devnet&api=${encodeURIComponent(API)}#countries?pick=NOR`);
+  await page.click('#send-here');
+  await expect(page.locator('#toast')).toContainText('Norway');
+});
