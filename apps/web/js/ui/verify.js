@@ -6,6 +6,7 @@ import { $, esc, mass } from './dom.js';
 import { SIM_TAG } from './retire.js';
 import { verifyProof } from '../core/merkle.js';
 import { brandMark } from './hud.js';
+import { tonneText } from '../core/serials.js';
 
 const anchorWords = (status, cluster) => {
   const where = cluster === 'dry-run' ? 'the dry-run chain (nothing was sent to Solana)' : `Solana ${cluster || 'devnet'}, a test network`;
@@ -65,7 +66,8 @@ async function lookup(id) {
         <div><dt>Receipt</dt><dd class="mono">${esc(rc.receipt_id)}</dd></div>
         <div><dt>Outcome</dt><dd data-outcome="${esc(rc.outcome)}">${rc.outcome === 'REFUSED' ? 'Refused. No units were retired.' : 'Accepted.'} Rule: ${esc(rc.rule)}</dd></div>
         <div><dt>${rc.outcome === 'REFUSED' ? 'Attempted' : 'Retired'}</dt><dd>${mass(rc.grams)} CO₂e${rc.clt ? `, ${esc(rc.clt)} CLT` : ''} ${SIM_TAG}</dd></div>
-        ${rc.serial_start != null ? `<div><dt>Serial range</dt><dd class="mono">${rc.serial_start} to ${rc.serial_end} in batch ${esc(rc.batch_id)}</dd></div>` : ''}
+        ${rc.serial_start != null ? `<div><dt>Serial range</dt><dd class="mono">${rc.serial_start} to ${rc.serial_end - 1} in batch ${esc(rc.batch_id)}</dd></div>
+        <div><dt>From</dt><dd data-tonne>${esc(tonneText(rc.serial_start, rc.serial_end))} of batch ${esc(rc.batch_id)}. Evidence is kept per tonne, not per gram. None yet: pilot units.</dd></div>` : ''}
         <div><dt>Decided by</dt><dd>${esc(rc.ledger)}, under ${esc(rc.approved_by)}</dd></div>
         <div><dt>Receipt hash</dt><dd class="mono wrap">${esc(entry.hash)}</dd></div>
         <div><dt>Previous hash</dt><dd class="mono wrap">${esc(entry.prev_hash)}</dd></div>

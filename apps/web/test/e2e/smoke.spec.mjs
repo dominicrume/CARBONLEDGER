@@ -26,6 +26,7 @@ test('retire pilot units from the demo shelf, see the receipt, verify the chain'
   const receipt = page.locator('.receipt');
   await expect(receipt).toContainText('Retirement receipt');
   await expect(receipt).toContainText('Pilot units, not yet verified credits');
+  await expect(receipt.locator('[data-tonne]')).toContainText(/pilot tonne \d+, ([\d.]+%|under 0\.01%) of it|pilot tonnes \d+/);   // evidence is per tonne
   const id = (await receipt.locator('.r-meta').innerText()).split('\n')[0].trim();
   expect(id).toMatch(/^CL-[0-9A-F]{12}$/);
   await page.click('.sheet-body button[data-close]');
@@ -61,7 +62,15 @@ test('history is mirrored from the ledger and a browser edit is never a score', 
   await expect(page.locator('#me-level')).toContainText('totals from the ledger');
   await expect.poll(async () => page.evaluate(() => JSON.parse(localStorage.getItem('carbonledger.ledger') || '[]').some(r => r.id === 'CL-FORGED'))).toBe(false);
   await expect(page.locator('#history')).not.toContainText('CL-FORGED');
-  await expect(page.locator('#history li').first()).toContainText('Shopping basket');
+  // the list shows receipt numbers, not what was bought, and one tap verifies any of them
+  const row = page.locator('#history li').first();
+  await expect(row).not.toContainText('Shopping basket');
+  const id = (await row.locator('[data-rec]').getAttribute('data-rec'));
+  expect(id).toMatch(/^CL-[0-9A-F]{12}$/);
+  await expect(row).toContainText(id);
+  await row.locator('[data-verify]').click();
+  await expect(page.locator('#verify-id')).toHaveValue(id);
+  await expect(page.locator('#verify-out [data-tonne]')).toContainText(/pilot tonne \d+ \(grams [\d,]+ to [\d,]+ of it, /);
 });
 
 test('no banned claim words on any screen', async ({ page }) => {

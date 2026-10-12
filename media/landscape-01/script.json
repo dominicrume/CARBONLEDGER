@@ -1,0 +1,126 @@
+{
+  "title": "The biggest risk in carbon credits is counting the same tonne twice",
+  "format": "Landscape 1920x1080, 30 fps, about 90 seconds. YouTube, LinkedIn, X, website hero",
+  "voice_draft": "macOS say, Daniel (en_GB). Final: Rume's own voice cloned in ElevenLabs from media/brand/voice-samples, see README",
+  "scenes": [
+    {
+      "id": "hook",
+      "avatar": "hero",
+      "lead": "the biggest risk",
+      "caption": [
+        "COUNTED",
+        "TWICE"
+      ],
+      "accent": 1,
+      "line": "Everyone is selling carbon credits. But the biggest risk isn't the price. It is the same tonne, counted twice.",
+      "audio": "audio/hook.aiff",
+      "voice_s": 7.14
+    },
+    {
+      "id": "books",
+      "avatar": "pip",
+      "lead": "about",
+      "caption": [
+        "26 SETS",
+        "OF BOOKS"
+      ],
+      "accent": 0,
+      "line": "There are about twenty six carbon registries. Each one keeps its own books, so one tonne can turn up in two of them, and nobody sees it.",
+      "audio": "audio/books.aiff",
+      "voice_s": 8.45
+    },
+    {
+      "id": "register",
+      "avatar": "pip",
+      "nametag": true,
+      "lead": "so we built",
+      "caption": [
+        "ONE",
+        "REGISTER"
+      ],
+      "accent": 1,
+      "line": "I'm Rume Dominic, and that is why we built CarbonLedger. One register on Solana, where every gram gets a serial number, and can be retired only once.",
+      "audio": "audio/register.aiff",
+      "voice_s": 9.65
+    },
+    {
+      "id": "files",
+      "avatar": "pip",
+      "lead": "the rules live",
+      "caption": [
+        "IN THE",
+        "CODE"
+      ],
+      "accent": 1,
+      "line": "The rules are not a promise on a slide. They live in the code. The same ten test cases run on the server, the database, and the program on chain.",
+      "audio": "audio/files.aiff",
+      "voice_s": 8.85
+    },
+    {
+      "id": "receipt",
+      "avatar": "pip",
+      "lead": "don't trust us",
+      "caption": [
+        "CHECK IT",
+        "YOURSELF"
+      ],
+      "accent": 1,
+      "line": "Every retirement gets a receipt, sealed to the one before it. One fingerprint goes on Solana, so anyone can check it, without trusting us.",
+      "audio": "audio/receipt.aiff",
+      "voice_s": 9.0
+    },
+    {
+      "id": "app",
+      "avatar": "pip",
+      "lead": "scan it, see it",
+      "caption": [
+        "EVERY",
+        "GRAM"
+      ],
+      "accent": 1,
+      "line": "In the app, you scan your shopping, or add a journey, and see your estimated footprint, in grams. No crypto wallet needed.",
+      "audio": "audio/app.aiff",
+      "voice_s": 7.96
+    },
+    {
+      "id": "game",
+      "avatar": "pip",
+      "lead": "together, we clear",
+      "caption": [
+        "THE SMALLEST",
+        "FIRST"
+      ],
+      "accent": 1,
+      "line": "Then it becomes a game. Every gram is a point. Together, we can clear the smallest country's pilot target first, and right now that is Kiribati. Or you can retire for any country you choose.",
+      "audio": "audio/game.aiff",
+      "voice_s": 11.97
+    },
+    {
+      "id": "honest",
+      "avatar": "pip",
+      "lead": "to be clear",
+      "caption": [
+        "PILOT",
+        "UNITS"
+      ],
+      "accent": 0,
+      "line": "To be clear, today these are pilot units, not yet verified credits. The record is real. What comes next: we link each batch to its evidence, field video and satellite imagery, and a named verifier signs it off.",
+      "audio": "audio/honest.aiff",
+      "voice_s": 14.27
+    },
+    {
+      "id": "close",
+      "avatar": "hero",
+      "lead": "one gram",
+      "caption": [
+        "AT A",
+        "TIME"
+      ],
+      "accent": 1,
+      "line": "Imagine a ledger where the world pays down its carbon debt, one gram at a time. Click the link below, and join the movement.",
+      "audio": "audio/close.aiff",
+      "voice_s": 7.47
+    }
+  ],
+  "voice_provider": "say"
+}

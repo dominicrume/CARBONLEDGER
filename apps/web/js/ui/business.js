@@ -9,7 +9,7 @@ import { $, esc, mass } from './dom.js';
 import { confirmRetirement, retireButtonLabel, showReceipt } from './retire.js';
 import { badgeBookHTML } from './badges.js';
 import { skillTreeHTML, bindSkillTree } from './skilltree.js';
-import { heroHTML, historyHTML, questsHTML, leagueHTML } from './me.js';
+import { heroHTML, historyHTML, bindHistory, questsHTML, leagueHTML } from './me.js';
 import { mandateHTML, bindMandates } from './mandate.js';
 
 const car = id => GROUND.find(g => g.id === id);
@@ -76,7 +76,7 @@ export function mountBusiness(root) {
     <section class="panel"><h2 class="h2">Business skill tree</h2><div id="biz-skills"></div></section>
     <section class="panel"><h2 class="h2">Business badges</h2><div id="biz-badges"></div></section>
     <section class="panel"><h2 class="h2">Business league</h2><ol class="league" id="biz-league"></ol></section>
-    <section class="panel"><h2 class="h2">Business history</h2><ul class="history" id="biz-history"></ul></section>
+    <section class="panel"><h2 class="h2">Business receipts</h2><ul class="history" id="biz-history"></ul></section>
     <section class="panel" id="biz-mandates"><h2 class="h2">Agent mandates</h2>${mandateHTML()}</section>`;
   bindMandates($('#biz-mandates', root));
 
@@ -130,5 +130,5 @@ export function refreshBusiness() {
   const me = { name: `${p.name || 'Your business'} (you)`, grams: total, sub: `${p.employees} staff, ${mass(total / Math.max(1, p.employees))} per employee`, you: true };
   $('#biz-league').innerHTML = leagueHTML(EXAMPLE_BUSINESSES.map(b => ({ ...b, sub: `${b.employees} staff, ${mass(b.grams / b.employees)} per employee` })), me);
   $('#biz-history').innerHTML = historyHTML(h);
-  $('#biz-history').querySelectorAll('[data-rec]').forEach(b => b.addEventListener('click', () => showReceipt(h.find(r => r.id === b.dataset.rec))));
+  bindHistory($('#biz-history'), h);
 }

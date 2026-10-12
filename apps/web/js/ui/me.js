@@ -6,7 +6,7 @@ import { skillTree } from '../core/skills.js';
 import { PARTNERS, EXAMPLE_PLAYERS } from '../data/partners.js';
 import { store } from '../core/store.js';
 import { $, esc, mass, toast } from './dom.js';
-import { showReceipt, confirmRetirement } from './retire.js';
+import { showReceipt, confirmRetirement, openVerify } from './retire.js';
 import { badgeBookHTML, BADGE_ICON } from './badges.js';
 import { skillTreeHTML, bindSkillTree } from './skilltree.js';
 import { icon, xp, levelChip, dailyHTML, brandMark } from './hud.js';
@@ -34,7 +34,7 @@ export function mountMe(root) {
         <button class="btn ghost small" data-partner="${p.id}">${esc(p.action)} <span class="xp">+${xp(p.grams)}</span></button></li>`).join('')}</ul>
     </section>
     <section class="panel"><h2 class="h2">${icon('receipt')} All badges</h2><div id="badges"></div></section>
-    <section class="panel"><h2 class="h2">History</h2><ul class="history" id="history"></ul></section>
+    <section class="panel"><h2 class="h2">Your receipts</h2><ul class="history" id="history"></ul></section>
     <section class="panel">
       <form id="name-form" class="form">
         <label class="label" for="name">Your display name</label>
@@ -102,9 +102,16 @@ export function shelfHTML(book) {
   }).join('') + book.countryBadges.slice(0, 6).map(b => `<div class="badge-tile">${icon(b.id.startsWith('cleared') ? 'crown' : 'flag')}<b>${esc(b.name)}</b><small>${b.id.startsWith('cleared') ? 'Finisher' : 'Supporter'}</small></div>`).join('');
 }
 
+// Every receipt in one list: its number, when, how much. What was bought stays inside the receipt (tap the row).
+// Verify opens the public check for that receipt, so anyone can spot-check any of their history at any time.
 export function historyHTML(h) {
-  return h.length ? h.map(r => `<li><button class="hist" data-rec="${r.id}"><span>${esc(r.note || r.label)}<small>${new Date(r.ts).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })} · ${esc(r.countryName || '')}</small></span><span class="mono">${mass(r.grams)}</span></button></li>`).join('')
+  return h.length ? h.map(r => `<li class="hist-row"><button class="hist" data-rec="${esc(r.id)}"><span><span class="mono">${esc(r.id)}</span><small>${new Date(r.ts).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}${r.countryName ? ` · ${esc(r.countryName)}` : ''}</small></span><span class="mono">${mass(r.grams)}</span></button><button class="btn ghost small" data-verify="${esc(r.id)}" aria-label="Verify receipt ${esc(r.id)}">Verify</button></li>`).join('')
     : `<li class="empty">No retirements yet. Scan a basket or log a journey to start.</li>`;
+}
+
+export function bindHistory(el, h) {
+  el.querySelectorAll('[data-rec]').forEach(b => b.addEventListener('click', () => showReceipt(h.find(r => r.id === b.dataset.rec))));
+  el.querySelectorAll('[data-verify]').forEach(b => b.addEventListener('click', () => openVerify(b.dataset.verify)));
 }
 
 export function leagueHTML(entries, me) {
@@ -123,5 +130,5 @@ export function refreshMe() {
   const me = { name: store.get('name', '') ? `${store.get('name', '')} (you)` : 'You', grams: total, sub: 'Individuals', you: true };
   $('#league').innerHTML = leagueHTML(EXAMPLE_PLAYERS.filter(p => p.league !== 'Businesses').map(p => ({ ...p, sub: p.league })), me);
   $('#history').innerHTML = historyHTML(h);
-  $('#history').querySelectorAll('[data-rec]').forEach(b => b.addEventListener('click', () => showReceipt(h.find(r => r.id === b.dataset.rec))));
+  bindHistory($('#history'), h);
 }
