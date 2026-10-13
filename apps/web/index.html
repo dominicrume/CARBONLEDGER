@@ -6,12 +6,14 @@
 <!-- Content-Security-Policy (D7, T17). Scripts only from this origin. Styles from this origin and Google Fonts, plus
      style attributes the templates set for bar widths. Connections only to a loopback API and Open Food Facts.
      A deployed copy must replace the loopback entries with the real API origin (see README). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' http://127.0.0.1:* http://localhost:* https://world.openfoodfacts.org; worker-src 'self' blob:; base-uri 'none'; form-action 'self'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' http://127.0.0.1:* http://localhost:* https://world.openfoodfacts.org; worker-src 'self' blob:; manifest-src 'self'; base-uri 'none'; form-action 'self'; object-src 'none'">
 <title>CarbonLedger</title>
 <meta name="description" content="Scan, log and retire carbon pilot units, clear the world together, and verify every receipt on Solana.">
 <link rel="icon" type="image/png" sizes="32x32" href="brand/mark-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="brand/mark-192.png">
 <link rel="apple-touch-icon" href="brand/mark-192.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#07090a" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#f3f6f2" media="(prefers-color-scheme: light)">
 <meta property="og:title" content="CarbonLedger">

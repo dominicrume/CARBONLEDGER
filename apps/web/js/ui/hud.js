@@ -1,11 +1,12 @@
 // HUD: the game's shared pieces. Icons from the vendored Phosphor sprite, the level ring, the Frontline mission strip,
 // the reward moment after a retirement, and a small confetti burst that stays still under reduced motion.
-// XP is grams: one gram of CO2e retired is one point, so the score and the receipt can never disagree.
+// XP rewards actions and habits (js/core/xp.js), never emitting more. Grams stay the shared total.
 import { levelFor } from '../core/game.js';
+import { LEVEL_BASE_XP } from '../core/xp.js';
 import { esc, mass } from './dom.js';
 
 export const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="vendor/icons.svg#i-${name}-regular"/></svg>`;
-export const xp = g => `${Math.round(g).toLocaleString('en-GB')} XP`;
+export const xp = n => `${Math.round(n).toLocaleString('en-GB')} XP`;
 
 // The brand mark (LOGO/ cropped into apps/web/brand), light and dark.
 export const brandMark = (size = 40, cls = '') => `<picture class="${cls}"><source srcset="brand/mark-dark-128.png" media="(prefers-color-scheme: dark)"><img src="brand/mark-128.png" alt="" width="${size}" height="${size}" style="width:${size}px;height:${size}px"></picture>`;
@@ -44,9 +45,9 @@ export function countUp(el, to, fmt = v => Math.round(v).toLocaleString('en-GB')
   requestAnimationFrame(step);
 }
 
-export function levelChip(total, base) {
-  const lv = levelFor(total, base);
-  return { ...lv, ring: Math.round(Math.max(0, Math.min(1, lv.progress)) * 100), title: levelTitle(lv.n), text: `Level ${lv.n}`, toNext: `${mass(lv.toNext)} to level ${lv.n + 1}` };
+export function levelChip(totalXP, base = LEVEL_BASE_XP) {
+  const lv = levelFor(totalXP, base);
+  return { ...lv, ring: Math.round(Math.max(0, Math.min(1, lv.progress)) * 100), title: levelTitle(lv.n), text: `Level ${lv.n}`, toNext: `${xp(lv.toNext)} to level ${lv.n + 1}` };
 }
 
 // The Frontline strip: the smallest country still to clear, how far it is, how many players are on it.
@@ -72,18 +73,24 @@ export function confettiHTML(n = 18) {
 }
 
 // The reward moment: XP gained, level progress from before to after, a level-up banner, new badges, the country line.
-export function rewardHTML({ grams, before, after, badges = [], countryName, finished, base }) {
+// before and after are XP totals; grams is what was retired. Many badges at once collapse to six and a count.
+export function rewardHTML({ grams, gained, before, after, badges = [], countryName, finished, base = LEVEL_BASE_XP }) {
   const a = levelFor(after, base), b = levelFor(before, base);
-  const up = a.n > b.n;
-  const chips = badges.map((x, i) => `<span class="chip-badge ${x.id.startsWith('cleared') ? 'gold' : ''}" style="--i:${i}">${icon(x.id.startsWith('cleared') ? 'crown' : 'medal')}${esc(x.name)}</span>`).join('');
-  return `<div class="reward" data-xp="${Math.round(grams)}">
+  // Habit and country badges lead; of the "kg retired" ladder only the highest shows, so size is not the headline.
+  const kg = badges.filter(x => x.id.startsWith('retired:')), rank = x => x.id.startsWith('cleared') ? 0 : x.id.startsWith('retired:') ? 2 : 1;
+  badges = [...badges.filter(x => !x.id.startsWith('retired:')), ...kg.slice(-1)].sort((x, y) => rank(x) - rank(y));
+  const up = a.n > b.n, more = Math.max(0, badges.length - 6);
+  badges = badges.slice(0, 6);
+  const chips = badges.map((x, i) => `<span class="chip-badge ${x.id.startsWith('cleared') ? 'gold' : ''}" style="--i:${i}">${icon(x.id.startsWith('cleared') ? 'crown' : 'medal')}${esc(x.name)}</span>`).join('')
+    + (more ? `<span class="chip-badge" style="--i:6">+${more} more</span>` : '');
+  return `<div class="reward" data-xp="${Math.round(gained)}">
     ${up || badges.length ? confettiHTML() : ''}
     ${brandMark(36, 'reward-mark')}
     <div class="reward-xp">+<span id="reward-count">0</span> XP</div>
     <div class="reward-sub">${esc(mass(grams))} of pilot units retired${countryName ? ` for ${esc(countryName)}` : ''}</div>
     ${up ? `<div class="levelup">${icon('sparkle')} Level up! Level ${a.n}, ${esc(levelTitle(a.n))}</div>` : ''}
     <div class="bar gold"><span style="width:${(a.progress * 100).toFixed(1)}%"></span></div>
-    <div class="reward-lv"><span>Level ${a.n}</span><span>${esc(mass(a.toNext))} to level ${a.n + 1}</span></div>
+    <div class="reward-lv"><span>Level ${a.n}</span><span>${esc(xp(a.toNext))} to level ${a.n + 1}</span></div>
     ${finished ? `<div class="levelup">${icon('crown')} You finished ${esc(countryName)}'s symbolic share</div>` : ''}
     ${chips ? `<div class="new-badges">${chips}</div>` : ''}
   </div>`;

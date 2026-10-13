@@ -78,3 +78,4 @@ async function live() {
 }
 
 field(); calc(); copy(); live();
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('/sw.js').catch(() => {});

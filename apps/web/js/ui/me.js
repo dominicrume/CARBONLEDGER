@@ -10,6 +10,7 @@ import { showReceipt, confirmRetirement, openVerify } from './retire.js';
 import { badgeBookHTML, BADGE_ICON } from './badges.js';
 import { skillTreeHTML, bindSkillTree } from './skilltree.js';
 import { icon, xp, levelChip, dailyHTML, brandMark } from './hud.js';
+import { xpOf, sizeXP } from '../core/xp.js';
 
 const weeksActive = h => new Set(h.map(r => { const d = new Date(r.ts); d.setUTCHours(0, 0, 0, 0); d.setUTCDate(d.getUTCDate() - d.getUTCDay()); return +d; })).size;
 const streak = h => {   // consecutive weeks ending this week with at least one retirement
@@ -31,7 +32,7 @@ export function mountMe(root) {
       <h2 class="h2">${icon('hand-coins')} Partner quests</h2>
       <p class="note">Partners pay for pilot units retired in your name. These partners are examples.</p>
       <ul class="partners">${PARTNERS.map(p => `<li><div><strong>${esc(p.name)}</strong><small>${esc(p.kind)}. ${esc(p.note)}.</small></div>
-        <button class="btn ghost small" data-partner="${p.id}">${esc(p.action)} <span class="xp">+${xp(p.grams)}</span></button></li>`).join('')}</ul>
+        <button class="btn ghost small" data-partner="${p.id}">${esc(p.action)} <span class="xp">+${xp(sizeXP(p.grams))}</span></button></li>`).join('')}</ul>
     </section>
     <section class="panel"><h2 class="h2">${icon('receipt')} All badges</h2><div id="badges"></div></section>
     <section class="panel"><h2 class="h2">Your receipts</h2><ul class="history" id="history"></ul></section>
@@ -58,15 +59,14 @@ export function mountMe(root) {
 }
 
 export function heroHTML(account, h, ctx = {}) {
-  const total = h.reduce((s, r) => s + r.grams, 0);
-  const base = account === 'business' ? 50_000 : 500;
-  const lv = levelChip(total, base), book = badgeBook(account, ctx), s = streak(h);
+  const total = h.reduce((s, r) => s + r.grams, 0), points = xpOf(h).total;
+  const lv = levelChip(points), book = badgeBook(account, ctx), s = streak(h);
   const name = account === 'business' ? (ctx.name || 'Your business') : (store.get('name', '') || 'You');
   return `<div class="hero-card">
     <div class="hero-top">
       <span class="ring big" style="--p:${lv.ring}"><b>${lv.n}</b></span>
       <div><div class="hero-title">${esc(name)}, level ${lv.n}</div><div class="hero-rank">${icon('tree-evergreen')} ${esc(lv.title)}</div>
-        <div class="hero-sub">${esc(lv.toNext)}, totals from ${esc(ledger.info.source)}.</div>
+        <div class="hero-sub">${esc(xp(points))}, ${esc(lv.toNext)}, totals from ${esc(ledger.info.source)}. XP rewards habits, not bigger footprints.</div>
         <div class="bar gold thin"><span style="width:${lv.ring}%"></span></div></div>
     </div>
     <div class="stats">

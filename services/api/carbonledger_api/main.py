@@ -8,6 +8,7 @@ The retire flow (rule 6 as refined on 2026-10-11):
   3. Outside the lock: the anchor worker submits and confirms. The response waits up to ANCHOR_WAIT_SECONDS for it.
   4. Nothing is called "recorded on Solana" until the chain confirmed it. A failed anchor is shown as failed."""
 import asyncio
+import mimetypes
 import copy
 import os
 import secrets
@@ -21,6 +22,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
+
+mimetypes.add_type("application/manifest+json", ".webmanifest")   # the installable app's manifest
 
 from carbonledger.agentsig import AgentSigError, check_timestamp, verify_agent
 from carbonledger.auth import ApiKeyStore, AuthError, KeyRecord

@@ -10,6 +10,7 @@ import { mountVerify, refreshVerify } from './ui/verify.js';
 import { openSettings } from './ui/settings.js';
 import { ledger, apiKey, getDemoLogin } from './core/ledger.js';
 import { levelChip } from './ui/hud.js';
+import { xpOf } from './core/xp.js';
 import { maybeOnboard } from './ui/onboard.js';
 import { world } from './core/world.js';
 import { $ } from './ui/dom.js';
@@ -26,8 +27,7 @@ const VIEWS = {
 let currentView = 'shop';
 
 function updateChip() {
-  const total = ledger.history('personal').reduce((s, r) => s + r.grams, 0);
-  const lv = levelChip(total);
+  const lv = levelChip(xpOf(ledger.history('personal')).total);
   $('#level-ring').style.setProperty('--p', lv.ring);
   $('#level-num').textContent = lv.n;
   $('#level-text').innerHTML = `${lv.text}<small>${lv.title}</small>`;
@@ -88,3 +88,6 @@ let start = 'shop';
 try { start = (tabOf(location.hash) || localStorage.getItem('carbonledger.tab') || 'shop'); } catch {}
 show(start, { push: false });
 if (!location.hash) history.replaceState(null, '', `#${currentView}`);
+
+// Installable and opens offline (sw.js). The ledger itself is never served from a cache.
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('/sw.js').catch(() => {});

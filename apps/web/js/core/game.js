@@ -18,7 +18,7 @@ function climb(gen, value) {
 }
 
 // ---- Levels: endless, each a little further than the last ----
-// Level n needs base × (n-1)^2.2 grams. Level 10 ≈ 62 kg personal; level 100 ≈ 12 t.
+// Level n needs base × (n-1)^2.2 points. Called with XP (js/core/xp.js, base 80): level 2 at 80 XP, level 10 at about 10,000 XP.
 export function levelFor(grams, base = 500) {
   const need = n => Math.round(base * Math.pow(n - 1, 2.2));
   let n = Math.max(1, Math.floor(Math.pow(grams / base, 1 / 2.2)) + 1);

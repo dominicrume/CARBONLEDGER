@@ -9,10 +9,10 @@ import { target, resolveTarget } from '../core/target.js';
 import { COUNTRIES } from '../data/countries.js';
 import { sheet, esc, mass, gbp } from './dom.js';
 import { icon, rewardHTML, buzz, xp, countUp, brandMark } from './hud.js';
-import { levelFor } from '../core/game.js';
+import { sizeXP, xpOf } from '../core/xp.js';
 
 export const SIM_TAG = '<span class="tag">Pilot units</span>';
-export function retireButtonLabel(grams) { return `Retire ${mass(grams)} for ${gbp(priceGBP(grams))} <span class="xp">+${xp(grams)}</span>`; }
+export function retireButtonLabel(grams) { return `Retire ${mass(grams)} for ${gbp(priceGBP(grams))} <span class="xp">+${xp(sizeXP(grams))}</span>`; }
 
 // entry: { grams, kind, label, lines: [{name, grams}], ...extra }
 const countryOptions = sel => [...COUNTRIES].sort((a, b) => a.name.localeCompare(b.name))
@@ -57,7 +57,7 @@ export function confirmRetirement(entry, onDone) {
       const dest = resolveTarget(choice, entry.grams);
       const account = entry.account || 'personal', ctx = { employees: store.get('biz', {}).employees };
       const before = new Set(badgeBook(account, ctx).all.map(b => b.id));
-      const totalBefore = ledger.history(account).reduce((s, r) => s + r.grams, 0);
+      const xpBefore = xpOf(ledger.history(account)).total;
       const attempt = () => ledger.retire({ ...entry, idempotencyKey, countryIso3: dest?.iso3, countryName: dest?.name, mode: dest?.mode, finished: !!dest?.finished });
       try {
         let rec;
@@ -69,9 +69,9 @@ export function confirmRetirement(entry, onDone) {
           rec = await attempt();
         }
         const fresh = badgeBook(account, ctx).all.filter(b => !before.has(b.id));
-        const totalAfter = ledger.history(account).reduce((s, r) => s + r.grams, 0);
+        const xpAfter = Math.max(xpOf(ledger.history(account)).total, xpBefore + sizeXP(rec.grams));
         buzz();
-        close(); showReceipt(rec, fresh, { before: totalBefore, after: Math.max(totalAfter, totalBefore + rec.grams), account }); onDone?.(rec);
+        close(); showReceipt(rec, fresh, { before: xpBefore, after: xpAfter, account }); onDone?.(rec);
       } catch (err) {
         e.target.disabled = false; root.querySelector('#retire-error').textContent = err.message;
         if (/NO_KEY|BAD_KEY|REVOKED_KEY/.test(err.message)) root.querySelector('#retire-login').hidden = false;
@@ -94,9 +94,8 @@ export function openVerify(id) { history.pushState(null, '', `#verify?id=${encod
 
 export function showReceipt(rec, newBadges = [], reward = null) {
   const lines = (rec.lines || []).map(l => `<div class="r-line"><span>${esc(l.name)}</span><span>${mass(l.grams)}</span></div>`).join('');
-  const base = reward?.account === 'business' ? 50_000 : 500;
   sheet(`
-    ${reward ? rewardHTML({ grams: rec.grams, before: reward.before, after: reward.after, badges: newBadges, countryName: rec.countryName, finished: rec.finished, base }) : ''}
+    ${reward ? rewardHTML({ grams: rec.grams, gained: reward.after - reward.before, before: reward.before, after: reward.after, badges: newBadges, countryName: rec.countryName, finished: rec.finished }) : ''}
     <div class="receipt">
       <div class="r-head"><strong class="r-brand">${brandMark(20)}CarbonLedger</strong><span>Retirement receipt</span></div>
       <div class="r-meta mono">${esc(rec.id)}<br>${new Date(rec.ts).toLocaleString('en-GB')}</div>
@@ -112,5 +111,5 @@ export function showReceipt(rec, newBadges = [], reward = null) {
     </div>
     ${!reward && newBadges.length ? `<div class="new-badges">${newBadges.map((b, i) => `<span class="chip-badge" style="--i:${i}">${icon('medal')}${esc(b.name)}</span>`).join('')}</div>` : ''}
     <div class="row"><button class="btn ghost" id="receipt-verify" data-close>Verify it</button><button class="btn primary" data-close>Done</button></div>
-  `, { onOpen: (root) => { countUp(root.querySelector('#reward-count'), rec.grams); root.querySelector('#receipt-verify')?.addEventListener('click', () => openVerify(rec.id)); } });
+  `, { onOpen: (root) => { countUp(root.querySelector('#reward-count'), reward ? reward.after - reward.before : 0); root.querySelector('#receipt-verify')?.addEventListener('click', () => openVerify(rec.id)); } });
 }

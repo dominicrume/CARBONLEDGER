@@ -1,0 +1,24 @@
+{
+  "name": "CarbonLedger",
+  "short_name": "CarbonLedger",
+  "description": "Scan, log and retire pilot units to the gram, clear the world together, and check every receipt on Solana devnet. Pilot units, not yet verified credits.",
+  "id": "/app",
+  "start_url": "/app#shop",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07090a",
+  "theme_color": "#07090a",
+  "lang": "en-GB",
+  "categories": ["games", "lifestyle", "utilities"],
+  "icons": [
+    { "src": "/brand/mark-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/brand/mark-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/brand/mark-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Scan a basket", "url": "/app#shop", "icons": [{ "src": "/brand/mark-192.png", "sizes": "192x192" }] },
+    { "name": "Log a journey", "url": "/app#travel", "icons": [{ "src": "/brand/mark-192.png", "sizes": "192x192" }] },
+    { "name": "Verify a receipt", "url": "/app#verify", "icons": [{ "src": "/brand/mark-192.png", "sizes": "192x192" }] }
+  ]
+}
