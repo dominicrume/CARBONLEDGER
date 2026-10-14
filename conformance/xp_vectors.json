@@ -1,0 +1,247 @@
+{
+ "note": "Shared by apps/web/js/core/xp.js and services/api/carbonledger_api/xp.py. Both must give these totals.",
+ "size": [
+  [
+   1,
+   5
+  ],
+  [
+   10,
+   25
+  ],
+  [
+   1000,
+   75
+  ],
+  [
+   10000,
+   100
+  ],
+  [
+   100000,
+   125
+  ],
+  [
+   1000000,
+   150
+  ],
+  [
+   50000000,
+   150
+  ],
+  [
+   0,
+   0
+  ],
+  [
+   316,
+   62
+  ],
+  [
+   3162,
+   87
+  ],
+  [
+   17783,
+   106
+  ],
+  [
+   56,
+   44
+  ]
+ ],
+ "histories": [
+  {
+   "name": "one basket",
+   "records": [
+    {
+     "id": "a",
+     "ts": "2026-10-06T10:00:00Z",
+     "grams": 1000,
+     "kind": "shop",
+     "mode": "frontline"
+    }
+   ],
+   "total": 215
+  },
+  {
+   "name": "twenty tiny retirements in a day",
+   "records": [
+    {
+     "id": "x0",
+     "ts": "2026-10-06T10:00:00Z",
+     "grams": 1,
+     "kind": "shop",
+     "mode": "chosen"
+    },
+    {
+     "id": "x1",
+     "ts": "2026-10-06T10:01:00Z",
+     "grams": 1,
+     "kind": "shop",
+     "mode": "chosen"
+    },
+    {
+     "id": "x2",
+     "ts": "2026-10-06T10:02:00Z",
+     "grams": 1,
+     "kind": "shop",
+     "mode": "chosen"
+    },
+    {
+     "id": "x3",
+     "ts": "2026-10-06T10:03:00Z",
+     "grams": 1,
+     "kind": "shop",
+     "mode": "chosen"
+    },
+    {
+     "id": "x4",
+     "ts": "2026-10-06T10:04:00Z",
+     "grams": 1,
+     "kind": "shop",
+     "mode": "chosen"
+    },
+    {
+     "id": "x5",
+     "ts": "2026-10-06T10:05:00Z",
+     "grams": 1,
+     "kind": "shop",
+     "mode": "chosen"
+    },
+    {
+     "id": "x6",
+     "ts": "2026-10-06T10:06:00Z",
+     "grams": 1,
+     "kind": "shop",
+     "mode": "chosen"
+    },
+    {
+     "id": "x7",
+     "ts": "2026-10-06T10:07:00Z",
+     "grams": 1,
+     "kind": "shop",
+     "mode": "chosen"
+    },
+    {
+     "id": "x8",
+     "ts": "2026-10-06T10:08:00Z",
+     "grams": 1,
+     "kind": "shop",
+     "mode": "chosen"
+    },
+    {
+     "id": "x9",
+     "ts": "2026-10-06T10:09:00Z",
+     "grams": 1,
+     "kind": "shop",
+     "mode": "chosen"
+    },
+    {
+     "id": "x10",
+     "ts": "2026-10-06T10:10:00Z",
+     "grams": 1,
+     "kind": "shop",
+     "mode": "chosen"
+    },
+    {
+     "id": "x11",
+     "ts": "2026-10-06T10:11:00Z",
+     "grams": 1,
+     "kind": "shop",
+     "mode": "chosen"
+    },
+    {
+     "id": "x12",
+     "ts": "2026-10-06T10:12:00Z",
+     "grams": 1,
+     "kind": "shop",
+     "mode": "chosen"
+    },
+    {
+     "id": "x13",
+     "ts": "2026-10-06T10:13:00Z",
+     "grams": 1,
+     "kind": "shop",
+     "mode": "chosen"
+    },
+    {
+     "id": "x14",
+     "ts": "2026-10-06T10:14:00Z",
+     "grams": 1,
+     "kind": "shop",
+     "mode": "chosen"
+    },
+    {
+     "id": "x15",
+     "ts": "2026-10-06T10:15:00Z",
+     "grams": 1,
+     "kind": "shop",
+     "mode": "chosen"
+    },
+    {
+     "id": "x16",
+     "ts": "2026-10-06T10:16:00Z",
+     "grams": 1,
+     "kind": "shop",
+     "mode": "chosen"
+    },
+    {
+     "id": "x17",
+     "ts": "2026-10-06T10:17:00Z",
+     "grams": 1,
+     "kind": "shop",
+     "mode": "chosen"
+    },
+    {
+     "id": "x18",
+     "ts": "2026-10-06T10:18:00Z",
+     "grams": 1,
+     "kind": "shop",
+     "mode": "chosen"
+    },
+    {
+     "id": "x19",
+     "ts": "2026-10-06T10:19:00Z",
+     "grams": 1,
+     "kind": "shop",
+     "mode": "chosen"
+    }
+   ],
+   "total": 165
+  },
+  {
+   "name": "two weeks, Saturday then Sunday",
+   "records": [
+    {
+     "id": "s",
+     "ts": "2026-10-10T23:00:00Z",
+     "grams": 2500,
+     "kind": "shop",
+     "mode": "chosen"
+    },
+    {
+     "id": "u",
+     "ts": "2026-10-11T08:00:00Z",
+     "grams": 2500,
+     "kind": "shop",
+     "mode": "chosen"
+    }
+   ],
+   "total": 450
+  },
+  {
+   "name": "a long-haul flight",
+   "records": [
+    {
+     "id": "f",
+     "ts": "2026-10-05T10:00:00Z",
+     "grams": 2500000,
+     "kind": "travel",
+     "mode": "frontline"
+    }
+   ],
+   "total": 290
+  }
+ ]
+}

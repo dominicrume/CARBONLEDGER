@@ -45,12 +45,18 @@ def account_router(st, require_key) -> APIRouter:
     def _mine():
         return [e for e in st.receipts.entries()]
 
+    def _owners(caller) -> set:
+        """A signed-in person's history includes the anonymous login they played with before signing in."""
+        aid = st.people.account_of(caller.owner) if getattr(st, "people", None) else None
+        return st.people.owners_of(aid) if aid else {caller.owner}
+
     @r.get("/totals")
     def totals(caller=Depends(require_key)):
         out: Dict[str, dict] = {a: {"grams": 0, "count": 0, "by_kind": {}} for a in ("personal", "business")}
+        mine = _owners(caller)
         for e in _mine():
             rc = e["receipt"]
-            if rc.get("owner") != caller.owner or rc.get("outcome") != "ACCEPTED":
+            if rc.get("owner") not in mine or rc.get("outcome") != "ACCEPTED":
                 continue
             t = out[rc["account"]]
             t["grams"] += rc["grams"]
@@ -64,10 +70,10 @@ def account_router(st, require_key) -> APIRouter:
         """Default: what was retired. outcome=refused: what was attempted and stopped, the half an ordinary log drops."""
         if not 1 <= limit <= 1000:
             raise HTTPException(422, "limit must be between 1 and 1000")
-        rows = []
+        rows, mine = [], _owners(caller)
         for e in reversed(_mine()):
             rc = e["receipt"]
-            if rc.get("owner") != caller.owner or (account != "all" and rc["account"] != account):
+            if rc.get("owner") not in mine or (account != "all" and rc["account"] != account):
                 continue
             if outcome != "all" and rc.get("outcome") != outcome.upper():
                 continue

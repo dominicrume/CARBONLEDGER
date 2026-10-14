@@ -82,6 +82,11 @@ class ApiKeyStore:
                     return True
         return False
 
+    def keys_of(self, owner: str) -> list:
+        """Every key record of one owner (for delete-my-data: each is revoked)."""
+        with self._lock:
+            return [rec for rec in self._by_hash.values() if rec.owner == owner]
+
     def count(self) -> int:
         with self._lock:
             return len(self._by_hash)

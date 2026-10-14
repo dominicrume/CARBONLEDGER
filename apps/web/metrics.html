@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<!-- Operator dashboard. The figures need METRICS_TOKEN, typed here and kept for this tab only (sessionStorage). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'self'; object-src 'none'">
+<title>Metrics · CarbonLedger</title>
+<link rel="icon" type="image/png" sizes="32x32" href="brand/mark-32.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="css/landing.css">
+<link rel="stylesheet" href="css/metrics.css">
+<script src="js/metrics.js" defer></script>
+</head>
+<body>
+<main class="block"><div class="wrap">
+  <p><a href="/">← CarbonLedger</a></p>
+  <span class="eyebrow">Operator dashboard</span>
+  <h1 class="m-h1">How the pilot is <em>actually used</em>.</h1>
+  <form id="m-login" class="m-login">
+    <label for="m-token">Operator token</label>
+    <input id="m-token" type="password" autocomplete="off" placeholder="METRICS_TOKEN">
+    <select id="m-days" aria-label="Period"><option value="7">7 days</option><option value="30" selected>30 days</option><option value="90">90 days</option></select>
+    <button class="btn primary" type="submit">Show</button>
+  </form>
+  <p class="fine" id="m-msg" role="status">Counts hold a day, an event name and a number. Players and return rate come from the ledger itself.</p>
+  <section id="m-out" hidden>
+    <div class="m-kpis" id="m-kpis"></div>
+    <h2 class="m-h2">Funnel</h2><div class="m-funnel" id="m-funnel"></div>
+    <h2 class="m-h2">By day</h2><div class="m-table-wrap"><table class="m-table" id="m-days-table"></table></div>
+  </section>
+</div></main>
+</body>
+</html>

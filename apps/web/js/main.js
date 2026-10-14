@@ -13,7 +13,8 @@ import { levelChip } from './ui/hud.js';
 import { xpOf } from './core/xp.js';
 import { maybeOnboard } from './ui/onboard.js';
 import { world } from './core/world.js';
-import { $ } from './ui/dom.js';
+import { $, toast } from './ui/dom.js';
+import { account, track } from './core/account.js';
 
 const VIEWS = {
   shop: { mount: mountShop },
@@ -73,8 +74,8 @@ document.addEventListener('carbonledger:world', () => VIEWS[currentView].refresh
 document.addEventListener('click', (e) => { const m = e.target.closest?.('[data-mission]'); if (m) { history.pushState(null, '', `#countries?pick=${m.dataset.mission}`); show('countries', { push: false }); } });
 document.addEventListener('carbonledger:login', async () => { showConnection(); if (await ledger.sync()) { updateChip(); VIEWS[currentView].refresh?.(); } });
 // Back, forward, links and typed hashes: the hash decides the tab (a query such as ?id= is read by the view).
-window.addEventListener('popstate', () => show(tabOf(location.hash) || 'shop', { push: false }));
-window.addEventListener('hashchange', () => show(tabOf(location.hash) || 'shop', { push: false }));
+window.addEventListener('popstate', () => { if (!handleSignIn()) show(tabOf(location.hash) || 'shop', { push: false }); });
+window.addEventListener('hashchange', () => { if (!handleSignIn()) show(tabOf(location.hash) || 'shop', { push: false }); });
 document.querySelectorAll('.tabs [data-tab]').forEach(b => b.addEventListener('click', () => show(b.dataset.tab)));
 $('#level-chip').addEventListener('click', () => show('me'));
 // Settings changes (price, community total) redraw the open view; price labels refresh on next render.
@@ -83,7 +84,21 @@ $('#settings-btn').addEventListener('click', () => openSettings(() => { Object.e
 const retire = ledger.retire.bind(ledger);
 ledger.retire = async (e) => { const r = await retire(e); await ledger.sync(); await world.refresh(); updateChip(); VIEWS[currentView].refresh?.(); return r; };
 ledger.sync().then(fromServer => { if (fromServer) { updateChip(); VIEWS[currentView].refresh?.(); } });
-maybeOnboard((tab) => show(tab));
+// A sign-in link from the email: #signin?t=TOKEN, on a fresh load or into an open app. The token leaves the
+// address bar at once and is used once.
+function handleSignIn() {
+  const m = location.hash.match(/^#signin\?t=([A-Za-z0-9_-]{20,200})/);
+  if (!m) return false;
+  history.replaceState(null, '', '#me');
+  show('me', { push: false });
+  account.verify(m[1]).then(async (d) => { await ledger.sync(); updateChip(); VIEWS[currentView].refresh?.(); toast(`Signed in as ${d.email}. Your progress is saved.`); })
+    .catch(err => toast(err.message));
+  return true;
+}
+const signin = handleSignIn();
+track('app_open');
+addEventListener('appinstalled', () => track('install'));
+if (!signin) maybeOnboard((tab) => show(tab));
 let start = 'shop';
 try { start = (tabOf(location.hash) || localStorage.getItem('carbonledger.tab') || 'shop'); } catch {}
 show(start, { push: false });

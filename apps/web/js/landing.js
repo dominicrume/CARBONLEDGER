@@ -79,3 +79,5 @@ async function live() {
 
 field(); calc(); copy(); live();
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('/sw.js').catch(() => {});
+// One privacy-first count per visit (a day and a number on our own server). Skipped when the browser asks not to be tracked.
+try { if (!navigator.globalPrivacyControl && navigator.doNotTrack !== '1') fetch('/v1/events', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: 'site_view' }), keepalive: true }).catch(() => {}); } catch {}

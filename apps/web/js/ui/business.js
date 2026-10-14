@@ -4,12 +4,12 @@ import { badgeBook } from '../core/game.js';
 import { store } from '../core/store.js';
 import { GROUND, TRAVEL_SOURCE } from '../data/travel.js';
 import { FLIGHT_KM, businessEnergyGrams, businessFleetGrams, businessFlightGrams, commuteGrams, productsSoldGrams, measuredGrams } from '../core/activities.js';
-import { EXAMPLE_BUSINESSES } from '../data/partners.js';
 import { $, esc, mass } from './dom.js';
 import { confirmRetirement, retireButtonLabel, showReceipt } from './retire.js';
 import { badgeBookHTML } from './badges.js';
 import { skillTreeHTML, bindSkillTree } from './skilltree.js';
-import { heroHTML, historyHTML, bindHistory, questsHTML, leagueHTML } from './me.js';
+import { heroHTML, historyHTML, bindHistory, questsHTML, renderLeague } from './me.js';
+import { account, live } from '../core/account.js';
 import { mandateHTML, bindMandates } from './mandate.js';
 
 const car = id => GROUND.find(g => g.id === id);
@@ -75,12 +75,23 @@ export function mountBusiness(root) {
     <section class="panel"><h2 class="h2">Next quests</h2><ul class="quests" id="biz-quests"></ul></section>
     <section class="panel"><h2 class="h2">Business skill tree</h2><div id="biz-skills"></div></section>
     <section class="panel"><h2 class="h2">Business badges</h2><div id="biz-badges"></div></section>
-    <section class="panel"><h2 class="h2">Business league</h2><ol class="league" id="biz-league"></ol></section>
-    <section class="panel"><h2 class="h2">Business receipts</h2><ul class="history" id="biz-history"></ul></section>
+    <section class="panel"><h2 class="h2">This week's business league</h2><p class="note" id="biz-league-note">Ranked by XP from the ledger: habits, not the size of a footprint.</p><ol class="league" id="biz-league"></ol></section>
+    <section class="panel"><div class="row between"><h2 class="h2">Business receipts</h2><button class="btn ghost small" id="biz-statement" type="button">Download statement</button></div><p class="note">A CSV of every business retirement with its serial range, pilot tonne and on-chain proof. Every line is a pilot unit until a named verifier attests a real project.</p><p class="note" id="biz-statement-msg" role="status"></p><ul class="history" id="biz-history"></ul></section>
     <section class="panel" id="biz-mandates"><h2 class="h2">Agent mandates</h2>${mandateHTML()}</section>`;
   bindMandates($('#biz-mandates', root));
 
-  const saveProfile = () => { store.set('biz', { name: $('#biz-name').value.trim(), employees: Math.max(1, +$('#biz-emp').value || 1) }); refreshBusiness(); };
+  const saveProfile = () => {
+    const name = $('#biz-name').value.trim(), employees = Math.max(1, +$('#biz-emp').value || 1);
+    store.set('biz', { name, employees }); refreshBusiness();
+    if (live()) account.saveProfile({ business_name: name || null, employees }).catch(() => {});     // the statement's heading
+  };
+  $('#biz-statement', root).addEventListener('click', async () => {
+    const msg = $('#biz-statement-msg');
+    if (!live()) { msg.textContent = 'The statement comes from the ledger. On this device only, there is nothing to download.'; return; }
+    msg.textContent = 'Preparing…';
+    try { await account.statement('business'); msg.textContent = 'Downloaded. Every line can be checked in Verify by its receipt id.'; }
+    catch (err) { msg.textContent = err.message; }
+  });
   $('#biz-name', root).addEventListener('change', saveProfile);
   $('#biz-emp', root).addEventListener('change', saveProfile);
   const form = $('#biz-form', root);
@@ -127,8 +138,7 @@ export function refreshBusiness() {
   $('#biz-quests').innerHTML = questsHTML('business', ctx); bindSkillTree($('#biz-quests'), 'business', ctx);
   $('#biz-skills').innerHTML = skillTreeHTML('business', ctx); bindSkillTree($('#biz-skills'), 'business', ctx);
   $('#biz-badges').innerHTML = badgeBookHTML(badgeBook('business', ctx));
-  const me = { name: `${p.name || 'Your business'} (you)`, grams: total, sub: `${p.employees} staff, ${mass(total / Math.max(1, p.employees))} per employee`, you: true };
-  $('#biz-league').innerHTML = leagueHTML(EXAMPLE_BUSINESSES.map(b => ({ ...b, sub: `${b.employees} staff, ${mass(b.grams / b.employees)} per employee` })), me);
+  renderLeague('business', $('#biz-league'), $('#biz-league-note'));
   $('#biz-history').innerHTML = historyHTML(h);
   bindHistory($('#biz-history'), h);
 }

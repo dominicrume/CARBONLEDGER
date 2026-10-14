@@ -35,6 +35,9 @@ from carbonledger.registry import RegistryError
 from carbonledger.units import grams_to_clt
 
 from .accounts import account_router, world_router
+from .growth import growth_router
+from .mailer import mailer_from_env
+from .people import people_from_env
 from .lookup import ProductLookup
 from .models import STATUS_FOR, UNITS_STATUS, MandateIn, RetireIn
 from .recompute import RecomputeError, compute
@@ -52,16 +55,18 @@ def public_receipt_id(receipt_body: dict) -> str:
 def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = time.time, web_origin: Optional[str] = None,
                anchor_wait_s: Optional[float] = None, start_worker: bool = True, keys: Optional[ApiKeyStore] = None,
                limits: Optional[Limits] = None, product_lookup: Optional[ProductLookup] = None, store=None,
-               anchor_interval_s: Optional[float] = None) -> FastAPI:
+               anchor_interval_s: Optional[float] = None, people=None, mailer="env") -> FastAPI:
     st = State(chain or chain_from_env(), now, anchor_wait_from_env() if anchor_wait_s is None else anchor_wait_s,
                keys=keys, limits=limits or Limits.from_env(), product_lookup=product_lookup, store=store,
                anchor_interval_s=anchor_interval_from_env() if anchor_interval_s is None else anchor_interval_s)
     dev = os.environ.get("APP_ENV") == "dev"
     app = FastAPI(title="CarbonLedger API", docs_url="/docs" if dev else None, redoc_url=None, openapi_url="/openapi.json" if dev else None)
     app.state.st = st
+    st.people = people if people is not None else people_from_env(os.environ.get("DATABASE_URL"))
+    mailer = mailer_from_env() if mailer == "env" else mailer
     origin = web_origin or os.environ.get("WEB_ORIGIN")
     if origin:
-        app.add_middleware(CORSMiddleware, allow_origins=[origin], allow_methods=["GET", "POST"], allow_headers=["content-type", "authorization"])
+        app.add_middleware(CORSMiddleware, allow_origins=[origin], allow_methods=["GET", "POST", "PUT", "DELETE"], allow_headers=["content-type", "authorization"], expose_headers=["content-disposition"])
     if start_worker:
         st.worker.start()
 
@@ -78,7 +83,7 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
     def acts_for_business(caller: KeyRecord) -> bool:
         """Business, agent and authority keys act for a business. On a demo server every demo login does too:
         a visitor plays both leagues with one login, from the first tap (D28). Never true outside demo mode."""
-        return caller.role in ("business", "agent", "authority") or (st.limits.demo_keys and caller.owner.startswith("demo-"))
+        return caller.role in ("business", "agent", "authority") or (st.limits.demo_keys and caller.owner.startswith(("demo-", "acct-")))
 
     def require_key(request: Request) -> KeyRecord:
         """Every write needs a key (D2). Then the key's bucket must have a token (rate limit)."""
@@ -92,6 +97,10 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
         if not st.bucket.take(rec.key_id):
             raise HTTPException(429, "Too many requests for this key. Wait a minute. Nothing was recorded.", headers={"Retry-After": "60"})
         return rec
+
+    def optional_key(request: Request) -> Optional[KeyRecord]:
+        """A key if one was sent and is good, else None (public reads that can also say "you")."""
+        return require_key(request) if request.headers.get("authorization") else None
 
     @app.middleware("http")
     async def edge_limits(request: Request, call_next):
@@ -282,6 +291,7 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
         return receipt_id
 
     app.include_router(account_router(st, require_key))
+    app.include_router(growth_router(st, require_key, optional_key, mailer, st.people, os.environ.get("PUBLIC_URL", "https://carbonledger.world").rstrip("/")))
     app.include_router(world_router(st))
 
     @app.get("/v1/receipts/{receipt_id}")

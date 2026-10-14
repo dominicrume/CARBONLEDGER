@@ -35,6 +35,9 @@ class MemoryStore:
     def insert_api_key(self, rec) -> None:
         pass
 
+    def revoke_api_key(self, key_id: str) -> None:
+        pass
+
 
 class PostgresStore:
     kind = "postgres"

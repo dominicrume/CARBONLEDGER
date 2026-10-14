@@ -2,6 +2,7 @@
 // Wording follows rules/HARDENING-PRODUCT.md: pilot units are retired, never "offset", and are labelled as pilot units, not yet verified credits.
 import { settings } from '../core/settings.js';
 import { tonneShort } from '../core/serials.js';
+import { track } from '../core/account.js';
 import { store } from '../core/store.js';
 import { ledger, gramsToClt, priceGBP, ref, getDemoLogin } from '../core/ledger.js';
 import { badgeBook, countryQueue } from '../core/game.js';
@@ -19,6 +20,7 @@ const countryOptions = sel => [...COUNTRIES].sort((a, b) => a.name.localeCompare
   .map(c => `<option value="${c.iso3}" ${c.iso3 === sel ? 'selected' : ''}>${esc(c.name)}</option>`).join('');
 
 export function confirmRetirement(entry, onDone) {
+  track('retire_open');
   const t = target.get(), front = countryQueue().current;
   const idempotencyKey = ref();   // one key for this intent; a retry after a timeout reuses it
   sheet(`

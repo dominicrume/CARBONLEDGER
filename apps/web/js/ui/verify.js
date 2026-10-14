@@ -7,6 +7,7 @@ import { SIM_TAG } from './retire.js';
 import { verifyProof } from '../core/merkle.js';
 import { brandMark } from './hud.js';
 import { tonneText } from '../core/serials.js';
+import { track } from '../core/account.js';
 
 const anchorWords = (status, cluster) => {
   const where = cluster === 'dry-run' ? 'the dry-run chain (nothing was sent to Solana)' : `Solana ${cluster || 'devnet'}, a test network`;
@@ -47,6 +48,7 @@ export function refreshVerify() {
 }
 
 async function lookup(id) {
+  if (id) track('verify');
   const out = $('#verify-out');
   if (!id) { out.innerHTML = '<p class="muted">Enter a receipt id.</p>'; return; }
   if (CONFIG.ledger !== 'solana-devnet') {

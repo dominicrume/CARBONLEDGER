@@ -479,3 +479,8 @@ input:hover, select:hover { border-color: color-mix(in srgb, var(--primary) 55%,
   .rail-links a:hover { background: var(--primary-soft); color: var(--fg); }
 }
 @media (max-width: 380px) { .app-tag { display: none; } }
+
+/* Account: save progress, public name, delete my data */
+.account-links { gap: 6px 18px; font-size: .88rem; } .account-links a { color: var(--primary); font-weight: 600; }
+.link.danger, .btn.danger:not(.ghost) { color: var(--bad); } .btn.primary.danger { background: var(--bad); color: #1a0606; }
+.signed-in { display: flex; gap: 8px; align-items: flex-start; margin: 12px 0 0; font-size: .9rem; }

@@ -24,9 +24,9 @@ test('splitting one basket into many retirements in a day earns nothing extra af
   assert.equal([...each.values()].filter(v => v > 0).length, DAILY_COUNTED);
 });
 
-test('a week, the Frontline and a new kind of action each add a bonus once', () => {
-  const h = [r('a', '2026-10-06T10:00:00Z', 1000, 'shop', 'frontline')];
-  assert.equal(xpOf(h).total, 75 + 25 + 100 + 40);
+test('a week and a new kind of action each add a bonus once', () => {
+  const h = [r('a', '2026-10-06T10:00:00Z', 1000, 'shop')];
+  assert.equal(xpOf(h).total, 75 + 100 + 40);
   assert.equal(previewXP(h, { grams: 1000, kind: 'shop', ts: '2026-10-06T11:00:00Z' }), 75);
   assert.equal(previewXP(h, { grams: 1000, kind: 'travel', ts: '2026-10-06T11:00:00Z' }), 75 + 40);
 });

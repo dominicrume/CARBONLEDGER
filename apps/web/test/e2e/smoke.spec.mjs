@@ -232,3 +232,18 @@ test('feedback where there was none: letters-only barcode, send-here, an impossi
   await page.click('#send-here');
   await expect(page.locator('#toast')).toContainText('Norway');
 });
+
+test('the league is real and ranked by XP, sign-in says plainly when email is not set up, a business downloads its statement', async ({ page }) => {
+  await page.goto(`${APP}/?ledger=solana-devnet&api=${encodeURIComponent(API)}#travel`);
+  await page.click('#retire-trip'); await page.click('#confirm-retire');
+  await expect(page.locator('.receipt')).toBeVisible(); await page.keyboard.press('Escape');
+  await page.click('[data-tab="me"]');
+  await expect(page.locator('#league')).toContainText('(you)');
+  await expect(page.locator('#league')).toContainText('XP');
+  await expect(page.locator('#league-note')).toContainText('not the size of a footprint');
+  await page.fill('#signin-email', 'player@example.com'); await page.click('#signin-form button');
+  await expect(page.locator('#signin-msg')).toContainText('not set up');       // no email provider on this server: said, not faked
+  await page.click('[data-tab="business"]');
+  const [download] = await Promise.all([page.waitForEvent('download'), page.click('#biz-statement')]);
+  expect(download.suggestedFilename()).toMatch(/^carbonledger-statement-business-\d{4}-\d{2}-\d{2}\.csv$/);
+});

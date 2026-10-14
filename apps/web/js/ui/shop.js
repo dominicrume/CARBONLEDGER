@@ -1,5 +1,6 @@
 // Shop view: scan or pick products, review the basket, retire pilot units for it.
 import { basket } from '../core/basket.js';
+import { track } from '../core/account.js';
 import { lookupBarcode, catalogue } from '../core/lookup.js';
 import { decodePhoto, startLive } from '../core/scanner.js';
 import { TIERS } from '../core/estimate.js';
@@ -52,6 +53,7 @@ export function mountShop(root) {
 }
 
 async function startScan() {
+  track('scan_start');
   const video = $('#video');
   video.hidden = false;
   live = await startLive(video, handleCode);

@@ -2,11 +2,11 @@
 // country queue, the gram badges); personal XP is a separate score so a long-haul flight cannot out-level a careful
 // month. Rules, all from the account's own history, oldest first:
 //   - each retirement: a size score that grows with the logarithm of its grams, from 5 to 150 XP
-//   - +25 when it goes to the Frontline (the shared goal)
 //   - only the first DAILY_COUNTED retirements of a UTC day score, so splitting one basket into many earns nothing
 //   - +100 for the first retirement of each week (the habit), +40 for each new kind of action that week (variety)
-// Integers only. The same history always gives the same XP.
-export const DAILY_COUNTED = 5, FRONTLINE_XP = 25, WEEK_XP = 100, KIND_XP = 40, LEVEL_BASE_XP = 80;
+// Integers only. The same history always gives the same XP. Every input is on the server's receipt (kind, grams,
+// time), so the server's leaderboard (carbonledger_api/xp.py) can check it: no bonus rests on a browser's word.
+export const DAILY_COUNTED = 5, WEEK_XP = 100, KIND_XP = 40, LEVEL_BASE_XP = 80;
 
 // 1 g -> 5, 10 g -> 25, 1 kg -> 75, 10 kg -> 100, 100 kg -> 125, 1 t and above -> 150
 export function sizeXP(grams) {
@@ -25,7 +25,7 @@ export function xpOf(history) {
   for (const r of rs) {
     const d = day(r.ts), w = week(r.ts), n = (perDay.get(d) || 0) + 1;
     perDay.set(d, n);
-    let x = n <= DAILY_COUNTED ? sizeXP(r.grams) + (r.mode === 'frontline' ? FRONTLINE_XP : 0) : 0;
+    let x = n <= DAILY_COUNTED ? sizeXP(r.grams) : 0;
     if (!weeks.has(w)) { weeks.set(w, new Set()); x += WEEK_XP; }
     const kinds = weeks.get(w);
     if (r.kind && !kinds.has(r.kind)) { kinds.add(r.kind); x += KIND_XP; }
@@ -35,6 +35,6 @@ export function xpOf(history) {
 }
 
 // What one more retirement would add right now, for the "+N XP" on a retire button.
-export function previewXP(history, { grams, kind, mode, ts = new Date().toISOString() }) {
-  return xpOf([...history, { id: '__preview', ts, grams, kind, mode }]).total - xpOf(history).total;
+export function previewXP(history, { grams, kind, ts = new Date().toISOString() }) {
+  return xpOf([...history, { id: '__preview', ts, grams, kind }]).total - xpOf(history).total;
 }
