@@ -32,7 +32,7 @@ def _fails(conn, sql, params=(), match=""):
 
 def test_every_migration_applied_once(db):
     names = [r[0] for r in db.execute("SELECT name FROM schema_migrations ORDER BY name")]
-    assert names == ["0001_registry.sql", "0002_phase1.sql", "0003_merkle.sql", "0004_people_metrics.sql"]
+    assert names == ["0001_registry.sql", "0002_phase1.sql", "0003_merkle.sql", "0004_people_metrics.sql", "0005_seeker.sql"]
     from migrate import migrate
     assert migrate(URL) == []
 

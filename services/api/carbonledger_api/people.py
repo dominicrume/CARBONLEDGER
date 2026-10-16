@@ -17,6 +17,8 @@ class MemoryPeople:
         self.owners: Dict[str, str] = {}            # owner -> account id
         self.links: Dict[str, tuple] = {}           # token hash -> (email, expires_at, used)
         self.profiles: Dict[str, dict] = {}
+        self.wallets: Dict[str, str] = {}           # account id -> Solana wallet (Sign in with Seeker)
+        self.sgt: Dict[str, str] = {}               # account id -> Seeker Genesis Token mint
 
     # ---- A: event counts ----
     def count_event(self, day: str, name: str) -> None:
@@ -53,6 +55,27 @@ class MemoryPeople:
             self.owners[aid] = aid                  # the account's own main owner id
             return aid
 
+    def account_for_wallet(self, wallet: str) -> str:
+        with self._lock:
+            for aid, w in self.wallets.items():
+                if w == wallet:
+                    return aid
+            aid = f"acct-{secrets.token_hex(6)}"
+            self.wallets[aid] = wallet
+            self.owners[aid] = aid
+            return aid
+
+    def set_seeker(self, account_id: str, mint: str) -> bool:
+        """Marks the account a Seeker. False when this Genesis Token already belongs to another account."""
+        with self._lock:
+            if any(m == mint and a != account_id for a, m in self.sgt.items()):
+                return False
+            self.sgt[account_id] = mint
+            return True
+
+    def seekers(self) -> Set[str]:
+        return set(self.sgt)
+
     def link_owner(self, owner: str, account_id: str) -> None:
         with self._lock:
             self.owners.setdefault(owner, account_id)   # an owner already linked elsewhere stays where it is
@@ -88,6 +111,8 @@ class MemoryPeople:
             if account_id:
                 email = self.accounts.pop(account_id, None)
                 self.links = {h: v for h, v in self.links.items() if v[0] != email}
+                self.wallets.pop(account_id, None)
+                self.sgt.pop(account_id, None)
 
 
 class PostgresPeople:
@@ -97,7 +122,7 @@ class PostgresPeople:
         import psycopg
         self._psycopg, self.url = psycopg, url
         with self._conn() as c:
-            c.execute("SELECT 1 FROM schema_migrations WHERE name = '0004_people_metrics.sql'")
+            c.execute("SELECT 1 FROM schema_migrations WHERE name = '0005_seeker.sql'")
             if c.fetchone() is None:
                 raise RuntimeError("database is not migrated: run python scripts/migrate.py")
 
@@ -141,6 +166,30 @@ class PostgresPeople:
             c.execute("INSERT INTO accounts (id, email) VALUES (%s,%s)", (aid, email))
             c.execute("INSERT INTO account_owners (owner, account_id) VALUES (%s,%s) ON CONFLICT (owner) DO NOTHING", (aid, aid))
             return aid
+
+    def account_for_wallet(self, wallet: str) -> str:
+        with self._conn() as c:
+            c.execute("SELECT id FROM accounts WHERE wallet = %s", (wallet,))
+            row = c.fetchone()
+            if row:
+                return row[0]
+            aid = f"acct-{secrets.token_hex(6)}"
+            c.execute("INSERT INTO accounts (id, wallet) VALUES (%s,%s)", (aid, wallet))
+            c.execute("INSERT INTO account_owners (owner, account_id) VALUES (%s,%s) ON CONFLICT (owner) DO NOTHING", (aid, aid))
+            return aid
+
+    def set_seeker(self, account_id: str, mint: str) -> bool:
+        with self._conn() as c:
+            c.execute("SELECT id FROM accounts WHERE sgt_mint = %s AND id <> %s", (mint, account_id))
+            if c.fetchone():
+                return False
+            c.execute("UPDATE accounts SET sgt_mint = %s, seeker_verified_at = now() WHERE id = %s", (mint, account_id))
+            return True
+
+    def seekers(self) -> Set[str]:
+        with self._conn() as c:
+            c.execute("SELECT id FROM accounts WHERE sgt_mint IS NOT NULL")
+            return {r[0] for r in c.fetchall()}
 
     def link_owner(self, owner: str, account_id: str) -> None:
         with self._conn() as c:

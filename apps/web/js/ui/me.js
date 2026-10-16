@@ -11,7 +11,7 @@ import { badgeBookHTML, BADGE_ICON } from './badges.js';
 import { skillTreeHTML, bindSkillTree } from './skilltree.js';
 import { icon, xp, levelChip, dailyHTML, brandMark } from './hud.js';
 import { xpOf, sizeXP } from '../core/xp.js';
-import { account, live, track } from '../core/account.js';
+import { account, live, track, seekerCapable, signInWithSeeker } from '../core/account.js';
 import { sheet } from './dom.js';
 
 const weeksActive = h => new Set(h.map(r => { const d = new Date(r.ts); d.setUTCHours(0, 0, 0, 0); d.setUTCDate(d.getUTCDate() - d.getUTCDay()); return +d; })).size;
@@ -144,7 +144,7 @@ export async function renderLeague(board, list, note) {
   try {
     const L = await account.league(board);
     if (note) note.textContent = `Week of ${day(L.season)}, ends ${day(L.ends)}. ${L.players} ${L.players === 1 ? 'player' : 'players'}. Ranked by XP from the ledger: habits, not the size of a footprint.`;
-    list.innerHTML = L.entries.length ? L.entries.map(e => `<li class="${e.you ? 'you' : ''}"><span class="rank">${e.rank}</span><span style="flex:1">${esc(e.name)}${e.you ? ' (you)' : ''}<small>${e.retirements} retirement${e.retirements === 1 ? '' : 's'}, ${esc(mass(e.grams))}</small></span><span class="mono">${esc(xp(e.xp))}</span></li>`).join('')
+    list.innerHTML = L.entries.length ? L.entries.map(e => `<li class="${e.you ? 'you' : ''}"><span class="rank">${e.rank}</span><span style="flex:1">${esc(e.name)}${e.you ? ' (you)' : ''}${e.seeker ? ' <span class="seeker-tag">Seeker</span>' : ''}<small>${e.retirements} retirement${e.retirements === 1 ? '' : 's'}, ${esc(mass(e.grams))}</small></span><span class="mono">${esc(xp(e.xp))}</span></li>`).join('')
       : '<li class="empty">Nobody has played this week yet. Your first retirement puts you on the board.</li>';
   } catch { list.innerHTML = '<li class="empty">Could not reach the ledger for the league just now.</li>'; }
 }
@@ -157,12 +157,20 @@ async function renderAccount() {
   let p = null;
   try { p = await account.profile(); } catch { box.innerHTML = ''; return; }
   if (note) note.textContent = `Shown on this week's league as ${p.public_name}. Leave it empty to show as a random player name.`;
-  if (p.signed_in) { box.innerHTML = `<p class="ok signed-in">${icon('check-circle')} Progress saved to ${esc(p.email)}. Sign in on another device with the same address.</p>`; return; }
-  box.innerHTML = `<form id="signin-form" class="form">
+  const seekerTag = p.seeker ? ` <span class="seeker-tag">${icon('seal-check')} Seeker</span>` : '';
+  if (p.signed_in) { box.innerHTML = `<p class="ok signed-in">${icon('check-circle')} ${p.email ? `Progress saved to ${esc(p.email)}. Sign in on another device with the same address.` : 'Progress saved to your Solana wallet.'}${seekerTag}</p>`; return; }
+  box.innerHTML = `${seekerCapable() ? `<div class="seeker-box"><button class="btn primary" id="seeker-signin" type="button">${icon('seal-check')} Sign in with Seeker</button>
+      <small>Your Seeker's wallet signs one message to prove it is yours. No transaction, no payment, nothing moves. A Seeker Genesis Token earns the Seeker badge.</small>
+      <p class="note" id="seeker-msg" role="status"></p></div>` : ''}<form id="signin-form" class="form">
       <label class="label" for="signin-email">Save your progress</label>
       <div class="row" style="margin-top:0"><input id="signin-email" type="email" autocomplete="email" placeholder="you@example.com" required><button class="btn ghost" type="submit">Email me a link</button></div>
       <small>One sign-in link, valid once for 15 minutes. Your scores and receipts so far come with you.</small>
       <p class="note" id="signin-msg" role="status"></p></form>`;
+  $('#seeker-signin')?.addEventListener('click', async (e) => {
+    const msg = $('#seeker-msg'); e.target.disabled = true; msg.textContent = 'Opening your wallet…';
+    try { const d = await signInWithSeeker(); toast(d.note); await ledger.sync(); refreshMe(); }
+    catch (err) { msg.textContent = err.message || 'The wallet did not sign. Nothing changed.'; e.target.disabled = false; }
+  });
   $('#signin-form').addEventListener('submit', async (e) => {
     e.preventDefault(); track('signin_start');
     const msg = $('#signin-msg'); msg.textContent = 'Sending…';

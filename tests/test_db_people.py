@@ -72,3 +72,21 @@ def test_sign_in_and_delete_through_the_api_on_postgres():
     with __import__("psycopg").connect(URL) as conn:
         assert conn.execute("SELECT count(*) FROM accounts WHERE email = 'db@example.com'").fetchone()[0] == 0
         assert conn.execute("SELECT bool_and(revoked) FROM api_keys WHERE owner LIKE 'acct-%'").fetchone()[0] is True
+
+
+def test_wallet_accounts_and_one_genesis_token_per_account_on_postgres():
+    import psycopg
+    from carbonledger_api.people import PostgresPeople
+    p = PostgresPeople(URL)
+    w1, w2 = "7DQZmWuTomLpBSHD44D3whxjPUja2Rt7Mm3LNGNewiyh", "3dGd2V1ykcmahyCQvhri4R2WhabT83hmm2WNz2r788Zj"
+    a1 = p.account_for_wallet(w1)
+    assert p.account_for_wallet(w1) == a1 and p.email_of(a1) is None                  # a wallet account needs no email
+    a2 = p.account_for_wallet(w2)
+    mint = "5mXbkqKz883aufhAsx3p5Z1NcvD2ppZbdTTznM6oUKLj"
+    assert p.set_seeker(a1, mint) is True and p.set_seeker(a2, mint) is False         # one phone, one Seeker account
+    assert p.seekers() == {a1}
+    with pytest.raises(psycopg.errors.CheckViolation):                                # an account is an email or a wallet
+        with psycopg.connect(URL) as c:
+            c.execute("INSERT INTO accounts (id) VALUES ('acct-111111111111')")
+    p.delete(p.owners_of(a1), a1)
+    assert p.seekers() == set() and p.set_seeker(a2, mint) is True                    # deleted: the token is free again

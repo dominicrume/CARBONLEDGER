@@ -20,6 +20,7 @@ from pydantic import BaseModel, Field
 from carbonledger.auth import TokenBucket
 
 from .models import UNITS_STATUS
+from .seeker import NONCE_TTL_S, SeekerError, challenge, check_sign_in
 from .xp import week_of, xp_of
 
 # The only events the app may count. Retirements are not events: they are counted from the ledger itself.
@@ -41,6 +42,12 @@ class EmailIn(BaseModel):
 
 class TokenIn(BaseModel):
     token: str = Field(min_length=20, max_length=200)
+
+
+class SeekerIn(BaseModel):
+    address: str = Field(min_length=32, max_length=44)
+    signed_message: str = Field(min_length=20, max_length=4000)
+    signature: str = Field(min_length=40, max_length=200)
 
 
 class ProfileIn(BaseModel):
@@ -66,7 +73,7 @@ def clean_name(raw: str, field: str) -> Optional[str]:
     return v
 
 
-def growth_router(st, require_key: Callable, optional_key: Callable, mailer, people, public_url: str) -> APIRouter:
+def growth_router(st, require_key: Callable, optional_key: Callable, mailer, people, public_url: str, sgt_lookup=None) -> APIRouter:
     g = APIRouter()
     event_bucket = TokenBucket(1, 120)
     event_bucket.rate = 120 / 3600.0                       # 120 events an hour per address, then quietly dropped
@@ -184,10 +191,48 @@ def growth_router(st, require_key: Callable, optional_key: Callable, mailer, peo
         return {"api_key": key, "owner": aid, "email": email, "units": UNITS_STATUS,
                 "note": "Signed in. This browser keeps the login in Settings. Your earlier progress is part of your account now."}
 
+    # ---------------- Sign in with Seeker: SIWS, then a read-only Genesis Token check ----------------
+    domain = public_url.split("://", 1)[-1].split("/", 1)[0]
+    iso = lambda t: datetime.fromtimestamp(t, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    @g.post("/v1/auth/seeker/challenge")
+    def seeker_challenge(request: Request):
+        """A one-time nonce for the wallet to sign. Signing moves nothing: no transaction, no payment."""
+        if not email_bucket.take("siws:" + client(request)):
+            raise HTTPException(429, "Too many sign-in attempts from this address. Try again later.", headers={"Retry-After": "3600"})
+        nonce = secrets.token_hex(16)
+        people.put_link(hashlib.sha256(f"siws:{nonce}".encode()).hexdigest(), "siws", st.now() + NONCE_TTL_S)
+        return challenge(domain, public_url, nonce, iso(st.now()), iso(st.now() + NONCE_TTL_S))
+
+    @g.post("/v1/auth/seeker/verify")
+    def seeker_verify(body: SeekerIn, caller=Depends(optional_key)):
+        try:
+            nonce = check_sign_in(domain, body.address, body.signed_message, body.signature)
+        except SeekerError as exc:
+            raise HTTPException(401, f"Seeker sign-in refused: {exc}. Nothing changed.")
+        if people.take_link(hashlib.sha256(f"siws:{nonce}".encode()).hexdigest(), st.now()) != "siws":
+            raise HTTPException(401, "This sign-in has expired or was already used. Try again. Nothing changed.")
+        aid = people.account_for_wallet(body.address)
+        if caller is not None and caller.owner != aid:
+            people.link_owner(caller.owner, aid)
+        key, rec = st.keys.issue("personal", aid)
+        st.store.insert_api_key(rec)
+        seeker, note = False, "Signed in with your wallet. No Seeker Genesis Token was found on it."
+        try:
+            mint = sgt_lookup(body.address) if sgt_lookup else None
+            if mint and people.set_seeker(aid, mint):
+                seeker, note = True, "Signed in. Seeker Genesis Token verified: the Seeker badge is yours."
+            elif mint:
+                note = "Signed in. This phone's Seeker Genesis Token already belongs to another CarbonLedger account."
+        except Exception:
+            note = "Signed in with your wallet. The Seeker check could not reach Solana just now; sign in again later to add it."
+        return {"api_key": key, "owner": aid, "wallet": body.address, "seeker": seeker, "note": note, "units": UNITS_STATUS}
+
     @g.get("/v1/accounts/me/profile")
     def get_profile(caller=Depends(require_key)):
         aid = people.account_of(caller.owner)
         return {"owner": main_owner(caller.owner), "signed_in": bool(aid), "email": people.email_of(aid) if aid else None,
+                "seeker": bool(aid) and aid in people.seekers(),
                 "public_name": people.get_profile(main_owner(caller.owner)).get("display_name") or pseudonym(main_owner(caller.owner)),
                 **people.get_profile(main_owner(caller.owner))}
 
@@ -279,7 +324,7 @@ def growth_router(st, require_key: Callable, optional_key: Callable, mailer, peo
                 c = countries.setdefault(iso, {"iso3": iso, "grams": 0, "players": set()})
                 c["grams"] += rc["grams"]
                 c["players"].add(main_owner(rc["owner"]))
-        names = people.all_display_names()
+        names, seekers = people.all_display_names(), people.seekers()
         table = sorted(({"owner": o, "xp": xp_of(rs)[0], "grams": sum(r["grams"] for r in rs), "retirements": len(rs)} for o, rs in by.items()),
                        key=lambda r: (-r["xp"], -r["retirements"], r["owner"]))
         me = main_owner(caller.owner) if caller is not None else None
@@ -287,7 +332,7 @@ def growth_router(st, require_key: Callable, optional_key: Callable, mailer, peo
         for i, r in enumerate(table, 1):
             if i <= 20 or r["owner"] == me:
                 out.append({"rank": i, "name": names.get(r["owner"]) or pseudonym(r["owner"]), "xp": r["xp"], "retirements": r["retirements"],
-                            "grams": r["grams"], "you": r["owner"] == me})
+                            "grams": r["grams"], "you": r["owner"] == me, "seeker": r["owner"] in seekers})
         top_c = sorted(({"iso3": c["iso3"], "grams": c["grams"], "players": len(c["players"])} for c in countries.values()), key=lambda c: -c["grams"])[:10]
         return {"season": season, "ends": ends, "board": board, "players": len(table), "entries": out, "countries": top_c,
                 "ranked_by": "XP: habits and actions, not the size of a footprint", "units": UNITS_STATUS}

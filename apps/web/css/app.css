@@ -484,3 +484,9 @@ input:hover, select:hover { border-color: color-mix(in srgb, var(--primary) 55%,
 .account-links { gap: 6px 18px; font-size: .88rem; } .account-links a { color: var(--primary); font-weight: 600; }
 .link.danger, .btn.danger:not(.ghost) { color: var(--bad); } .btn.primary.danger { background: var(--bad); color: #1a0606; }
 .signed-in { display: flex; gap: 8px; align-items: flex-start; margin: 12px 0 0; font-size: .9rem; }
+
+/* Sign in with Seeker */
+.seeker-box { display: grid; gap: 8px; margin: 14px 0 6px; padding: 14px; border: 1px solid var(--line-strong); border-radius: var(--r-ctl); background: var(--primary-soft); }
+.seeker-box .btn { justify-self: start; }
+.seeker-tag { display: inline-flex; align-items: center; gap: 4px; font: 600 .62rem/1 var(--mono); letter-spacing: .08em; text-transform: uppercase;
+  color: #1b1030; background: #c6b8ff; border-radius: 6px; padding: 3px 6px; vertical-align: 2px; }

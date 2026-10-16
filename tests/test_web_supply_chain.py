@@ -37,7 +37,7 @@ def test_every_vendored_script_has_the_right_integrity_hash():
 
 def test_vendored_versions_are_pinned_in_the_file_names():
     names = sorted(p.name for p in (WEB / "vendor").glob("*.js"))
-    assert names == ["d3-7.9.0.min.js", "topojson-client-3.1.0.min.js", "zxing-library-0.21.3.umd.min.js"]
+    assert names == ["d3-7.9.0.min.js", "seeker-mwa-0.7.0.min.js", "topojson-client-3.1.0.min.js", "zxing-library-0.21.3.umd.min.js"]
 
 
 def test_content_security_policy_allows_scripts_from_self_only():
@@ -56,3 +56,30 @@ def test_landing_page_loads_no_remote_script_and_keeps_its_policy():
         assert src and not src.group(1).startswith(("http:", "https:", "//")), attrs
     csp = re.search(r'http-equiv="Content-Security-Policy" content="([^"]+)"', html).group(1)
     assert "script-src 'self'" in csp and "connect-src 'self'" in csp and "unsafe-eval" not in csp
+
+
+def test_the_seeker_wallet_connector_is_pinned_by_the_hash_the_app_loads_it_with():
+    """vendor/seeker-mwa-*.min.js is injected on demand (Android only), so its hash lives in account.js, not a tag."""
+    js = (WEB / "js" / "core" / "account.js").read_text(encoding="utf-8")
+    src, integrity = re.search(r"src: '(vendor/seeker-mwa-[^']+)', integrity: 'sha384-([^']+)'", js).groups()
+    data = (WEB / src).read_bytes()
+    assert base64.b64encode(hashlib.sha384(data).digest()).decode() == integrity
+    assert b"eval(" not in data and b"new Function" not in data                 # runs under script-src 'self'
+    csp = re.search(r'http-equiv="Content-Security-Policy" content="([^"]+)"', HTML).group(1)
+    assert "ws://localhost:*" in csp and "wss://" not in csp                  # the phone's own wallet only, no relay
+
+
+def test_the_seeker_connector_styles_are_allowed_by_exact_hash_not_by_unsafe_inline():
+    """Its wallet pop-ups inject fixed stylesheets. The app allows exactly those (by SHA-256), never 'unsafe-inline'."""
+    js = (WEB / "vendor" / "seeker-mwa-0.7.0.min.js").read_text(encoding="utf-8")
+
+    def const(name):
+        i = js.index(name + "=`") + len(name) + 2
+        return js[i:js.index("`", i)]
+    texts = [const("dh") + const(n) for n in ("Fh", "Nh", "Rh", "bh", "gh")] + [const("Bh")]
+    csp = re.search(r'http-equiv="Content-Security-Policy" content="([^"]+)"', HTML).group(1)
+    style_src = re.search(r"style-src ([^;]+);", csp).group(1)
+    assert "'unsafe-inline'" not in style_src
+    for t in texts:
+        assert "${" not in t
+        assert f"'sha256-{base64.b64encode(hashlib.sha256(t.encode()).digest()).decode()}'" in style_src

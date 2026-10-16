@@ -32,3 +32,11 @@ a human step) and submit for review. Read the Solana dApp Store publisher policy
 - Short: "Retire pilot units to the gram and clear the world together. Every receipt checkable on Solana devnet."
 - Always add: "Pilot units, not yet verified credits. No payment is taken."
 - Never: "offset", "carbon neutral", "earn", "airdrop", or any SKR or token reward.
+
+## Sign in with Seeker (built 2026-10-16)
+On Android the app offers "Sign in with Seeker": Mobile Wallet Adapter (vendor/seeker-mwa-0.7.0.min.js, rebuilt by
+scripts/build_seeker_mwa.sh) asks the Seed Vault wallet to sign one Sign-in-with-Solana message for carbonledger.world.
+The server checks the signature, the domain and a one-time nonce, then reads mainnet (SOLANA_MAINNET_RPC_URL) for a
+Seeker Genesis Token: a Token-2022 mint in group GT22s89nU4iWFkNXj1Bw6uYhJJWDRPpShHt4Bk8f99Te. One token marks one
+account. The perk is a Seeker badge on the league and in the account; never tokens or money. Test it on a real Seeker:
+there is no Genesis Token on devnet.
