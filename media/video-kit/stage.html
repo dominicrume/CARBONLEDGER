@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en-GB"><head><meta charset="utf-8">
+<title>Video kit stage</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  /* VOREM grammar in landscape: navy dark, one amber glow, uppercase headline with one amber line and a masked wipe,
+     floating UI cards in 3D, a gold step timeline with status chips, two-to-three-word captions with an amber
+     underline on the key word, no hard cuts. Every frame is render(t). */
+  :root { --bg: #080B13; --ink: #ECEFF5; --mute: #8A93A6; --dim: #4A5266; --amber: #F2A93B; --line: rgba(255,255,255,.08);
+          --card: linear-gradient(160deg, #171C2B 0%, #0E121D 100%); --red: #E86A5C; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); color: var(--ink); font-family: Inter, Arial, sans-serif; }
+  .abs { position: absolute; }
+  #bg { position: absolute; inset: 0; overflow: hidden; }
+  .glow { position: absolute; border-radius: 50%; filter: blur(40px); }
+  #g1 { width: 1300px; height: 1000px; background: radial-gradient(closest-side, rgba(242,169,59,.30), rgba(242,169,59,.08) 55%, transparent); }
+  #g2 { width: 1400px; height: 1100px; background: radial-gradient(closest-side, rgba(52,84,160,.22), transparent); }
+  #dots { position: absolute; inset: -40px; background-image: radial-gradient(rgba(255,255,255,.07) 1px, transparent 1.4px); background-size: 34px 34px;
+          -webkit-mask-image: radial-gradient(ellipse at 70% 45%, #000 0%, transparent 65%); }
+  #vig { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0,0,0,.55) 100%),
+         linear-gradient(to bottom, transparent 75%, rgba(4,6,11,.85) 100%); }
+  .mono { font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: .16em; }
+  #eyebrow { left: 120px; top: 64px; font-size: 15px; color: var(--mute); display: flex; gap: 14px; align-items: center; }
+  #eyebrow b { width: 9px; height: 9px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 12px var(--amber); }
+  #chap { right: 120px; top: 60px; display: flex; gap: 18px; align-items: center; font-size: 15px; color: var(--mute); }
+  #chap .n { color: var(--amber); font-weight: 700; }
+  #ticks { display: flex; gap: 6px; } #ticks i { width: 26px; height: 3px; border-radius: 2px; background: #283044; }
+  #ticks i.on { background: var(--amber); }
+  /* headline */
+  #head { left: 120px; top: 0; width: 820px; height: 1080px; }
+  #head .kick { position: absolute; left: 0; font-size: 15px; color: var(--amber); }
+  #head .lines { position: absolute; left: 0; }
+  .ln { overflow: hidden; padding: 0 0 .06em; margin-bottom: -.06em; }
+  .ln span { display: block; font-family: Manrope, sans-serif; font-weight: 800; text-transform: uppercase; letter-spacing: -.012em; line-height: 1.02; white-space: nowrap; }
+  .ln.acc span { color: var(--amber); }
+  #head .rule { position: absolute; left: 0; height: 3px; background: var(--amber); border-radius: 2px; }
+  #sting { left: 90px; top: 150px; font: 800 380px Manrope, sans-serif; color: transparent; -webkit-text-stroke: 2px rgba(242,169,59,.9); letter-spacing: -.04em; line-height: 1; }
+  /* visual stage */
+  #viz { left: 1000px; top: 170px; width: 820px; height: 700px; perspective: 1800px; }
+  #cam { position: absolute; inset: 0; transform-style: preserve-3d; }
+  #grp { position: absolute; inset: 0; transform-style: preserve-3d; }
+  .card { position: absolute; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 22px 26px;
+          box-shadow: 0 34px 70px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06); }
+  .lbl { font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: .16em; font-size: 13px; color: var(--mute); }
+  .val { font-family: Manrope, sans-serif; font-weight: 800; letter-spacing: -.02em; }
+  .chip { position: absolute; display: inline-flex; gap: 9px; align-items: center; white-space: nowrap; border: 1px solid rgba(242,169,59,.55);
+          color: var(--amber); background: rgba(242,169,59,.08); border-radius: 999px; padding: 8px 15px; font: 500 13px 'JetBrains Mono', monospace;
+          letter-spacing: .14em; text-transform: uppercase; }
+  .chip.w { border-color: rgba(255,255,255,.18); color: var(--ink); background: rgba(255,255,255,.04); }
+  .chip.r { border-color: rgba(232,106,92,.6); color: var(--red); background: rgba(232,106,92,.08); }
+  .chip i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .strike { position: absolute; left: -6px; right: -6px; top: 50%; height: 2px; background: var(--red); transform-origin: 0 50%; }
+  /* the gold step timeline (VOREM) */
+  .row { position: absolute; left: 96px; height: 64px; display: flex; align-items: center; padding: 0 24px; border-radius: 12px;
+         background: var(--card); box-shadow: 0 20px 40px rgba(0,0,0,.45);
+         border: 1px solid color-mix(in srgb, var(--amber) calc(var(--a, 0) * 70%), rgba(255,255,255,.07));
+         font: 500 17px 'JetBrains Mono', monospace; letter-spacing: .14em; text-transform: uppercase;
+         color: color-mix(in srgb, var(--amber) calc(var(--a, 0) * 100%), #9AA2B4); }
+  .row.g { box-shadow: 0 20px 40px rgba(0,0,0,.45), 0 0 calc(var(--c, 0) * 46px) rgba(242,169,59, calc(var(--c, 0) * .28)); }
+  .node { position: absolute; left: 0; width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; background: #0D111B;
+          border: 2px solid color-mix(in srgb, var(--amber) calc(var(--a, 0) * 100%), #2C3447); font: 700 15px 'JetBrains Mono', monospace;
+          color: color-mix(in srgb, var(--amber) calc(var(--a, 0) * 100%), #6B7387);
+          box-shadow: 0 0 calc(var(--c, 0) * 30px) rgba(242,169,59, calc(var(--c, 0) * .5)); }
+  .spine { position: absolute; left: 29px; width: 2px; background: #283044; }
+  .spine b { position: absolute; left: 0; top: 0; width: 2px; background: var(--amber); box-shadow: 0 0 10px var(--amber); }
+  .bar { position: absolute; bottom: 0; border-radius: 8px 8px 4px 4px; background: linear-gradient(to top, rgba(242,169,59,.95), rgba(242,169,59,.55)); }
+  svg { overflow: visible; }
+  .dl { fill: none; stroke: var(--amber); stroke-width: 2; stroke-dasharray: 1; stroke-dashoffset: 1; }
+  .dl.w { stroke: rgba(255,255,255,.22); }
+  /* presenter */
+  #hero { left: 1130px; top: 76px; width: 590px; height: 1044px; }
+  #hero img { width: 590px; height: 1044px; object-fit: cover; object-position: top;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 16%, #000 84%, transparent 100%), linear-gradient(to bottom, #000 60%, transparent 92%);
+    -webkit-mask-composite: source-in; mask-composite: intersect; }
+  #hero:after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 300px; background: linear-gradient(to bottom, transparent, var(--bg)); }
+  #pres { left: 120px; top: 930px; display: flex; gap: 16px; align-items: center; }
+  #pres .ph { width: 64px; height: 64px; border-radius: 50%; overflow: hidden; border: 2px solid var(--amber); }
+  #pres .ph img { width: 64px; height: 64px; object-fit: cover; object-position: 50% 20%; }
+  #pres .nm { font: 700 19px Manrope, sans-serif; } #pres .rl { font-size: 12px; color: var(--mute); margin-top: 3px; }
+  #meter { display: flex; gap: 4px; align-items: center; height: 30px; margin-left: 6px; }
+  #meter i { width: 4px; border-radius: 2px; background: var(--amber); }
+  #ai { right: 120px; top: 100px; font-size: 12px; color: var(--dim); }
+  /* captions */
+  #cap { left: 0; width: 1920px; top: 958px; text-align: center; font: 700 44px Inter, sans-serif; letter-spacing: -.01em;
+         text-shadow: 0 2px 18px rgba(0,0,0,.8); }
+  #cap .k { position: relative; display: inline-block; }
+  #cap .k u { position: absolute; left: 0; right: 0; bottom: -8px; height: 4px; border-radius: 2px; background: var(--amber); transform-origin: 0 50%; text-decoration: none; }
+  /* end card and references */
+  #end, #refs { position: absolute; inset: 0; opacity: 0; }
+  #refs .card { left: 220px; top: 150px; width: 1480px; padding: 48px 60px; }
+  #refs p { font-size: 21px; line-height: 1.45; color: #C8CEDA; margin-top: 16px; padding-left: 28px; text-indent: -28px; }
+  #refs p i { color: var(--ink); }
+</style></head>
+<body>
+<div id="bg"><div class="glow" id="g1"></div><div class="glow" id="g2"></div><div id="dots"></div><div id="vig"></div></div>
+<div class="abs mono" id="eyebrow"><b></b><span id="eb"></span></div>
+<div class="abs mono" id="chap"><span class="n"></span><span class="t"></span><span id="ticks"></span></div>
+<div class="abs" id="sting"></div>
+<div class="abs" id="head"></div>
+<div class="abs" id="hero"><img src="presenter.png" alt=""></div>
+<div class="abs" id="viz"><div id="cam"><div id="grp"></div></div></div>
+<div class="abs" id="pres"><div class="ph"><img src="presenter-card.png" alt=""></div><div><p class="nm" id="pn"></p><p class="rl mono" id="pr"></p></div><div id="meter"></div></div>
+<div class="abs mono" id="ai"><span id="ail"></span></div>
+<div class="abs" id="cap"></div>
+<div id="end">
+  <svg class="abs" style="left:810px;top:250px;width:300px;height:300px" viewBox="-150 -150 300 300">
+    <circle r="96" fill="none" stroke="rgba(242,169,59,.25)" stroke-width="2"/>
+    <circle id="ering" r="96" fill="none" stroke="#F2A93B" stroke-width="4" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" transform="rotate(-90)" stroke-linecap="round"/>
+    <g id="eicon" stroke="#ECEFF5" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M-34 22 L-46 0 L-28 -30 L-6 -30"/><path d="M-14 -40 L-6 -30 L-16 -20"/>
+      <path d="M6 -30 L28 -30 L44 -2"/><path d="M50 -14 L44 -2 L32 -6"/>
+      <path d="M40 18 L24 40 L-12 40"/><path d="M-4 50 L-12 40 L-2 30"/></g>
+    <g fill="#F2A93B"><circle cx="0" cy="-96" r="6"/><circle cx="96" cy="0" r="6"/><circle cx="0" cy="96" r="6"/><circle cx="-96" cy="0" r="6"/></g>
+  </svg>
+  <div class="abs" style="left:0;width:1920px;top:590px;text-align:center">
+    <div class="ln" style="display:inline-block"><span id="et" style="font-size:84px"></span></div>
+    <div id="eline" style="margin:22px auto 0;height:2px;width:520px;background:#F2A93B;transform-origin:50% 50%"></div>
+    <p id="es" class="mono" style="margin-top:26px;font-size:18px;color:#ECEFF5"></p>
+    <p id="en" class="mono" style="margin-top:14px;font-size:15px;color:#8A93A6"></p>
+  </div>
+</div>
+<div id="refs"><div class="card"><p class="lbl" style="font-size:16px;color:#F2A93B">References</p><div id="rlist"></div></div></div>
+<script>
+const FPS = 30, SHOW = .7;
+let REFS = [];
+// Small line icons. Add your own: 24x24 viewBox, stroke only.
+const I = {
+  cam: '<rect x="3" y="7" width="18" height="12" rx="3"/><circle cx="12" cy="13" r="3.5"/><path d="M8 7l1.5-3h5L16 7"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-5 4-7 8-7s7 2 8 7"/>',
+  reset: '<path d="M4 12a8 8 0 1 0 3-6.2"/><path d="M4 4v5h5"/>',
+  leaf: '<path d="M5 19C5 9 11 5 20 4c0 9-4 15-14 15z"/><path d="M5 19l8-8"/>',
+  chip: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/>' };
+const ic = (n, s = 22, c = 'currentColor') => `<svg viewBox="0 0 24 24" style="width:${s}px;height:${s}px;fill:none;stroke:${c};stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none">${I[n]}</svg>`;
+
+// The gold step timeline: [number, label, top, width, attributes].
+const rows = (list, spineTop, spineH, spineVar) => `<div class="spine abs" style="top:${spineTop}px;height:${spineH}px"><b data-spine="${spineVar}"></b></div>` +
+  list.map(([n, txt, top, w, attrs]) => `<div class="node" style="top:${top + 2}px" ${attrs}>${n}</div><div class="row g" style="top:${top}px;width:${w}px" ${attrs}>${txt}</div>`).join('');
+
+/* Visual groups. Each is markup inside an 820x700 box, driven by data attributes, so a new visual is markup only:
+   data-w="word"   appears when that word is spoken in the beat (word#2 for its second time)
+   data-s="n"      belongs to step n of the group (consecutive beats with the same group are its steps)
+   data-at=".5"    appears half way through that step's speech; data-d=".3" adds a delay in seconds
+   data-aw / data-as   turns amber (sets --a, and --c while current) at a word / at a step
+   data-count="62" counts up; data-fill="1" fills var(--f); class "dl" + pathLength="1" draws an SVG line
+   class "card" floats in 3D; class "nofx" opts out of the rise-in. Each html(b) gets the group's first beat, so
+   a beat can carry its own data (items, value, question) in film.json. Copy one and edit the words. */
+const G = {
+  hero: { html: () => `
+    <div class="card" style="left:-40px;top:470px;width:380px" data-d=".5">
+      <p class="lbl">Presenter</p><p class="val" style="font-size:34px;margin-top:10px">${F.meta.name}</p>
+      <p style="font-size:16px;color:#AEB6C6;margin-top:6px;line-height:1.4">${F.meta.role}</p></div>
+    <div class="chip w" style="left:-20px;top:650px" data-s="1" data-w="thank"><i></i>Thank you</div>` },
+  three: { html: b => `
+    ${b.items.map((it, k) => `<div class="card" style="left:${120 + k * 100}px;top:${120 + k * 130}px;width:440px;padding:18px 24px" data-w="${it.w}">
+      <p class="lbl" style="color:#F2A93B">0${k + 1}</p><p class="val" style="font-size:30px;margin-top:4px">${it.label}</p></div>`).join('')}` },
+  steps: { html: b => `<div class="lbl abs" style="left:96px;top:60px" data-d=".2">${b.title || ''}</div>` +
+    rows(b.items.map((it, k) => [`0${k + 1}`, it.label, 120 + k * 110, 520, `data-d="${.3 + k * .1}" data-aw="${it.w}"`]), 150, (b.items.length - 1) * 110, 'steps') },
+  stat: { html: b => `
+    <div class="card" style="left:60px;top:30px;width:460px;height:470px;text-align:center" data-d=".2"><p class="lbl">${b.label}</p>
+      <svg class="abs" style="left:80px;top:80px;width:300px;height:300px" viewBox="-150 -150 300 300"><circle r="120" fill="none" stroke="#222A3C" stroke-width="18"/>
+        <circle r="120" fill="none" stroke="#F2A93B" stroke-width="18" stroke-linecap="round" transform="rotate(-90)" pathLength="1" stroke-dasharray="1" style="stroke-dashoffset:calc(1 - var(--f,0)*${b.value / 100})" class="nofx" data-fill="1" data-w="${b.w}"/></svg>
+      <p class="abs val" style="left:0;right:0;top:185px;font-size:84px"><span data-count="${b.value}" data-w="${b.w}">0</span>%</p></div>
+    <div class="chip w" style="left:540px;top:120px" data-w="${b.source_w}"><i></i>${b.source}</div>` },
+  quiz: { html: b => `
+    <div class="card" style="left:120px;top:60px;width:560px;padding:26px 30px" data-w="${b.w}"><p class="lbl" style="color:#F2A93B">Quick question</p>
+      <p class="val" style="font-size:34px;margin-top:10px">${b.question}</p>
+      <div style="display:flex;gap:12px;margin-top:22px">${b.options.map((o, k) => `<span class="chip w" style="position:static" data-w="${b.w}" data-d="${.25 + k * .2}">${o}</span>`).join('')}</div>
+      <svg class="abs" style="right:24px;top:24px;width:34px;height:34px" viewBox="-15 -15 30 30"><circle r="12" fill="none" stroke="#283044" stroke-width="3"/><circle class="timer nofx" r="12" fill="none" stroke="#F2A93B" stroke-width="3" pathLength="1" stroke-dasharray="1" transform="rotate(-90)" data-w="${b.w}"/></svg></div>
+    <div class="chip" style="left:120px;top:360px" data-w="${b.answer_w}"><i></i>${b.answer}</div>` },
+};
+
+let F, BEATS, RUNS, ENV, cur = { run: null, beat: null };
+const clamp = v => Math.max(0, Math.min(1, v)), ease = k => 1 - Math.pow(1 - k, 3), eio = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+const norm = w => w.toLowerCase().replace(/[^a-z0-9-]/g, '');
+const $ = id => document.getElementById(id);
+
+function wordAt(beat, spec) {
+  const [w, nth] = spec.split('#'); let c = 0;
+  for (const [s, , x] of beat.words) if (norm(x).startsWith(norm(w)) && ++c === (+nth || 1)) return beat.speak + s;
+  return beat.speak;
+}
+function stepBeat(run, s) { return run.beats.find(b => b.step === s); }
+
+async function load() {
+  F = await (await fetch('film.json')).json(); ENV = await (await fetch('audio/env.json')).json();
+  BEATS = F.beats; RUNS = [];
+  for (const b of BEATS) {
+    const last = RUNS[RUNS.length - 1];
+    if (last && last.group === b.group) last.beats.push(b); else RUNS.push({ group: b.group, beats: [b] });
+    b.run = RUNS[RUNS.length - 1];
+  }
+  RUNS.forEach(r => { r.start = r.beats[0].start; r.end = r.beats[r.beats.length - 1].end; r.minStep = r.beats[0].step; r.maxStep = r.beats[r.beats.length - 1].step; });
+  // headline size: the largest that keeps every line inside 800 px
+  const m = document.createElement('span'); m.style.cssText = 'position:absolute;visibility:hidden;font:800 100px Manrope;text-transform:uppercase;letter-spacing:-.012em;white-space:nowrap';
+  document.body.appendChild(m); await document.fonts.ready;
+  for (const b of BEATS) {
+    let wmax = 0; for (const l of b.head) { m.textContent = l; wmax = Math.max(wmax, m.offsetWidth); }
+    b.size = Math.min(104, Math.floor(100 * 790 / wmax));
+    b.chunks = chunk(b);
+  }
+  m.remove();
+  $('ticks').innerHTML = '<i></i>'.repeat(F.chapters.length - 1); $('meter').innerHTML = '<i></i>'.repeat(12);
+  const M = F.meta; REFS = M.refs || []; $('rlist').innerHTML = REFS.map(r => `<p>${r}</p>`).join('');
+  $('eb').textContent = M.eyebrow; $('pn').textContent = M.name; $('pr').textContent = M.short_role || '';
+  $('ail').textContent = M.ai_label; $('et').innerHTML = `${M.end_title} · <b style="color:#F2A93B">${M.end_accent}</b>`;
+  $('es').textContent = M.end_sub; $('en').textContent = M.end_line;
+  return { total: F.total, beats: BEATS.map(b => ({ id: b.id, start: b.start, speak: b.speak, end: b.end, voice_s: b.voice_s })) };
+}
+
+// Captions in VOREM rhythm: two or three words at a time, a break at punctuation, the key word underlined.
+function chunk(b) {
+  const out = []; let c = [];
+  b.words.forEach((w, i) => {
+    c.push(w);
+    const brk = /[.,?!:;]$|[”]$/.test(w[2]);
+    if (c.length >= 3 || brk || (c.length === 2 && b.words[i + 1] && /^(and|but|or|to|the|of|in|for|with)$/i.test(b.words[i + 1][2]) && false)) { out.push(c); c = []; }
+  });
+  if (c.length) out.push(c);
+  return out.map((ws, k) => {
+    const nx = out[k + 1], start = ws[0][0], lastEnd = ws[ws.length - 1][1];
+    const end = nx && nx[0][0] - lastEnd < .9 ? nx[0][0] : lastEnd + .35;
+    let key = ws.findIndex(w => /\d/.test(w[2]));
+    if (key < 0) { let best = -1; ws.forEach((w, j) => { const L = norm(w[2]).length; if (L >= 5 && L > best) { best = L; key = j; } }); }
+    return { start, end, ws, key };
+  });
+}
+
+function mountRun(run) {
+  const g = $('grp'); g.innerHTML = G[run.group].html(run.beats[0]); g.dataset.g = run.group;
+  run.els = [...g.querySelectorAll('[data-s],[data-w],[data-at],[data-d],[data-as],[data-aw],[data-count],[data-fill],.card,.chip,.dl')].map(el => {
+    const d = el.dataset, s = +(d.s || run.minStep), add = +(d.d || 0);
+    let show;
+    if (s > run.maxStep) show = Infinity;
+    else if (s < run.minStep) show = run.start + .15 + add;
+    else if (d.w) { const b = stepBeat(run, Math.max(s, run.minStep)); show = (b ? wordAt(b, d.w) - .15 : run.start) + add; }
+    else if (s <= run.minStep && !d.at) show = run.start + .15 + add;
+    else { const b = stepBeat(run, s); show = b.speak + (+(d.at || 0)) * b.voice_s + add; }
+    let act = null, actEnd = Infinity;
+    if (d.as || d.aw) {
+      const as = +(d.as || run.minStep), b = stepBeat(run, as);
+      if (b) { act = d.aw ? wordAt(b, d.aw) - .1 : b.speak; const nb = stepBeat(run, as + 1); if (nb) actEnd = nb.speak; }
+      else if (as < run.minStep) { act = run.start; actEnd = run.start - 1; }      // an earlier step stays done, not current
+    }
+    return { el, show, act, actEnd, fx: !el.classList.contains('nofx') && !el.closest('svg'), float: null };
+  });
+  run.els.forEach((e, i) => { if (e.el.classList.contains('card')) e.float = i * 1.37; });   // deterministic, so parallel renders agree
+  // the spine of a timeline fills to the last amber node
+  run.spines = [...g.querySelectorAll('[data-spine]')];
+  cur.run = run;
+}
+
+function render(t) {
+  // background: the amber glow drifts slowly, VOREM-style
+  $('g1').style.transform = `translate(${-250 + Math.sin(t * .05) * 120}px, ${-420 + Math.cos(t * .04) * 80}px)`;
+  $('g2').style.transform = `translate(${1100 + Math.cos(t * .03) * 140}px, ${420 + Math.sin(t * .045) * 90}px)`;
+  $('dots').style.transform = `translate(${(t * 3) % 34}px, 0)`;
+  const endK = ease(clamp((t - F.end_at) / .8)), refsK = ease(clamp((t - F.refs_at) / .8));
+  const b = BEATS.find(x => t >= x.start && t < x.end) || (t < BEATS[0].start ? BEATS[0] : BEATS[BEATS.length - 1]);
+  const run = b.run;
+  if (cur.run !== run) mountRun(run);
+  const main = 1 - endK;
+  for (const id of ['head', 'viz', 'cap', 'pres', 'chap', 'ai']) $(id).style.opacity = main;
+
+  // chapter indicator
+  const ch = b.chapter; $('chap').querySelector('.n').textContent = ch ? `0${ch} / 0${F.chapters.length - 1}` : '';
+  $('chap').querySelector('.t').textContent = F.chapters[ch] || 'Introduction';
+  [...$('ticks').children].forEach((el, k) => el.classList.toggle('on', k < ch));
+
+  // chapter sting: a big outlined numeral flares when a chapter starts, then rests faintly behind the headline
+  const cs = BEATS.find(x => x.chapter === ch);
+  if (ch) { const sk = clamp((t - cs.start) / 1.6); $('sting').textContent = `0${ch}`; $('sting').style.opacity = (sk < .35 ? sk / .35 * .5 : .5 - (sk - .35) / .65 * .44) * main;
+    $('sting').style.transform = `translateX(${(1 - ease(clamp((t - cs.start) / 1.2))) * -60}px)`; } else $('sting').style.opacity = 0;
+  // headline: masked line wipes in, out at the end of its beat
+  if (cur.beat !== b) {
+    cur.beat = b;
+    $('head').innerHTML = `<p class="kick mono">${ch ? `0${ch} · ${F.chapters[ch]}` : F.meta.eyebrow}</p><div class="lines">${b.head.map((l, i) => `<div class="ln${i === b.accent ? ' acc' : ''}"><span style="font-size:${b.size}px">${l}</span></div>`).join('')}</div><div class="rule"></div>`;
+    const H = b.size * 1.02 * b.head.length, top = 470 - H / 2;
+    $('head').querySelector('.lines').style.top = `${top}px`; $('head').querySelector('.kick').style.top = `${top - 46}px`;
+    $('head').querySelector('.rule').style.top = `${top + H + 34}px`;
+  }
+  const hl = $('head');
+  hl.querySelectorAll('.ln span').forEach((s, i) => {
+    const kin = eio(clamp((t - (b.start + .02 + i * .11)) / .6)), kout = eio(clamp((t - (b.end - .45 + i * .06)) / .42));
+    s.style.transform = `translateY(${(1 - kin) * 108 - kout * 108}%)`;
+  });
+  const kk = ease(clamp((t - b.start - .1) / .5)) * (1 - ease(clamp((t - b.end + .5) / .4)));
+  hl.querySelector('.kick').style.opacity = kk; hl.querySelector('.kick').style.transform = `translateY(${(1 - kk) * 10}px)`;
+  hl.querySelector('.rule').style.width = `${ease(clamp((t - b.start - .45) / .7)) * 120 * (1 - ease(clamp((t - b.end + .5) / .4)))}px`;
+
+  // the camera: cards sit in 3D at a slight angle and drift
+  const rl = t - run.start;
+  $('cam').style.transform = `translateZ(${-40 + rl * 1.2}px) rotateY(${-9 + Math.sin(t * .11) * 2.5}deg) rotateX(${5 + Math.cos(t * .09) * 1.6}deg)`;
+  const out = eio(clamp((t - (run.end - .5)) / .5));
+  $('grp').style.opacity = 1 - out; $('grp').style.transform = `translateY(${-30 * out}px) translateZ(${-60 * out}px)`;
+  const x = { t, run, ease, clamp, wordAt: (s, w) => wordAt(stepBeat(run, s) || run.beats[0], w) };
+  for (const e of run.els) {
+    const k = ease(clamp((t - e.show) / SHOW)), st = e.el.style, d = e.el.dataset;
+    if (e.fx) {
+      const fy = e.float != null ? Math.sin(t * .6 + e.float) * 6 : 0;
+      st.opacity = k; st.transform = `translate3d(0, ${(1 - k) * 40 + fy}px, ${(1 - k) * -80}px) rotateX(${(1 - k) * -16}deg)`;
+    } else if (!d.fill && !d.wipe && e.el.tagName !== 'path' && e.el.tagName !== 'circle') st.opacity = k;
+    if (e.el.classList.contains('dl')) { st.strokeDashoffset = 1 - ease(clamp((t - e.show) / 1.3)); st.opacity = clamp((t - e.show) * 5); }
+    else if ((e.el.tagName === 'path' || e.el.tagName === 'circle') && !d.fill) st.opacity = k;
+    if (e.act != null) {
+      const a = ease(clamp((t - e.act) / .5)), c = a * (1 - ease(clamp((t - e.actEnd) / .5)));
+      st.setProperty('--a', a); st.setProperty('--c', c);
+    }
+    if (d.count) { const v = +d.count * ease(clamp((t - e.show - .1) / 1.4)); e.el.textContent = v.toFixed(+(d.dec || 0)); }
+    if (d.fill) { st.setProperty('--f', ease(clamp((t - e.show) / 1.3))); }
+    if (d.wipe) { st.transform = `scaleX(${ease(clamp((t - e.show - .3) / .4))})`; st.opacity = 1; }
+    if (d.drop) { const kd = ease(clamp((t - e.show) / .6)); st.transform = `translateY(${(1 - kd) * -140}px) rotate(${(1 - kd) * -30}deg)`; st.opacity = kd; }
+    if (d.fade) { const kf = ease(clamp((t - e.show - .6) / 1.5)); st.opacity = Math.min(k, 1 - kf * .7); st.filter = `grayscale(${kf}) blur(${kf * 2}px)`; }
+  }
+  run.spines.forEach(sp => {
+    const nodes = [...$('grp').querySelectorAll('.node')], lit = nodes.map(n => +(n.style.getPropertyValue('--a') || 0));
+    let h = 0; lit.forEach((a, k) => { if (k > 0) h += a * (nodes[k].offsetTop - nodes[k - 1].offsetTop); });
+    sp.style.height = `${h}px`;
+  });
+  $('grp').querySelectorAll('.timer').forEach(c => { const e = run.els.find(x => x.el === c); c.style.strokeDashoffset = clamp((t - e.show) / 2.6); });
+  $('grp').querySelectorAll('.scan').forEach(s => s.style.top = `${(Math.sin(t * 2.2) * .5 + .5) * 100}%`);
+  $('grp').querySelectorAll('.pulse').forEach((p, k) => p.style.boxShadow = `0 0 ${8 + Math.sin(t * 3 + k) * 6}px #F2A93B`);
+  if (G[run.group].tick) G[run.group].tick($('grp'), x);
+
+  // presenter: large in the open and the close, a card with a voice meter in between
+  const heroRun = run.group === 'hero';
+  const hk = heroRun ? ease(clamp((t - run.start) / 1)) * (1 - ease(clamp((t - run.end + .3) / .6))) : 0;
+  $('hero').style.opacity = hk * main; $('hero').style.transform = `translateY(${(1 - hk) * 50}px) scale(${1.04 - Math.min(t - run.start, 20) * .002})`;
+  const pk = heroRun ? 1 - ease(clamp((t - run.start) / .5)) : ease(clamp((t - run.start) / .6));
+  $('pres').style.opacity = Math.min(main, heroRun ? 0 : pk);
+  const env = ENV[b.id] || [], fi = Math.floor((t - b.speak) * 30), a = fi >= 0 && fi < env.length ? env[fi] : 0;
+  [...$('meter').children].forEach((el, k) => { el.style.height = `${4 + 24 * a * (.4 + .6 * Math.abs(Math.sin(t * 8 + k * 1.9)))}px`; el.style.opacity = .35 + a * .65; });
+
+  // captions
+  const lt = t - b.speak, c = b.chunks.find(c => lt >= c.start - .04 && lt < c.end);
+  if (c) {
+    const ck = ease(clamp((lt - c.start + .04) / .18));
+    $('cap').innerHTML = c.ws.map((w, j) => j === c.key ? `<span class="k">${esc(w[2])}<u style="transform:scaleX(${ease(clamp((lt - w[0]) / .3))})"></u></span>` : esc(w[2])).join(' ');
+    $('cap').style.transform = `translateY(${(1 - ck) * 12}px)`; $('cap').style.opacity = ck * main;
+  } else $('cap').innerHTML = '';
+
+  // end lockup, then the references
+  $('end').style.opacity = endK * (1 - refsK);
+  $('ering').style.strokeDashoffset = 1 - ease(clamp((t - F.end_at - .2) / 1.6));
+  $('eicon').style.opacity = ease(clamp((t - F.end_at - .6) / .8));
+  $('et').style.transform = `translateY(${(1 - eio(clamp((t - F.end_at - .8) / .7))) * 110}%)`;
+  $('eline').style.transform = `scaleX(${ease(clamp((t - F.end_at - 1.3) / .8))})`;
+  $('es').style.opacity = ease(clamp((t - F.end_at - 1.6) / .6)); $('en').style.opacity = ease(clamp((t - F.end_at - 1.9) / .6));
+  $('refs').style.opacity = refsK;
+}
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+window.load = load; window.render = render;
+if (location.search.includes('play')) load().then(() => { const t0 = performance.now() - (+(new URLSearchParams(location.search).get('t')) || 0) * 1000; const f = () => { render((performance.now() - t0) / 1000 % F.total); requestAnimationFrame(f); }; f(); });
+</script>
+</body></html>

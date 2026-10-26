@@ -1,0 +1,4 @@
+[
+ {"file": "refA.wav", "text": "Exactly the words spoken in the first clean phrase, five to eight seconds long."},
+ {"file": "refB.wav", "text": "Exactly the words spoken in the second clean phrase, from another part of the recording."}
+]

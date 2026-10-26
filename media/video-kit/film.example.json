@@ -1,0 +1,34 @@
+{
+ "meta": {
+  "eyebrow": "Video kit · example",
+  "name": "Presenter Name",
+  "role": "Role, organisation<br>Programme or event",
+  "short_role": "Role, organisation",
+  "ai_label": "Narration · AI voice (say which: draft voice, or a consented clone)",
+  "end_title": "Your Title",
+  "end_accent": "One Amber Phrase",
+  "end_sub": "A one-line tagline",
+  "end_line": "Presenter · role · programme",
+  "pronounce": [["\\bESG\\b", "E S G"]],
+  "refs": ["Author (Year) <i>Title</i>. Available at: https://example.org (Accessed: 1 January 2026)."]
+ },
+ "chapters": ["", "The problem", "The solution", "The impact", "Conclusion"],
+ "beats": [
+  {"id": "b01", "group": "hero", "step": 0, "chapter": 0, "head": ["ONE HOOK LINE.", "ONE AMBER LINE."], "accent": 1,
+   "text": "Good day. My name is Presenter Name, and this film shows how the video kit turns a script into a finished film."},
+  {"id": "b02", "group": "three", "step": 0, "chapter": 1, "head": ["THREE", "ROOT CAUSES."], "accent": 1,
+   "items": [{"w": "first", "label": "FIRST CAUSE"}, {"w": "second", "label": "SECOND CAUSE"}, {"w": "third", "label": "THIRD CAUSE"}],
+   "text": "Every problem in a film is named as three causes. The first cause appears as you say it. The second follows. And the third completes the set."},
+  {"id": "b03", "group": "quiz", "step": 0, "chapter": 1, "head": ["QUICK QUESTION:", "WHICH ONE?"], "accent": 1,
+   "w": "which", "question": "Which one would you pick?", "options": ["Option A", "Option B", "Option C"], "answer_w": "hesitated", "answer": "You hesitated? So does everyone.",
+   "text": "Quick question. Which one would you pick? If you hesitated, so does everyone else."},
+  {"id": "b04", "group": "steps", "step": 0, "chapter": 2, "head": ["THREE STEPS.", "ONE PLAN."], "accent": 1, "title": "The plan",
+   "items": [{"w": "pilot", "label": "Pilot"}, {"w": "roll", "label": "Roll-out"}, {"w": "scale", "label": "Scale"}],
+   "text": "The plan has three steps. A pilot, then a roll-out, then we scale."},
+  {"id": "b05", "group": "stat", "step": 0, "chapter": 3, "head": ["ONE NUMBER", "WITH A SOURCE."], "accent": 0,
+   "label": "A sourced figure", "value": 62, "w": "62", "source_w": "source", "source": "Source · name it on screen",
+   "text": "Every number counts up as it is spoken, with its source on screen: 62 per cent."},
+  {"id": "b06", "group": "hero", "step": 1, "chapter": 4, "head": ["SAY THE", "ASK."], "accent": 1,
+   "text": "End on the one thing you want the viewer to do. Thank you."}
+ ]
+}
