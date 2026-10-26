@@ -61,7 +61,7 @@ Pick one per film. All four share the engine (section 4).
 - **Structure for CarbonLedger brand videos:** Rume's structure (BRAND-VOICE.md section 2) and the claims checklist (section 7).
 - **Beats:** write `film.json` as beats of 1 to 4 sentences. Each beat has a two-line headline (one amber line), a visual group, and words the visual will react to. Consecutive beats with the same group are steps of one visual, which keeps continuity.
 - **Use the presenter's own words when you have them.** If they recorded their version, transcribe it (section 5) and keep their keywords and signposting ("So our first solution…", "And the second one is…"). Replace any claim in it that has no source.
-- **Budget the length before recording.** Mary's numbers are in brackets:
+- **Budget the length before recording.** the academic film's numbers are in brackets:
 
   `total ≈ words ÷ speaking_wpm × 60 + sentences × pause + beats × 0.85 + 0.6 + end card + references`
 

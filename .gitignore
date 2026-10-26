@@ -20,7 +20,6 @@ media/learn the style of this video voice structure first, before you make new i
 *.jks
 
 # Video projects: a person's photo, voice, cloned takes and unsubmitted work never enter this public repo (media/brand/VIDEO-SOP.md section 7)
-media/SUEZ-ESG-Video-Mary-Fosu/
 media/**/.venv/
 media/**/f5env/
 media/**/takes/
