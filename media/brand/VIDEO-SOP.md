@@ -1,4 +1,4 @@
-# Video standard operating procedure
+# Video standard operating procedure (the VOREM style and our other house styles)
 
 How we make videos that clear the bar, from a raw phone take to a 7-minute academic film in the presenter's own
 cloned voice. Read with `media/brand/BRAND-VOICE.md` (what CarbonLedger says) and `rules/HARDENING-PRODUCT.md` (what we
@@ -14,7 +14,7 @@ not engaging. Everything below exists to stop that happening again.
 
 | Measure | Target |
 |---|---|
-| Hard cuts | 0. Every change is a wipe, a camera move or a card arriving. Measured: 0 in all five of our videos. |
+| Hard cuts | 0 in the VOREM style: every change is a wipe, a camera move or a card arriving (0 cuts in all three VOREM references). Style E is the exception: a hard cut every 3 to 5 s. |
 | Loudness | -14 LUFS integrated, true peak -1 dB, loudness range about 3 LU (the VOREM references measure 2.7 to 4) |
 | Sound bed | Never silent: music under the whole film, ducked under the voice |
 | Voice | The presenter's own voice (with consent), or a calm and measured AI voice at 130 to 150 wpm, with a breath after every sentence |
@@ -22,17 +22,18 @@ not engaging. Everything below exists to stop that happening again.
 | Sync | Every on-screen element appears on the word that names it |
 | Claims | Every number has a source on screen and on the references screen. Anything else is labelled "illustration". |
 
-## 2. The four house styles
-Pick one per film. All four share the engine (section 4).
+## 2. The five house styles
+Pick one per film. Styles B, C and D render on the engine (section 4). A and E edit real footage.
 
 | Style | Made | Use it for | Look |
 |---|---|---|---|
 | **A. Raw talking head, enhanced** | `ORIGINAL CARBON LEDGER VIDEO.mp4` becomes `media/original-enhanced` | Real footage of a real person: founders, testimonials | A single vertical phone take (480x854, 163 s, no cuts, -28.5 LUFS) re-framed to 16:9: sharp subject centred over a blurred, scaled copy of itself. A vertical cut too. Loudness lifted to -14 LUFS. Content untouched. |
 | **B. Chalkboard explainer** | `media/short-01` (71 s, 9:16) | Social shorts that explain one idea | A wood-framed board, chalk diagrams that draw themselves, one big caption with an orange keyword, word subtitles, and a pixel mascot made from the brand mark |
 | **C. Presenter kinetic** | `media/landscape-01` (102 s, 16:9) | Founder-led brand films | The presenter's cut-out full body to open and close, a round portrait with a voice ring in between, an italic serif lead-in over a bold keyword, an orange diagonal wipe per scene, halftone texture (see BRAND-VOICE.md section 3) |
-| **D. VOREM motion documentary** (the gold standard) | The October 2026 academic film, on `media/video-kit` | Presentations, pitches, explainers over 1 minute | See below |
+| **D. VOREM style** (the gold standard; VOREM's own house style, keep the name) | Learned from the three VOREM references (Digital OTC Desk, Master AI in 9 Days, the 9:16 brand film); first applied in the October 2026 academic film, on `media/video-kit` | Presentations, pitches, explainers over 1 minute | See below |
+| **E. Rume social promo** | Rume's MCKI Solution (68 s) and YTube Booster Pro (43 s) videos, 1080x1920 | Founder ads and offers on Reels, TikTok, Shorts | A hard cut every 3 to 5 s (14 and 12 cuts). Real talking-head footage alternates with cut-out B-roll on cream halftone paper (a stamped "visa scam" note, a plane over a map, a graduate). Kinetic captions: a small italic serif lead-in over a bold orange keyword. A "RUME DOMINIC" logo bug top left, the product logo on its own beat, a phone-number or link pill to close. He speaks 139 to 152 wpm (162 to 174 while speaking), median 125 to 130 Hz. Script: call out the audience, a flip ("isn't content, it is blindness"), a personal story, the product named plainly, "click the link below and get started today". Loudness -15 to -24 LUFS as delivered; master to -14. |
 
-**Style D in detail** (learned from the VOREM references):
+**Style D, the VOREM style, in detail** (learned from the three VOREM references):
 - **Background:** navy-black (#080B13) with one slow-drifting amber glow (#F2A93B), a faint dot grid and a vignette.
 - **Headlines:** uppercase Manrope 800, two lines, one of them amber. They wipe in through a mask, line by line, and wipe out upward. A small mono eyebrow sits above (JetBrains Mono, letter-spaced).
 - **Visuals:** floating UI cards in 3D, tilted about 9 degrees, drifting and bobbing. Cards are things the audience recognises: an invoice, a phone app, a camera view, a map with a route, a gauge.
@@ -146,7 +147,7 @@ Fill the brackets.
 > - Sources: [paste them].
 >
 > **Production**
-> - Follow `media/brand/VIDEO-SOP.md` exactly. Use style **D (VOREM motion documentary)** on the engine in `media/video-kit` (or style [A/B/C] if I say so).
+> - Follow `media/brand/VIDEO-SOP.md` exactly. Use style **D (the VOREM style)** on the engine in `media/video-kit` (or style [A/B/C/E] if I say so).
 > - Copy the kit into a new git-ignored folder.
 > - Write `film.json` as beats, one chapter per rubric section. Each beat has a two-line headline with one amber line and a visual group whose elements appear on the words that name them.
 > - Add one quiz card and at least two rhetorical-question headlines, keeping it professional.

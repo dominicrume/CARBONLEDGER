@@ -1,6 +1,6 @@
-# Video kit: script to finished film, VOREM motion style
+# VOREM video kit: script to finished film in the VOREM style
 
-The engine behind style D in `media/brand/VIDEO-SOP.md`. A film is one `film.json` (beats, plus meta) rendered by one
+The engine behind style D, the VOREM style, in `media/brand/VIDEO-SOP.md`. A film is one `film.json` (beats, plus meta) rendered by one
 web page, `stage.html`, where every frame is `render(t)`. Read the SOP first.
 
 ## Start a film
