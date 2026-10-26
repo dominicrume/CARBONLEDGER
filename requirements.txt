@@ -3,6 +3,7 @@ fastapi==0.143.0
 uvicorn==0.54.0
 pydantic==2.14.1
 httpx==0.28.1
+anthropic==2.2.0          # VOREM Studio director (services/api/carbonledger_api/studio.py)
 solders==0.29.0
 psycopg[binary]==3.2.3
 knowyouragenticai-receipts==1.1.0

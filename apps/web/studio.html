@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; base-uri 'none'; form-action 'self'; object-src 'none'">
+<title>VOREM Studio</title>
+<meta name="description" content="VOREM Studio on CarbonLedger: turn a brief or script into a VOREM-style film. Powered by VOREM.">
+<link rel="icon" href="/brand/mark-64.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="/css/studio.css">
+</head>
+<body>
+<header>
+  <div class="brand"><i></i>VOREM <span>Studio</span></div>
+  <div class="proj"><input id="title" aria-label="Film title" value=""><span class="save" id="saved"></span></div>
+  <div class="acts">
+    <button class="btn ghost" id="newBtn">New film</button>
+    <button class="btn" id="copyBtn">Copy film.json</button>
+    <button class="btn primary" id="exportBtn">Export film.json</button>
+  </div>
+</header>
+
+<main>
+  <section id="ingest" class="stack">
+    <div class="panel">
+      <h2>1 · Ingest <small>what the film is built from</small></h2>
+      <div class="drop" id="drop" tabindex="0" role="button">Drop a .txt or .md file, or click to choose one<input type="file" id="file" accept=".txt,.md,.markdown,.csv,text/plain" hidden></div>
+      <label><span class="mono">Brief, script or notes</span><textarea class="field" id="source" rows="9" placeholder="Paste the brief, the full script, a transcript of the presenter speaking, or rough notes."></textarea></label>
+      <label><span class="mono">Sources (one per line)</span><textarea class="field" id="sources" rows="4" placeholder="Every number in the film must come from here."></textarea></label>
+      <label><span class="mono">Marking rubric or must-cover points (optional)</span><textarea class="field" id="rubric" rows="3"></textarea></label>
+      <div class="row2">
+        <label><span class="mono">Presenter</span><input class="field" id="pname"></label>
+        <label><span class="mono">Role</span><input class="field" id="prole"></label>
+      </div>
+      <div class="row2">
+        <label><span class="mono">Audience</span><input class="field" id="audience"></label>
+        <label><span class="mono">Length limit (min)</span><input class="field" id="cap" type="number" min="0.5" max="15" step="0.5"></label>
+      </div>
+      <label><span class="mono">Studio access code</span><input class="field" id="code" type="password" autocomplete="current-password" placeholder="Needed to direct with Claude"></label>
+      <button class="btn primary" id="directBtn" style="width:100%">Direct the film</button>
+      <p class="note" id="directNote">Claude writes the beats in the VOREM style from your material. Numbers come only from your sources.</p>
+    </div>
+    <div class="panel">
+      <h2>Your films <small id="libState"></small></h2>
+      <div class="lib" id="lib"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="panel">
+      <h2>2 · Beat sheet <small id="beatCount"></small></h2>
+      <div class="chapters" id="chapters"></div>
+      <div class="beats" id="beats"></div>
+      <button class="btn ghost add" id="addBtn">Add a beat</button>
+    </div>
+  </section>
+
+  <section class="stack">
+    <div class="panel">
+      <h2>3 · Preview <small id="pvLabel"></small></h2>
+      <div class="frame" id="frame" aria-label="Preview of the selected beat"></div>
+      <div class="pctl">
+        <button class="btn" id="prevBtn" aria-label="Previous beat">‹ Prev</button>
+        <button class="btn" id="nextBtn" aria-label="Next beat">Next ›</button>
+        <button class="btn" id="readBtn">Read beat aloud</button>
+      </div>
+      <p class="note">The read-aloud uses your browser's voice to check the rhythm. The final film uses the cloned or chosen voice.</p>
+    </div>
+    <div class="panel">
+      <h2>4 · Budget and checks</h2>
+      <div class="big" id="estT">0:00</div>
+      <div class="mono" id="estOf"></div>
+      <div class="meter"><b id="meter"></b></div>
+      <div class="stats">
+        <div class="stat"><span class="mono">Words</span><b id="sWords">0</b></div>
+        <div class="stat"><span class="mono">Beats</span><b id="sBeats">0</b></div>
+        <div class="stat"><span class="mono">Pace wpm</span><b><input id="wpm" type="number" min="90" max="200" step="1" style="width:100%;background:none;border:0;font:inherit;padding:0" aria-label="Narration pace, words a minute"></b></div>
+      </div>
+      <ul class="checks" id="checks"></ul>
+    </div>
+    <div class="panel">
+      <h2>5 · Render</h2>
+      <p class="note" style="margin-top:0">Export film.json, then render it on the VOREM render machine (about 25 minutes for a 7-minute film):</p>
+      <pre class="cmd">cp -R media/video-kit media/&lt;film&gt;
+cp ~/Downloads/film.json media/&lt;film&gt;/
+cd media/&lt;film&gt; &amp;&amp; MAX_S=<span id="maxS">449</span> nohup ./make_all.sh &gt; make_all.log 2&gt;&amp;1 &amp;</pre>
+      <p class="note">Voice cloning needs the presenter's consent and a 1 to 2 minute recording. The film carries an "AI voice" label.</p>
+    </div>
+  </section>
+</main>
+<footer><span>VOREM Studio on CarbonLedger · <a href="https://carbonledger.world">carbonledger.world</a></span><b>Powered by <span>VOREM</span></b></footer>
+<div class="toast" id="toast" hidden></div>
+<script src="/js/studio.js"></script>
+</body>
+</html>

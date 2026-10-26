@@ -36,6 +36,7 @@ from carbonledger.units import grams_to_clt
 
 from .accounts import account_router, world_router
 from .growth import growth_router
+from .studio import studio_router
 from .mailer import mailer_from_env
 from .people import people_from_env
 from .seeker import sgt_lookup_from_env
@@ -295,6 +296,7 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
     app.include_router(account_router(st, require_key))
     app.include_router(growth_router(st, require_key, optional_key, mailer, st.people, os.environ.get("PUBLIC_URL", "https://carbonledger.world").rstrip("/"), sgt_lookup))
     app.include_router(world_router(st))
+    app.include_router(studio_router())
 
     @app.get("/v1/receipts/{receipt_id}")
     def get_receipt(receipt_id: str):
@@ -335,11 +337,17 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
     web_dir = Path(os.environ.get("WEB_DIR", "")) if os.environ.get("WEB_DIR") else None
     if web_dir and web_dir.is_dir():          # one origin for app and API (deploy): no CORS, the page's CSP 'self' covers the API
         from fastapi.responses import FileResponse
-        landing, shell = web_dir / "landing.html", web_dir / "index.html"
+        landing, shell, studio = web_dir / "landing.html", web_dir / "index.html", web_dir / "studio.html"
 
         @app.get("/", include_in_schema=False)
-        def home():                           # the public landing page; the app itself lives at /app
+        def home(request: Request):           # the public landing page; the app lives at /app, VOREM Studio at studio.<domain>
+            if request.headers.get("host", "").split(":")[0].startswith("studio.") and studio.is_file():
+                return FileResponse(studio)
             return FileResponse(landing if landing.is_file() else shell)
+
+        @app.get("/studio", include_in_schema=False)
+        def studio_page():
+            return FileResponse(studio)
 
         @app.get("/app", include_in_schema=False)
         def app_shell():                      # /app has no trailing slash, so the app's relative asset paths still resolve from /
