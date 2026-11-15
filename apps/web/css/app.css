@@ -493,3 +493,6 @@ input:hover, select:hover { border-color: color-mix(in srgb, var(--primary) 55%,
 /* Save-progress prompt on the receipt (2026-11-15): asked once, after a retirement, until saved or declined. */
 .save-progress { margin: 14px 0 0; padding: 14px; border: 1px solid var(--line-strong); border-radius: var(--r-ctl); background: var(--primary-soft); }
 .save-progress p { margin: 0 0 10px; font-size: .92rem; } .save-progress small { color: var(--fg-2); }
+/* Test-mode payment box (D29). */
+.pay-box { margin: 12px 0 0; padding: 14px; border: 1px dashed var(--line-strong); border-radius: var(--r-ctl); background: var(--surface-2); }
+.pay-box p { margin: 0 0 10px; font-size: .92rem; }

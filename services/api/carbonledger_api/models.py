@@ -127,6 +127,7 @@ class RetireIn(BaseModel):
     agent: Optional[str] = Field(default=None, max_length=64)        # the agent's base58 ed25519 public key
     agent_ts: Optional[int] = Field(default=None, ge=0, le=10**11)     # unix seconds when the agent signed
     agent_sig: Optional[str] = Field(default=None, max_length=128)    # base58 ed25519 signature, see agentsig.py
+    payment_reference: Optional[str] = Field(default=None, max_length=64)   # a paid Solana Pay quote (test mode only, D29)
 
     @model_validator(mode="after")
     def lines_add_up(self):
