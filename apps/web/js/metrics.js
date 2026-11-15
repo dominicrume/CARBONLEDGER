@@ -25,9 +25,9 @@ function render(m) {
     ['man', n(m.mandates), 'agent mandates'], ['anc', `${n(m.anchors.anchored)}/${n((m.anchors.anchored || 0) + (m.anchors.pending || 0) + (m.anchors.failed || 0))}`, 'anchored on Solana']];
   $('#m-kpis').innerHTML = k.map(([, b, s]) => `<div class="m-kpi"><b>${esc(b)}</b><span>${esc(s)}</span></div>`).join('');
   const f = m.funnel, top = Math.max(1, f.site_view, f.app_open, f.retire_open, f.retirements);
-  const steps = [['Website visits', f.site_view], ['App opens', f.app_open], ['Retirements started', f.retire_open], ['Retirements recorded', f.retirements], ['New players', f.new_players]];
+  const steps = [['Website visits', f.site_view], ['App opens', f.app_open], ['Retirements started', f.retire_open], ['Retirements recorded', f.retirements], ['New players', f.new_players], ['Asked to save', f.save_prompt || 0], ['Saved progress', f.signin_done || 0]];
   $('#m-funnel').innerHTML = steps.map(([label, v]) => `<div class="m-step"><span>${label}</span><div class="m-bar"><i style="width:${(100 * v / top).toFixed(1)}%"></i></div><b>${n(v)}</b></div>`).join('');
-  const cols = [['site_view', 'Visits'], ['app_open', 'Opens'], ['scan_start', 'Scans'], ['retire_open', 'Started'], ['retirements', 'Retired'], ['players', 'Players'], ['new_players', 'New'], ['verify', 'Verified'], ['install', 'Installs'], ['statement', 'Statements']];
+  const cols = [['site_view', 'Visits'], ['app_open', 'Opens'], ['scan_start', 'Scans'], ['retire_open', 'Started'], ['retirements', 'Retired'], ['players', 'Players'], ['new_players', 'New'], ['save_prompt', 'Asked to save'], ['signin_done', 'Saved'], ['seeker_signin', 'Seeker'], ['share', 'Shares'], ['verify', 'Verified'], ['install', 'Installs'], ['statement', 'Statements']];
   const days = Object.entries(m.days).reverse();
   $('#m-days-table').innerHTML = `<thead><tr><th>Day</th>${cols.map(([, h]) => `<th>${h}</th>`).join('')}</tr></thead><tbody>${days.length ? days.map(([d, r]) => `<tr><td>${d}</td>${cols.map(([c]) => `<td>${r[c] ? n(r[c]) : '·'}</td>`).join('')}</tr>`).join('') : `<tr><td colspan="${cols.length + 1}">No activity in this period.</td></tr>`}</tbody>`;
   $('#m-out').hidden = false;

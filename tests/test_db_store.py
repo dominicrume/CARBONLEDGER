@@ -120,3 +120,32 @@ def test_recheck_passes_on_a_clean_database():
     c.post("/v1/retire", json=_body())
     out = subprocess.run([sys.executable, str(ROOT / "scripts" / "recheck.py")], env={**os.environ, "DATABASE_URL": URL}, capture_output=True, text=True)
     assert out.returncode == 0 and "recheck: ok. 1 receipts, 1 retirements" in out.stdout, out.stdout + out.stderr
+
+
+def test_the_database_holds_the_mandate_cap_even_when_memory_is_stale():
+    """Batch 1 (2026-11-15): a mandate's use is written in the retirement's transaction, and the row is only moved
+    while it stays within its cap. Here memory says 600 g used, the database says 900 g: a 300 g request passes the
+    in-memory check and must still be refused by the database, with nothing recorded."""
+    from solders.keypair import Keypair
+    from carbonledger.agentsig import sign_request
+    app, c, keys = _app()
+    key, rec = keys.issue("business", "acme-db")
+    app.state.st.store.insert_api_key(rec)
+    c.headers["authorization"] = f"Bearer {key}"
+    agent = Keypair()
+    mid = c.post("/v1/mandates", json={"agent": str(agent.pubkey()), "cap_g": 1000, "ttl_seconds": 3600}).json()["mandate_id"]
+
+    def signed(grams, k):
+        b = _body(grams, k, account="business", mandate_id=mid, agent=str(agent.pubkey()), agent_ts=1_800_000_000)
+        b["agent_sig"] = sign_request(agent, b)
+        return b
+
+    before = c.get("/v1/registry/summary").json()["retired_g"]
+    assert c.post("/v1/retire", json=signed(600, "key-db-m001")).status_code == 200
+    with app.state.st.store._conn() as cur:
+        cur.execute("SELECT used_g FROM mandates WHERE id = %s", (mid,))
+        assert cur.fetchone()[0] == 600                         # written with the retirement, not after it
+        cur.execute("UPDATE mandates SET used_g = 900 WHERE id = %s", (mid,))
+    r = c.post("/v1/retire", json=signed(300, "key-db-m002"))
+    assert r.status_code == 409 and "over its cap" in r.json()["detail"] and "Nothing was recorded" in r.json()["detail"]
+    assert c.get("/v1/registry/summary").json()["retired_g"] == before + 600

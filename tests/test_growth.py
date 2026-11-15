@@ -126,3 +126,20 @@ def test_league_ranks_habits_above_one_big_footprint_and_never_shows_who():
     assert board["entries"][0]["xp"] > board["entries"][1]["xp"] and "not the size" in board["ranked_by"]
     assert all("owner" not in e for e in board["entries"])
     assert c.anon().get("/v1/league").json()["players"] == 2                 # public, without anyone's key
+
+
+# ---------------- 2026-11-15: the save-progress funnel ----------------
+def test_asking_to_save_and_finishing_a_sign_in_are_both_counted(monkeypatch):
+    """The browser counts the ask (save_prompt) and shares; only the server counts a finished sign-in, so the
+    'saved progress' number cannot be inflated from a browser."""
+    c, sent = with_mailer(limits=demo_limits())
+    for name in ["save_prompt", "share", "signin_done", "seeker_signin"]:
+        assert c.post("/v1/events", json={"name": name}).status_code == 204
+    people = c.app.state.st.people
+    assert {k[1] for k in people.events} == {"save_prompt", "share"}              # the server-only names are dropped
+    assert c.anon().post("/v1/auth/email", json={"email": "save@example.com"}).status_code == 202
+    assert c.post("/v1/auth/verify", json={"token": sent[0][1].split("t=")[1]}).status_code == 200
+    assert {k[1]: v for k, v in people.events.items()}["signin_done"] == 1
+    monkeypatch.setenv("METRICS_TOKEN", "operator-only-token-123")
+    f = c.anon().get("/v1/metrics", headers={"authorization": "Bearer operator-only-token-123"}).json()["funnel"]
+    assert (f["save_prompt"], f["signin_done"], f["share"]) == (1, 1, 1)

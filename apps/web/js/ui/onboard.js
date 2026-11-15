@@ -12,7 +12,7 @@ export function maybeOnboard(go) {
       <h2 class="sheet-title">Every gram you retire moves the world</h2>
       <ol class="onboard-steps">
         <li>${icon('basket')}<div><strong>Scan or log</strong><small>A basket, a journey or a day. We work out the carbon from cited sources.</small></div></li>
-        <li>${icon('leaf')}<div><strong>Retire pilot units</strong><small>One gram is one point. Level up, earn badges, keep a weekly streak.</small></div></li>
+        <li>${icon('leaf')}<div><strong>Retire pilot units</strong><small>Each retirement earns points for the habit, not the size: a bigger footprint never wins. Your first five a day score, and the first of each week earns a bonus.</small></div></li>
         <li>${icon('globe')}<div><strong>Clear the world together</strong><small>Everyone's retirements clear the smallest country first. Every receipt is checkable on Solana devnet.</small></div></li>
       </ol>
       <p class="note">Pilot units recorded on Solana devnet. Not yet verified credits. No payment is taken. The logo at the top takes you back to the website.</p>

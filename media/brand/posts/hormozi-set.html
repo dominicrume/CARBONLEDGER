@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en-GB"><head><meta charset="utf-8"><title>Rume posts, Hormozi grid style</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Manrope:wght@800&display=swap">
+<style>
+  /* Learned from Rume's screenshots of Alex Hormozi's LinkedIn Images tab (14 Nov 2026), about 50 posts:
+     most are text cards: square, white, B&W avatar + bold name + grey handle top left, plain regular sans in black,
+     left aligned, the fewer the words the bigger the type, a blank line before the turn. Then candid photos,
+     and a bold caps poster (flat colour, heavy centred type, a small head on top).
+     Rume version: the same structure, ink not black, one ink card, the poster in light blue, no verified tick,
+     no invented handle, our message. */
+  :root { --sky: #8FD3FF; --sky2: #3FA9F5; --white: #FFFFFF; --ink: #071A2E; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #071A2E; }
+  .post { width: 1080px; height: 1080px; position: relative; overflow: hidden; margin-bottom: 20px; font-family: Inter, sans-serif;
+          display: flex; flex-direction: column; justify-content: center; padding: 0 110px; }
+  .who { display: flex; gap: 22px; align-items: center; margin-bottom: 44px; }
+  .av { width: 96px; height: 96px; border-radius: 50%; overflow: hidden; background: rgba(7,26,46,.10); flex: none; }
+  .av img { width: 200px; margin: -4px 0 0 -52px; filter: grayscale(1) contrast(1.15); }
+  .nm { font: 700 38px Inter, sans-serif; }
+  .hd { font: 400 29px Inter, sans-serif; margin-top: 2px; }
+  .tx p { font-weight: 400; letter-spacing: -.012em; }
+  .tx p + p { margin-top: 1.05em; }
+  .light { background: var(--white); color: var(--ink); } .light .hd { color: rgba(7,26,46,.5); }
+  .dark { background: var(--ink); color: var(--white); } .dark .hd { color: rgba(255,255,255,.5); }
+  /* poster */
+  #p4 { background: var(--sky); color: var(--ink); align-items: center; text-align: center; padding: 0 120px; }
+  #p4 .head { width: 190px; height: 190px; border-radius: 50%; overflow: hidden; border: 6px solid var(--ink); margin-bottom: 40px; background: #fff; }
+  #p4 .head img { width: 380px; margin: -6px 0 0 -96px; filter: grayscale(1) contrast(1.25); }
+  #p4 .big { font: 800 112px/0.98 Manrope, sans-serif; letter-spacing: -.035em; }
+</style></head><body>
+
+<div class="post light" id="p1">
+  <div class="who"><div class="av"><img src="../../gap-evidence/rume.png" alt=""></div><div><div class="nm">Rume Dominic</div><div class="hd">rumedominic.com</div></div></div>
+  <div class="tx" style="font-size:78px;line-height:1.14"><p>An agent that grades its own homework always passes.</p></div>
+</div>
+
+<div class="post dark" id="p2">
+  <div class="who"><div class="av"><img src="../../gap-evidence/rume.png" alt=""></div><div><div class="nm">Rume Dominic</div><div class="hd">rumedominic.com</div></div></div>
+  <div class="tx" style="font-size:62px;line-height:1.18"><p>“Our agent logs everything.”</p><p>Ask what it refused.</p><p>Then ask who can edit&nbsp;the&nbsp;log.</p></div>
+</div>
+
+<div class="post light" id="p3">
+  <div class="who"><div class="av"><img src="../../gap-evidence/rume.png" alt=""></div><div><div class="nm">Rume Dominic</div><div class="hd">rumedominic.com</div></div></div>
+  <div class="tx" style="font-size:60px;line-height:1.24"><p>Ask your AI agent:</p><p>1) What did you do?<br>2) What were you refused?<br>3) Who can check?</p></div>
+</div>
+
+<div class="post" id="p4">
+  <div class="head"><img src="../../gap-evidence/rume.png" alt=""></div>
+  <div class="big">AN AGENT’S WORD IS NOT A RECORD.</div>
+</div>
+<script>window.ready = async () => { await document.fonts.ready; await Promise.all([...document.images].map(i => i.complete ? 0 : new Promise(r => i.onload = r))); };</script>
+</body></html>

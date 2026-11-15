@@ -1,6 +1,6 @@
 """CarbonLedger API. Server holds the register, the receipt chain and the signing key. Browsers hold nothing.
 Units are pilot units, not yet verified credits, until a verifier attests a real project. The API says so in every response.
-No login yet (see DEBT.md): do not expose this to the public internet before it exists.
+Every write needs an API key (D2). Per-address limits use the address our proxy appended (TRUSTED_PROXY_HOPS).
 
 The retire flow (rule 6 as refined on 2026-10-11):
   1. Check the request, the mandate, and that the chain is reachable. If it is not, nothing is recorded.
@@ -36,6 +36,7 @@ from carbonledger.units import grams_to_clt
 
 from .accounts import account_router, world_router
 from .growth import growth_router
+from .studio import studio_router
 from .mailer import mailer_from_env
 from .people import people_from_env
 from .seeker import sgt_lookup_from_env
@@ -44,6 +45,7 @@ from .models import STATUS_FOR, UNITS_STATUS, MandateIn, RetireIn
 from .recompute import RecomputeError, compute
 from .state import DEMO_BATCH, DEMO_ISSUED_G, DEMO_PROJECT, Limits, State, anchor_interval_from_env, anchor_wait_from_env, chain_from_env
 from .store import StoreError
+from .net import client_address
 
 __all__ = ["create_app", "public_receipt_id", "DEMO_BATCH", "DEMO_ISSUED_G", "DEMO_PROJECT", "UNITS_STATUS"]
 
@@ -144,7 +146,7 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
             raise HTTPException(404, "Demo logins are not available here. Ask whoever runs the API for a key.")
         if role not in ("personal", "business"):
             raise HTTPException(422, "role must be personal or business. Nothing was recorded.")
-        client = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or (request.client.host if request.client else "unknown")
+        client = client_address(request, st.limits.trusted_proxy_hops)
         if not st.demo_bucket.take(client):
             raise HTTPException(429, "Too many demo logins from this address. Try again in an hour.", headers={"Retry-After": "3600"})
         owner = f"demo-{role}-{secrets.token_hex(4)}"
@@ -191,6 +193,10 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
     def retire(body: RetireIn, caller: KeyRecord = Depends(require_key)):
         if body.account == "business" and not acts_for_business(caller):
             raise HTTPException(403, "This key cannot retire for a business. Use a business login. Nothing was recorded.")
+        if caller.role == "agent" and body.mandate_id is None:
+            raise HTTPException(403, "MANDATE_REQUIRED: an agent key retires only under a mandate (cap, allow-list, expiry, revoke). Nothing was recorded.")
+        if body.agent and body.mandate_id is None:
+            raise HTTPException(422, "An agent signs only under a mandate: send mandate_id with agent. Nothing was recorded.")
         payload_digest = digest({**body.model_dump(exclude={"idempotency_key"}), "caller": caller.owner})
         with st.lock:
             prior = st.idem.get(body.idempotency_key)
@@ -203,17 +209,23 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
         if receipt_id is None:
             if not st.chain_healthy():
                 raise HTTPException(502, "The chain could not be reached. Nothing was recorded.")
+            # Price before taking the lock: a product lookup can wait on the network, and the lock stops every
+            # retirement while it is held (D18). The decision itself still happens under the lock.
+            try:
+                priced = compute(body.items, st.product_lookup)
+            except RecomputeError as exc:
+                priced = exc
             with st.lock:
                 prior = st.idem.get(body.idempotency_key)        # re-check: another thread may have won the race
                 if prior is not None:
                     receipt_id = prior[1]
                 else:
-                    receipt_id = _commit(body, payload_digest, caller)
+                    receipt_id = _commit(body, payload_digest, caller, priced)
         entry = st.outbox.wait_settled(receipt_id, st.anchor_wait_s)
         e = st.receipts.find(receipt_id)
         return _response(e["receipt"], e["hash"], entry.public())
 
-    def _commit(body: RetireIn, payload_digest: str, caller: KeyRecord) -> str:
+    def _commit(body: RetireIn, payload_digest: str, caller: KeyRecord, priced) -> str:
         """Called under the lock. Every attempt that reaches a decision becomes a sealed receipt (KYA format):
         ACCEPTED with its serial range, or REFUSED with the rule that stopped it. Returns the accepted receipt id."""
         now = int(st.now())
@@ -223,13 +235,15 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
         lines_digest = digest({"lines": [l.model_dump() for l in body.lines]})
         note_digest = digest({"note": body.note}) if body.note else None
         items_digest = digest({"items": [i.model_dump(by_alias=True) for i in body.items]})
-        base = {"ts": datetime.fromtimestamp(now, timezone.utc).isoformat(), "account": body.account, "owner": caller.owner,
-                "grams": body.grams, "kind": body.kind, "label": body.label, "lines_digest": lines_digest, "note_digest": note_digest,
-                "items_digest": items_digest, "target_iso3": body.target_iso3, "project_id": DEMO_PROJECT, "batch_id": DEMO_BATCH, "units": UNITS_STATUS}
-        what = f"retire {body.grams} g of pilot units: {body.label}"
         mandate = st.mandates.get(body.mandate_id) if body.mandate_id is not None else None
         if body.mandate_id is not None and mandate is None:
             raise HTTPException(404, "No such mandate.")
+        # A retirement under a mandate is the mandate owner's: it shows in their history and business statement.
+        owner = mandate.owner if mandate is not None else caller.owner
+        base = {"ts": datetime.fromtimestamp(now, timezone.utc).isoformat(), "account": body.account, "owner": owner,
+                "grams": body.grams, "kind": body.kind, "label": body.label, "lines_digest": lines_digest, "note_digest": note_digest,
+                "items_digest": items_digest, "target_iso3": body.target_iso3, "project_id": DEMO_PROJECT, "batch_id": DEMO_BATCH, "units": UNITS_STATUS}
+        what = f"retire {body.grams} g of pilot units: {body.label}"
         if mandate is not None and not body.agent:
             raise HTTPException(422, "An agent key is required when a mandate is used.")
         approved_by = f"mandate {mandate.id} of {mandate.owner}" if mandate else f"api key owner {caller.owner}"
@@ -259,15 +273,24 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
                 authorize(mandate, body.agent, body.grams, DEMO_PROJECT, now)
             except MandateError as exc:
                 refuse(403, exc.code, f"The mandate does not allow this: {exc.code}.")
-        # The server prices the items itself (D1). A total below that is refused. Above it is allowed: estimates err high.
-        try:
-            computed_g, _breakdown = compute(body.items, st.product_lookup)
-        except RecomputeError as exc:
-            refuse(422, exc.code, f"Cannot price this request: {exc}.")
+        # The server prices the items itself (D1), before the lock was taken. A total below that is refused. A little
+        # above is allowed (estimates err high), but not without limit: one request must not empty the pool.
+        if isinstance(priced, RecomputeError):
+            refuse(422, priced.code, f"Cannot price this request: {priced}.")
+        computed_g, _breakdown = priced
         if body.grams < computed_g:
             refuse(422, "BELOW_COMPUTED", f"The total ({body.grams} g) is below what the server computes for these items ({computed_g} g).", computed_g)
+        ceiling = computed_g + max(computed_g // 10, 1000)
+        if body.grams > ceiling:
+            refuse(422, "ABOVE_COMPUTED", f"ABOVE_COMPUTED: the total ({body.grams} g) is more than the server computes for these items ({computed_g} g) allows (at most {ceiling} g).", computed_g)
+        day = at[:10]
+        lim = st.limits
+        if lim.daily_key_cap_g is not None and st.day_used.get((day, owner), 0) + body.grams > lim.daily_key_cap_g:
+            refuse(429, "DAILY_LIMIT", f"DAILY_LIMIT: this login has reached today's limit of {lim.daily_key_cap_g} g of pilot units. Try again tomorrow (UTC).", computed_g)
+        if lim.daily_total_cap_g is not None and st.day_used.get((day, "*"), 0) + body.grams > lim.daily_total_cap_g:
+            refuse(429, "POOL_DAILY_LIMIT", f"POOL_DAILY_LIMIT: the pilot pool has reached today's limit of {lim.daily_total_cap_g} g. Try again tomorrow (UTC).", computed_g)
         reg = copy.deepcopy(st.registry)            # work on a copy; commit only if everything succeeds
-        retiree = f"{body.account}:{caller.owner}:{body.agent or 'self'}"
+        retiree = f"{body.account}:{owner}:{body.agent or 'self'}"
         try:
             ret = reg.retire(retiree, DEMO_BATCH, body.grams, body.target_iso3, lines_digest)
         except RegistryError as exc:
@@ -279,22 +302,25 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
         rule = "within the mandate cap, allow-list and expiry; priced by the server" if mandate else "priced by the server from the typed items; pilot units available"
         preview = st.receipts.prepare(fields, what=what, amount=str(body.grams), payee=DEMO_PROJECT, rule=rule, outcome="ACCEPTED", approved_by=approved_by,
                                       ledger=ledger, at=at, instrument=f"serial range {ret.serial_start}-{ret.serial_end} of batch {DEMO_BATCH}")
-        try:                                     # the database first (its constraints are the second guard), then memory
-            st.store.write_retirement(preview, ret, reg.batches[DEMO_BATCH], body.idempotency_key, payload_digest)
+        try:                                     # the database first (its constraints are the second guard), then memory.
+            # The mandate's use is in the SAME transaction: a crash can no longer save the retirement and lose the cap use.
+            st.store.write_retirement(preview, ret, reg.batches[DEMO_BATCH], body.idempotency_key, payload_digest,
+                                      mandate=mandate, grams=body.grams)
         except StoreError as exc:
             raise HTTPException(409, f"{exc}. Nothing was recorded.")
-        entry = st.receipts.commit(preview)
+        entry = st.receipts.commit(preview)      # from here on nothing can fail: memory follows the committed rows
         st.registry = reg
+        st.idem[body.idempotency_key] = (payload_digest, receipt_id)
+        st.outbox.enqueue(receipt_id, entry["hash"], entry["index"])
         if mandate is not None:
             consume(mandate, body.grams)
-            st.store.upsert_mandate(mandate)
-        st.outbox.enqueue(receipt_id, entry["hash"], entry["index"])
-        st.idem[body.idempotency_key] = (payload_digest, receipt_id)
+        st.note_retired(day, owner, body.grams)
         return receipt_id
 
     app.include_router(account_router(st, require_key))
     app.include_router(growth_router(st, require_key, optional_key, mailer, st.people, os.environ.get("PUBLIC_URL", "https://carbonledger.world").rstrip("/"), sgt_lookup))
     app.include_router(world_router(st))
+    app.include_router(studio_router())
 
     @app.get("/v1/receipts/{receipt_id}")
     def get_receipt(receipt_id: str):
@@ -335,11 +361,17 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
     web_dir = Path(os.environ.get("WEB_DIR", "")) if os.environ.get("WEB_DIR") else None
     if web_dir and web_dir.is_dir():          # one origin for app and API (deploy): no CORS, the page's CSP 'self' covers the API
         from fastapi.responses import FileResponse
-        landing, shell = web_dir / "landing.html", web_dir / "index.html"
+        landing, shell, studio = web_dir / "landing.html", web_dir / "index.html", web_dir / "studio.html"
 
         @app.get("/", include_in_schema=False)
-        def home():                           # the public landing page; the app itself lives at /app
+        def home(request: Request):           # the public landing page; the app lives at /app, VOREM Studio at studio.<domain>
+            if request.headers.get("host", "").split(":")[0].startswith("studio.") and studio.is_file():
+                return FileResponse(studio)
             return FileResponse(landing if landing.is_file() else shell)
+
+        @app.get("/studio", include_in_schema=False)
+        def studio_page():
+            return FileResponse(studio)
 
         @app.get("/app", include_in_schema=False)
         def app_shell():                      # /app has no trailing slash, so the app's relative asset paths still resolve from /

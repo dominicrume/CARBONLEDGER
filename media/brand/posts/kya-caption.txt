@@ -1,0 +1,21 @@
+Your AI agent will never fail its own test.
+
+It writes the work.
+It writes the report.
+It marks the report.
+
+That is not proof. That is a story.
+
+Before you trust an agent with real work, ask it three things:
+
+1) What did you do?
+2) What were you refused?
+3) Who can check?
+
+If the answers live only in its own log, you have its word.
+
+Its word is not a record.
+
+A record is written as it happens, by something the agent cannot edit.
+
+Ask the third question first. It tells you the most.

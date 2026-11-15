@@ -80,7 +80,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: dominicrume/ai-code-quality-auditor@541cb2e856d3cfa03fb1df98e0d26a016d4b1246 # v1
+      - uses: dominicrume/ai-code-quality-auditor@b2fde9b28deb439e3a18d1bc87aee57777fd7c1c # main 2026-11, fixes the --conditions call (v1 tag still points at the broken commit)
         with:
           spec: spec.yaml
           fail-on: critical

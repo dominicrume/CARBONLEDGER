@@ -11,3 +11,4 @@ dev = ["pytest==9.1.1", "pip-audit", "solders==0.29.0"]
 
 [tool.pytest.ini_options]
 pythonpath = ["packages/core", "services/api"]
+testpaths = ["tests"]

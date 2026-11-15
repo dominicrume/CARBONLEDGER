@@ -22,9 +22,12 @@ from carbonledger.auth import TokenBucket
 from .models import UNITS_STATUS
 from .seeker import NONCE_TTL_S, SeekerError, challenge, check_sign_in
 from .xp import week_of, xp_of
+from .net import client_address
 
 # The only events the app may count. Retirements are not events: they are counted from the ledger itself.
-EVENTS = {"site_view", "app_open", "scan_start", "estimate", "retire_open", "verify", "install", "signin_start", "statement"}
+EVENTS = {"site_view", "app_open", "scan_start", "estimate", "retire_open", "verify", "install", "signin_start", "statement",
+          "save_prompt", "share"}
+# Counted by the server itself when a sign-in finishes (never sent by a browser): "signin_done", "seeker_signin".
 LINK_TTL_S = 15 * 60
 EMAIL_RX = re.compile(r"^[^@\s]{1,64}@[^@\s]{1,190}\.[a-z]{2,24}$")
 NAME_RX = re.compile(r"^[\w .'\-]{1,24}$", re.UNICODE)
@@ -81,7 +84,7 @@ def growth_router(st, require_key: Callable, optional_key: Callable, mailer, peo
     email_bucket.rate = 5 / 3600.0                         # five sign-in emails an hour per address
 
     def client(request: Request) -> str:
-        return request.headers.get("x-forwarded-for", "").split(",")[0].strip() or (request.client.host if request.client else "unknown")
+        return client_address(request, st.limits.trusted_proxy_hops)
 
     def today() -> str:
         return datetime.fromtimestamp(st.now(), timezone.utc).date().isoformat()
@@ -153,7 +156,9 @@ def growth_router(st, require_key: Callable, optional_key: Callable, mailer, peo
         window = [per_day.get(d, {}) for d in per_day if d >= since]
         funnel = {"site_view": sum(r.get("site_view", 0) for r in window), "app_open": sum(r.get("app_open", 0) for r in window),
                   "retire_open": sum(r.get("retire_open", 0) for r in window), "retirements": sum(r.get("retirements", 0) for r in window),
-                  "new_players": sum(r.get("new_players", 0) for r in window)}
+                  "new_players": sum(r.get("new_players", 0) for r in window),
+                  "save_prompt": sum(r.get("save_prompt", 0) for r in window), "signin_done": sum(r.get("signin_done", 0) for r in window),
+                  "share": sum(r.get("share", 0) for r in window)}
         return {"since": since, "units": UNITS_STATUS, "days": dict(sorted(per_day.items())), "funnel": funnel,
                 "players": players, "returning_players": returning, "return_rate": round(returning / players, 3) if players else 0.0,
                 "mandates": len(st.mandates), "anchors": st.outbox.counts(), **totals}
@@ -188,6 +193,7 @@ def growth_router(st, require_key: Callable, optional_key: Callable, mailer, peo
             people.link_owner(caller.owner, aid)
         key, rec = st.keys.issue("personal", aid)
         st.store.insert_api_key(rec)
+        people.count_event(today(), "signin_done")             # a finished sign-in: progress is saved to an account
         return {"api_key": key, "owner": aid, "email": email, "units": UNITS_STATUS,
                 "note": "Signed in. This browser keeps the login in Settings. Your earlier progress is part of your account now."}
 
@@ -217,6 +223,8 @@ def growth_router(st, require_key: Callable, optional_key: Callable, mailer, peo
             people.link_owner(caller.owner, aid)
         key, rec = st.keys.issue("personal", aid)
         st.store.insert_api_key(rec)
+        people.count_event(today(), "signin_done")
+        people.count_event(today(), "seeker_signin")
         seeker, note = False, "Signed in with your wallet. No Seeker Genesis Token was found on it."
         try:
             mint = sgt_lookup(body.address) if sgt_lookup else None

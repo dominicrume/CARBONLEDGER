@@ -1,0 +1,17 @@
+Your AI agent's log has a hole in it.
+
+It shows what the agent did.
+It does not show what it was stopped from doing.
+
+An auditor sees the gap and asks three things:
+1) Was it refused?
+2) Did it crash?
+3) Was it deleted?
+
+You can't answer. A gap is not evidence.
+
+So log every no.
+In our demo, an agent asked for more than its mandate allows.
+The refusal got its own sealed record, just like the requests that went through.
+
+What does your agent log when it says no?

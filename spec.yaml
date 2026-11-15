@@ -30,3 +30,37 @@ features:
     description: GET /v1/accounts/me/mandates lists an owner's mandates with use against cap.
   - id: web.app
     description: The static app served from the API's origin (shop, travel, daily, countries, me, business, verify).
+  # Added 2026-11-15: features Rume asked for and shipped after the first spec (commits d745f72, b725094,
+  # 6e770c9, a24d59d), so the scope-drift check measures against what was actually requested.
+  - id: world.stats
+    description: GET /v1/stats/world gives public totals by country and the register, with no personal data.
+  - id: demo.login
+    description: POST /v1/demo/key mints a demo login for pilot units, a few an hour per client address, demo only.
+  - id: audit.export
+    description: GET /v1/audit/receipts.json exports the receipt chain in the KYA receipt format, ids and hashes only.
+  - id: usage.events
+    description: POST /v1/events counts one named event per day, storing no id, address or device.
+  - id: usage.metrics
+    description: GET /v1/metrics shows the operator usage counts, funnel and return rate, behind METRICS_TOKEN.
+  - id: auth.email
+    description: POST /v1/auth/email sends a one-time sign-in link so a person can save progress to an account.
+  - id: auth.verify
+    description: POST /v1/auth/verify uses a sign-in link once and joins the browser's earlier login to the account.
+  - id: auth.seeker
+    description: POST /v1/auth/seeker/challenge and /v1/auth/seeker/verify sign in with a Solana wallet message, no transaction.
+  - id: accounts.profile
+    description: GET and PUT /v1/accounts/me/profile read and set the public display name, filtered.
+  - id: accounts.delete
+    description: DELETE /v1/accounts/me deletes the person's email, name and links and switches off their logins.
+  - id: accounts.statement
+    description: GET /v1/accounts/me/statement downloads a CSV statement, each line with its receipt id.
+  - id: league.weekly
+    description: GET /v1/league ranks players by XP for the week, never by footprint size, with pseudonyms.
+  - id: studio.page
+    description: GET /studio and the studio subdomain serve VOREM Studio, the film directing page.
+  - id: studio.status
+    description: GET /v1/studio/status says whether directing is switched on and which model it uses.
+  - id: studio.direct
+    description: POST /v1/studio/direct turns a brief into film beats, behind an access code and a rate limit.
+  - id: web.landing
+    description: GET / serves the public landing page; GET /app serves the app shell.

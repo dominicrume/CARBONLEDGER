@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased (2026-11-15): hardening, batch 1
+- One request can no longer empty the pilot pool: a total may be at most the server's computed amount plus 10 % or
+  1 kg (ABOVE_COMPUTED), and accepted grams have a daily ceiling per login (10 t) and for the pool (50 t)
+  (DAILY_LIMIT, POOL_DAILY_LIMIT), set by DAILY_RETIRE_CAP_PER_LOGIN_G and DAILY_RETIRE_CAP_TOTAL_G and rebuilt from
+  the receipts after a restart.
+- Per-address limits (demo logins, sign-in emails, events, Studio) use the address our proxy appended to
+  X-Forwarded-For (TRUSTED_PROXY_HOPS), not the part a client can write.
+- An agent key retires only under a mandate (MANDATE_REQUIRED), and an agent field needs a mandate. A mandate
+  retirement is booked to the mandate's owner, so it shows in their history and statement.
+- A mandate's use is written in the retirement's own transaction, and the database moves it only within the cap.
+  Items are priced before the global lock is taken, so a slow barcode lookup no longer stalls every retirement.
+- Outside dev and test the API refuses to start unless CHAIN_MODE is dry-run or solana-devnet, set on purpose.
+
 ## 0.2.1 (2026-10-12)
 - QA sweep fixes. Back and forward move between tabs, and a reloaded verify link opens Verify with its id. A second
   "Verify it" shows the second receipt. Verify says where a receipt was recorded: dry-run chain or Solana cluster.
