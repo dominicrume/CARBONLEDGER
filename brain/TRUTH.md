@@ -45,7 +45,7 @@ Fix the document, not the code, unless the code is wrong. Each line is a learnin
 | docs/THREAT-MODEL.md | T7, T12, T14, T17, T18 open | Paid in DEBT | Open |
 | DEBT.md header | D14, D19 open | Rows say paid | Open |
 | rules/ENGINEERING.md rule 7 | Triggers not yet run | D4 paid | Open |
-| spec.yaml | No entries for accounts, auth, events, metrics, league, Seeker, Studio | All built since | Open: the auditor's scope drift check is blind to them |
+| spec.yaml | No entries for accounts, auth, events, metrics, league, Seeker, Studio | All built since | Fixed 2026-11-15: declared; scope drift 11.00 to 1.00 |
 | README.md, CLAUDE.md, rules/HARDENING-PRODUCT.md | The word "simulated" for units | Retired 2026-10-12 for "pilot units, not yet verified credits" (decision unconfirmed by Rume) | Open, needs Rume |
 | ROOTS-SCORE.md | Waivers for checks 7, 11, 12 | Review dates 2026-10-13, 18, 25 passed; no re-score since 2026-10-11 | Open, needs Rume |
 | docs/ENVIRONMENT.md | ANTHROPIC_API_KEY only for category suggestion | VOREM Studio spends it on scripts inside the ledger API | Open, needs a decision |
