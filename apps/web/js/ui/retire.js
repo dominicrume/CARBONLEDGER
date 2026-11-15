@@ -2,7 +2,7 @@
 // Wording follows rules/HARDENING-PRODUCT.md: pilot units are retired, never "offset", and are labelled as pilot units, not yet verified credits.
 import { settings } from '../core/settings.js';
 import { tonneShort } from '../core/serials.js';
-import { track } from '../core/account.js';
+import { track, account, live } from '../core/account.js';
 import { store } from '../core/store.js';
 import { ledger, gramsToClt, priceGBP, ref, getDemoLogin } from '../core/ledger.js';
 import { badgeBook, countryQueue } from '../core/game.js';
@@ -112,6 +112,46 @@ export function showReceipt(rec, newBadges = [], reward = null) {
       <div class="r-foot">${rec.explorerUrl ? `Recorded on Solana devnet, a test network. <a href="${esc(rec.explorerUrl)}" target="_blank" rel="noopener">View on the Solana explorer</a>` : rec.ledger === 'solana-devnet' ? 'Recorded by the CarbonLedger API. Awaiting the Solana devnet record.' : 'Recorded on this device only.'} Pilot units, not yet verified credits.</div>
     </div>
     ${!reward && newBadges.length ? `<div class="new-badges">${newBadges.map((b, i) => `<span class="chip-badge" style="--i:${i}">${icon('medal')}${esc(b.name)}</span>`).join('')}</div>` : ''}
-    <div class="row"><button class="btn ghost" id="receipt-verify" data-close>Verify it</button><button class="btn primary" data-close>Done</button></div>
-  `, { onOpen: (root) => { countUp(root.querySelector('#reward-count'), reward ? reward.after - reward.before : 0); root.querySelector('#receipt-verify')?.addEventListener('click', () => openVerify(rec.id)); } });
+    ${reward && live() ? `<div class="save-progress" id="save-progress" hidden role="region" aria-label="Save your progress">
+      <p><strong>${icon('seal-check')} Keep this progress</strong><br><small>Right now it lives in this browser only. Save it to your email or your Seeker wallet, and it follows you to any device.</small></p>
+      <div class="row" style="margin-top:0"><button class="btn primary small" id="save-go" data-close>Save my progress</button><button class="btn ghost small" id="save-later" type="button">Not now</button></div>
+    </div>` : ''}
+    <div class="row"><button class="btn ghost" id="receipt-verify" data-close>Verify it</button>${live() && rec.id ? '<button class="btn ghost" id="receipt-share" type="button">Share</button>' : ''}<button class="btn primary" data-close>Done</button></div>
+    <p class="note" id="share-msg" role="status"></p>
+  `, { onOpen: (root) => {
+    countUp(root.querySelector('#reward-count'), reward ? reward.after - reward.before : 0);
+    root.querySelector('#receipt-verify')?.addEventListener('click', () => openVerify(rec.id));
+    root.querySelector('#receipt-share')?.addEventListener('click', () => shareReceipt(rec, root.querySelector('#share-msg')));
+    offerSave(root);
+  } });
+}
+
+// Straight after a retirement, the moment there is something to lose: ask once to save progress, until it is saved
+// or the person says not now. Asking is counted (save_prompt); a finished sign-in is counted by the server.
+async function offerSave(root) {
+  const box = root.querySelector('#save-progress');
+  if (!box || store.get('saveDeclined', false)) return;
+  let p;
+  try { p = await account.profile(); } catch { return; }
+  if (p.signed_in || !box.isConnected) return;
+  box.hidden = false; track('save_prompt');
+  box.querySelector('#save-later').addEventListener('click', () => { store.set('saveDeclined', true); box.hidden = true; });
+  box.querySelector('#save-go').addEventListener('click', () => {
+    history.pushState(null, '', '#me'); window.dispatchEvent(new PopStateEvent('popstate'));
+    setTimeout(() => { const f = document.querySelector('#seeker-signin') || document.querySelector('#signin-email'); f?.scrollIntoView({ block: 'center' }); f?.focus(); }, 300);
+  });
+}
+
+// A link anyone can open to check this receipt on the public Verify screen. The words carry the pilot label.
+export const shareText = (rec) => `I retired ${mass(rec.grams)} of CO2e in pilot units, not yet verified credits. Check my receipt:`;
+async function shareReceipt(rec, msg) {
+  const url = `${location.origin}/app#verify?id=${encodeURIComponent(rec.id)}`, text = shareText(rec);
+  track('share');
+  try {
+    if (navigator.share) { await navigator.share({ title: 'My CarbonLedger receipt', text, url }); return; }
+    await navigator.clipboard.writeText(`${text} ${url}`);
+    msg.textContent = 'Link copied. Paste it anywhere.';
+  } catch (err) {
+    if (err?.name !== 'AbortError') msg.textContent = `Could not share from this browser. The receipt id is ${rec.id}.`;
+  }
 }

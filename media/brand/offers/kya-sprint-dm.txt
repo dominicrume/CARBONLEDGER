@@ -1,0 +1,16 @@
+Your agent is live. Can you prove what it did?
+
+Most teams can show what their agent did.
+Few can show what it was refused.
+Fewer can let someone else check.
+
+I am taking three design partners this month.
+
+For one of your agent workflows, I build three things:
+1) A mandate with a cap, an expiry and a revoke switch.
+2) A sealed record of every action and every refusal.
+3) A short film your board can watch.
+
+It runs on a test network today. It is a prototype, not an audit.
+
+Want one of the three places?
