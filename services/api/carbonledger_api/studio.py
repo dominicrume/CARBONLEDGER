@@ -13,6 +13,7 @@ from fastapi import APIRouter, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from carbonledger.auth import TokenBucket
+from .net import client_address
 
 MODEL = "claude-opus-5-5"
 GROUPS = ("hero", "three", "steps", "stat", "quiz")
@@ -121,7 +122,7 @@ def studio_router(direct: Optional[Callable[[str], str]] = None, per_hour: Optio
             raise HTTPException(503, "Directing is not switched on yet. You can still write and edit beats by hand.")
         if not hmac.compare_digest(x_studio_code.encode(), code.encode()):
             raise HTTPException(401, "That studio access code is not right. Nothing was sent to Claude.")
-        client = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or (request.client.host if request.client else "unknown")
+        client = client_address(request, int(os.environ.get("TRUSTED_PROXY_HOPS", "1")))
         if not bucket.take(client):
             raise HTTPException(429, "Too many films directed from here in the last hour. Try again later.", headers={"Retry-After": "600"})
         return parse_film(run(prompt_for(body)))

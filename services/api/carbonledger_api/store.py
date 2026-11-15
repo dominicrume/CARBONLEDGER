@@ -11,6 +11,10 @@ class StoreError(RuntimeError):
     pass
 
 
+class _MandateRefused(Exception):
+    """Raised inside the transaction so the connection rolls it back."""
+
+
 class MemoryStore:
     kind = "memory"
 
@@ -20,7 +24,7 @@ class MemoryStore:
     def seed(self, projects, batches) -> None:
         pass
 
-    def write_retirement(self, entry: dict, ret, batch, idem_key: str, payload_digest: str) -> None:
+    def write_retirement(self, entry: dict, ret, batch, idem_key: str, payload_digest: str, mandate=None, grams: int = 0) -> None:
         pass
 
     def write_refusal(self, entry: dict) -> None:
@@ -91,9 +95,11 @@ class PostgresStore:
                 c.execute("INSERT INTO batches (id, project_id, vintage, issued_g, retired_g, next_serial) VALUES (%s,%s,%s,%s,%s,%s) ON CONFLICT (id) DO NOTHING",
                           (b.id, b.project_id, b.vintage, b.issued_g, b.retired_g, b.next_serial))
 
-    def write_retirement(self, entry: dict, ret, batch, idem_key: str, payload_digest: str) -> None:
-        """One transaction: receipt, retirement, batch counters, outbox row, idempotency row. Any constraint
-        failure raises StoreError and nothing is written."""
+    def write_retirement(self, entry: dict, ret, batch, idem_key: str, payload_digest: str, mandate=None, grams: int = 0) -> None:
+        """One transaction: receipt, retirement, batch counters, outbox row, idempotency row and, under a mandate,
+        the mandate's use. The mandate row is only moved if it stays within its cap and is not revoked: the
+        database re-checks the cap, so two servers or a crash can never let an agent go past it. Any failure
+        raises StoreError and nothing is written."""
         rid = entry["receipt"]["receipt_id"]
         try:
             with self._conn() as c:
@@ -105,6 +111,13 @@ class PostgresStore:
                 c.execute("UPDATE batches SET retired_g = %s, next_serial = %s WHERE id = %s", (batch.retired_g, batch.next_serial, batch.id))
                 c.execute("INSERT INTO anchor_outbox (receipt_id, receipt_hash, status) VALUES (%s,%s,'pending')", (rid, entry["hash"]))
                 c.execute("INSERT INTO idempotency (key, payload_digest, receipt_id) VALUES (%s,%s,%s)", (idem_key, payload_digest, rid))
+                if mandate is not None:
+                    c.execute("UPDATE mandates SET used_g = used_g + %s WHERE id = %s AND NOT revoked AND used_g + %s <= cap_g",
+                              (grams, mandate.id, grams))
+                    if c.rowcount != 1:
+                        raise _MandateRefused("the mandate is over its cap or revoked in the database")
+        except _MandateRefused as exc:
+            raise StoreError(f"the database refused the retirement: {exc}") from exc
         except self._psycopg.Error as exc:
             raise StoreError(f"the database refused the retirement: {str(exc).splitlines()[0]}") from exc
 

@@ -22,6 +22,7 @@ from carbonledger.auth import TokenBucket
 from .models import UNITS_STATUS
 from .seeker import NONCE_TTL_S, SeekerError, challenge, check_sign_in
 from .xp import week_of, xp_of
+from .net import client_address
 
 # The only events the app may count. Retirements are not events: they are counted from the ledger itself.
 EVENTS = {"site_view", "app_open", "scan_start", "estimate", "retire_open", "verify", "install", "signin_start", "statement"}
@@ -81,7 +82,7 @@ def growth_router(st, require_key: Callable, optional_key: Callable, mailer, peo
     email_bucket.rate = 5 / 3600.0                         # five sign-in emails an hour per address
 
     def client(request: Request) -> str:
-        return request.headers.get("x-forwarded-for", "").split(",")[0].strip() or (request.client.host if request.client else "unknown")
+        return client_address(request, st.limits.trusted_proxy_hops)
 
     def today() -> str:
         return datetime.fromtimestamp(st.now(), timezone.utc).date().isoformat()

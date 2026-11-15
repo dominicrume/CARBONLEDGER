@@ -25,19 +25,29 @@ HEALTH_CACHE_S = 10.0                  # how long one chain health answer is tru
 class Limits:
     """Edge limits, from the environment or a test."""
     def __init__(self, rate_per_minute: int = 60, burst: int = 20, max_request_bytes: int = 65536, request_timeout_s: float = 40.0,
-                 agent_sig_max_age_s: int = 120, demo_keys: bool = False, demo_keys_per_hour: int = 10):
+                 agent_sig_max_age_s: int = 120, demo_keys: bool = False, demo_keys_per_hour: int = 10,
+                 daily_key_cap_g: Optional[int] = None, daily_total_cap_g: Optional[int] = None, trusted_proxy_hops: int = 1):
         self.rate_per_minute, self.burst, self.max_request_bytes, self.request_timeout_s = rate_per_minute, burst, max_request_bytes, request_timeout_s
         self.agent_sig_max_age_s = agent_sig_max_age_s
         # Self-serve demo logins (DEMO_LOGINS=1, only with APP_ENV=demo): anyone with the link can mint a personal or
         # business key for simulated units, a few per hour per address. Never on for real units.
         self.demo_keys, self.demo_keys_per_hour = demo_keys, demo_keys_per_hour
+        # Daily ceilings on accepted grams (UTC day), per login and across the whole pool, so no one request or one
+        # login can empty the pilot pool. None means no ceiling (tests); the environment turns them on (from_env).
+        self.daily_key_cap_g, self.daily_total_cap_g = daily_key_cap_g, daily_total_cap_g
+        # How many proxies in front of us append to X-Forwarded-For. The client's address is the entry that many
+        # places from the right: the left part is whatever the client sent and can be forged. 0 ignores the header.
+        self.trusted_proxy_hops = trusted_proxy_hops
 
     @classmethod
     def from_env(cls) -> "Limits":
         e = os.environ.get
+        cap = lambda name, default: int(e(name, default)) or None          # 0 switches a ceiling off
         return cls(int(e("RATE_LIMIT_PER_MINUTE", "60")), int(e("RATE_LIMIT_BURST", "20")), int(e("MAX_REQUEST_BYTES", "65536")),
                    float(e("REQUEST_TIMEOUT_SECONDS", "40")), int(e("AGENT_SIGNATURE_MAX_AGE_SECONDS", "120")),
-                   e("DEMO_LOGINS", "0") == "1" and e("APP_ENV", "") == "demo", int(e("DEMO_LOGINS_PER_HOUR", "10")))
+                   e("DEMO_LOGINS", "0") == "1" and e("APP_ENV", "") == "demo", int(e("DEMO_LOGINS_PER_HOUR", "10")),
+                   cap("DAILY_RETIRE_CAP_PER_LOGIN_G", "10000000"), cap("DAILY_RETIRE_CAP_TOTAL_G", "50000000"),
+                   int(e("TRUSTED_PROXY_HOPS", "1")))
 
 
 class State:
@@ -60,6 +70,7 @@ class State:
         self.worker = AnchorWorker(chain, self.outbox, now=now, batch_window_s=anchor_interval_s)
         self.idem = {}                          # key -> (payload digest, receipt id)
         self.mandates = {}
+        self.day_used = {}                      # (UTC day, owner) -> accepted grams; (day, "*") is the whole pool
         self._health: Optional[bool] = None
         self._health_at = 0.0
         saved = self.store.load()
@@ -84,9 +95,16 @@ class State:
         self.idem = {k: (d, rid) for k, d, rid in s["idem"]}
         for mid, owner, agent, cap, used, exp, allow, revoked in s["mandates"]:
             self.mandates[mid] = Mandate(mid, owner, agent, cap, int(exp), tuple(allow) if allow is not None else None, used, revoked)
+        for r in self.receipts.receipts():      # rebuild the daily ceilings from history, so a restart does not reset them
+            if r.get("outcome") == "ACCEPTED" and isinstance(r.get("grams"), int):
+                self.note_retired(str(r.get("at", ""))[:10], r.get("owner", ""), r["grams"])
         for key_id, role, owner, key_hash, revoked in s["api_keys"]:
             rec = self.keys.add_hashed(role, owner, key_hash, key_id)
             rec.revoked = revoked
+
+    def note_retired(self, day: str, owner: str, grams: int) -> None:
+        for k in ((day, owner), (day, "*")):
+            self.day_used[k] = self.day_used.get(k, 0) + grams
 
     def chain_healthy(self) -> bool:
         """Asked before committing a retirement. If the chain is known to be down, nothing is recorded."""
@@ -100,7 +118,13 @@ class State:
 
 
 def chain_from_env() -> ChainClient:
-    if os.environ.get("CHAIN_MODE", "dry-run") == "solana-devnet":
+    """CHAIN_MODE must be set on purpose outside dev and test: a missing or misspelt value used to fall back to the dry
+    run, whose receipts read as anchored with no transaction behind them. Now the server refuses to start."""
+    env = os.environ.get("APP_ENV", "")
+    mode = os.environ.get("CHAIN_MODE", "" if env not in ("dev", "test") else "dry-run").strip()
+    if mode not in ("dry-run", "solana-devnet"):
+        raise RuntimeError(f"CHAIN_MODE must be dry-run or solana-devnet (got {mode or 'nothing'}). The API refuses to start without it outside dev and test.")
+    if mode == "solana-devnet":
         secret = _real(os.environ.get("SOLANA_SECRET_KEY_B58"))
         if not secret:
             raise RuntimeError("CHAIN_MODE is solana-devnet but SOLANA_SECRET_KEY_B58 is unset or still a placeholder")
