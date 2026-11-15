@@ -37,6 +37,8 @@ from carbonledger.units import grams_to_clt
 from .accounts import account_router, world_router
 from .growth import growth_router
 from .studio import studio_router
+from .payments import Payments, payments_from_env, payments_router
+from .admin import admin_router
 from .mailer import mailer_from_env
 from .people import people_from_env
 from .seeker import sgt_lookup_from_env
@@ -58,13 +60,14 @@ def public_receipt_id(receipt_body: dict) -> str:
 def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = time.time, web_origin: Optional[str] = None,
                anchor_wait_s: Optional[float] = None, start_worker: bool = True, keys: Optional[ApiKeyStore] = None,
                limits: Optional[Limits] = None, product_lookup: Optional[ProductLookup] = None, store=None,
-               anchor_interval_s: Optional[float] = None, people=None, mailer="env", sgt_lookup="env") -> FastAPI:
+               anchor_interval_s: Optional[float] = None, people=None, mailer="env", sgt_lookup="env", payments: Optional[Payments] = None) -> FastAPI:
     st = State(chain or chain_from_env(), now, anchor_wait_from_env() if anchor_wait_s is None else anchor_wait_s,
                keys=keys, limits=limits or Limits.from_env(), product_lookup=product_lookup, store=store,
                anchor_interval_s=anchor_interval_from_env() if anchor_interval_s is None else anchor_interval_s)
     dev = os.environ.get("APP_ENV") == "dev"
     app = FastAPI(title="CarbonLedger API", docs_url="/docs" if dev else None, redoc_url=None, openapi_url="/openapi.json" if dev else None)
     app.state.st = st
+    st.pay = payments if payments is not None else payments_from_env()
     st.people = people if people is not None else people_from_env(os.environ.get("DATABASE_URL"))
     mailer = mailer_from_env() if mailer == "env" else mailer
     sgt_lookup = sgt_lookup_from_env() if sgt_lookup == "env" else sgt_lookup
@@ -135,7 +138,8 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
     @app.get("/health")
     def health():
         return {"status": "ok", "chain": getattr(st.chain_client, "cluster", "unknown"), "units": UNITS_STATUS,
-                "anchors": st.outbox.counts(), "store": st.store.kind, "demo_keys": st.limits.demo_keys}
+                "anchors": st.outbox.counts(), "store": st.store.kind, "demo_keys": st.limits.demo_keys,
+                "payments": st.pay.mode or "off"}
 
     @app.post("/v1/demo/key", status_code=201)
     def demo_key(request: Request, role: str = "personal"):
@@ -215,17 +219,19 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
                 priced = compute(body.items, st.product_lookup)
             except RecomputeError as exc:
                 priced = exc
+            # Test-mode payments (D29): a paid quote is checked on chain before the lock; nothing is recorded without it.
+            paid = st.pay.check_for_retire(body.payment_reference, caller.owner, body.grams) if st.pay.on else None
             with st.lock:
                 prior = st.idem.get(body.idempotency_key)        # re-check: another thread may have won the race
                 if prior is not None:
                     receipt_id = prior[1]
                 else:
-                    receipt_id = _commit(body, payload_digest, caller, priced)
+                    receipt_id = _commit(body, payload_digest, caller, priced, paid)
         entry = st.outbox.wait_settled(receipt_id, st.anchor_wait_s)
         e = st.receipts.find(receipt_id)
         return _response(e["receipt"], e["hash"], entry.public())
 
-    def _commit(body: RetireIn, payload_digest: str, caller: KeyRecord, priced) -> str:
+    def _commit(body: RetireIn, payload_digest: str, caller: KeyRecord, priced, paid=None) -> str:
         """Called under the lock. Every attempt that reaches a decision becomes a sealed receipt (KYA format):
         ACCEPTED with its serial range, or REFUSED with the rule that stopped it. Returns the accepted receipt id."""
         now = int(st.now())
@@ -296,6 +302,10 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
         except RegistryError as exc:
             refuse(STATUS_FOR.get(exc.code, 409), exc.code, "Not enough pilot units left." if exc.code == "OVER_RETIREMENT" else str(exc), computed_g)
         fields = {**base, "clt": grams_to_clt(body.grams), "computed_g": computed_g, "serial_start": ret.serial_start, "serial_end": ret.serial_end}
+        if paid is not None:
+            if paid["used"]:                       # re-checked under the lock: one payment pays for one retirement
+                raise HTTPException(409, "PAYMENT_USED: this payment already paid for a retirement. Nothing was recorded.")
+            fields.update(payment_mode=st.pay.mode, payment_amount=paid["amount"], payment_unit=paid["unit"], payment_signature=paid["signature"])
         # The public id comes from the receipt's own content, so the memo never exposes a running count (F14).
         receipt_id = public_receipt_id(fields)
         fields["receipt_id"] = receipt_id
@@ -315,12 +325,16 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
         if mandate is not None:
             consume(mandate, body.grams)
         st.note_retired(day, owner, body.grams)
+        if paid is not None:
+            st.pay.mark_used(body.payment_reference)
         return receipt_id
 
+    app.include_router(admin_router(st, require_key))
     app.include_router(account_router(st, require_key))
     app.include_router(growth_router(st, require_key, optional_key, mailer, st.people, os.environ.get("PUBLIC_URL", "https://carbonledger.world").rstrip("/"), sgt_lookup))
     app.include_router(world_router(st))
     app.include_router(studio_router())
+    app.include_router(payments_router(st.pay, require_key))
 
     @app.get("/v1/receipts/{receipt_id}")
     def get_receipt(receipt_id: str):

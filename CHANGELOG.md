@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased (2026-11-15): go-live groundwork
+- Stripe Checkout in test mode (PAYMENTS_MODE=stripe-test) for cards, Apple Pay, Google Pay and bank; only sk_test_
+  keys are accepted. Receipts carry payment_amount and payment_unit (lamports or pence).
+- Operator levers (DEBT D24 paid): authority keys suspend a project and re-queue a failed anchor.
+- The clean count: /v1/metrics "real" leaves out INTERNAL_OWNERS and everything before METRICS_SINCE.
+- docs/GO-LIVE.md (the plan out of development), docs/COUNSEL-BRIEF.md, decision proposals for the CarbonCoin name and
+  the mainnet move.
+
+## Unreleased (2026-11-15): payments, test mode only
+- Solana Pay on Solana devnet behind PAYMENTS_MODE=solana-devnet-test (off by default). POST /v1/pay/quote prices a
+  retirement in devnet test SOL with a one-time reference; GET /v1/pay/{reference} finds the transfer on chain;
+  /v1/retire then needs a paid, unused quote of the caller for the same grams. The payment signature, lamports and
+  mode go on the receipt. No real money moves in any mode (docs/DECISIONS.md 2026-11-15, DEBT D29).
+- The confirm sheet shows "Pay and retire (test)" with an Open in wallet link when the server is in test mode.
+
 ## Unreleased (2026-11-15): hardening, batch 1
 - One request can no longer empty the pilot pool: a total may be at most the server's computed amount plus 10 % or
   1 kg (ABOVE_COMPUTED), and accepted grams have a daily ceiling per login (10 t) and for the pool (50 t)

@@ -88,6 +88,7 @@ export class SolanaLedger {
       lines: (entry.lines || []).map(l => ({ name: String(l.name), grams: Math.round(l.grams) })),
       items: entry.items || [],
       target_iso3: entry.countryIso3 || null, idempotency_key: entry.idempotencyKey || ref(),
+      payment_reference: entry.paymentReference || null,
     };
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), CONFIG.api.timeoutMs);

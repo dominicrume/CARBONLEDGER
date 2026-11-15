@@ -64,6 +64,7 @@ async function showConnection() {
     // Demo servers mint logins: a first-time visitor gets one here, silently, so the first retirement just works (D27).
     if (!apiKey.get() && h.demo_keys) { try { await getDemoLogin('personal'); document.dispatchEvent(new CustomEvent('carbonledger:login')); } catch {} }
     el.textContent = `Ledger: ${h.chain === 'dry-run' ? 'dry run' : `Solana ${h.chain}`}${apiKey.get() ? '' : ', no login yet'}`; el.title = 'Connected to the CarbonLedger API'; el.dataset.state = 'connected';
+    ledger.info.payments = h.payments || 'off';   // test-mode payments (D29): the confirm sheet asks for a paid quote
     ledger.info.name = h.chain === 'dry-run' ? 'the CarbonLedger API, dry-run chain (nothing is sent to Solana)' : `the CarbonLedger API, Solana ${h.chain}`;
   } catch { el.textContent = 'Ledger not reachable'; el.dataset.state = 'down'; }
 }

@@ -138,3 +138,44 @@ The chain record is real. The carbon behind the units is not: no verifier has at
 unit with no qualifier would read as a verified credit (rules/COMPLIANCE.md C5). Engineering kept one honest
 qualifier and offered to remove it fully if Rume decides so after reading the reason.
 Who agreed: Rume asked; Engineering proposed the wording. Awaiting Rume's confirmation of the wording.
+
+---
+Date: 2026-11-15
+Decision: Payments enter the product in TEST MODE ONLY. First Solana Pay on Solana devnet: the server quotes a
+price for a retirement, the person's wallet pays devnet test tokens to the treasury address with a one-time
+reference key, and the server confirms that transfer on chain (recipient, amount, reference, confirmed) before the
+retirement is recorded. The payment signature goes on the receipt, and a reference can pay for one retirement only.
+Second, card payments (cards, Apple Pay, Google Pay, bank) through Stripe in test mode, once Rume creates the Stripe
+account. Payment is off unless PAYMENTS_MODE is set, and the only accepted values are "solana-devnet-test" and later
+"stripe-test". No real money moves in any mode, and every screen and API response that mentions a price says so.
+Real money waits for three things: units that are real credits (a verifier-attested project, or credits bought from
+an existing registry and retired on the buyer's behalf), counsel's sign-off on rules/COMPLIANCE.md C5 and C10, and
+a new decision entry. The chain decision of 2026-10-11 (docs/DECISION-CHAIN.md) stands: build on Solana, no own
+chain now.
+Why: the partner pointed out that people must pay for what they retire, and the product had no way to pay. Charging
+real money for pilot units, which are not yet verified credits, would be a misleading environmental claim (C5) and
+an unapproved payment (C10). A test-mode flow proves the whole path end to end, shows partners and judges how it will
+work, and needs no legal sign-off because nothing of value changes hands. Solana Pay comes first because it uses the
+stack and keys already in place; Stripe follows because it lets people pay without a crypto wallet.
+Who agreed: Rume chose "Both, Solana Pay first" on 2026-11-15 after reading the test-mode condition. Engineering
+proposed the design. Awaiting the partner and counsel for anything beyond test mode.
+
+---
+Date: 2026-11-15
+Decision (proposal): CarbonCoin becomes the product name; CarbonLedger was a holding name for the hackathon. The
+rename happens after counsel answers docs/COUNSEL-BRIEF.md question 2 (whether a non-transferable retirement receipt
+sold as "CarbonCoin" is a cryptoasset under UK financial promotion rules) and the trademark is confirmed for this use.
+What a person buys stays a retirement, never a tradeable coin.
+Why: the founders hold the CarbonCoin IP and it is the stronger brand ("buy a CarbonCoin"). The word "coin" signals a
+cryptoasset, so the name needs a legal answer before it goes on screens, receipts and adverts (COMPLIANCE C6).
+Who agreed: Rume and the partner proposed it on 2026-11-15. Awaiting counsel, then Rume's confirmation.
+
+---
+Date: 2026-11-15
+Decision (proposal): going live means Solana mainnet, not an own chain (docs/DECISION-CHAIN.md stands). Mainnet is
+switched on only after: an independent review of the program, authority, verifier and upgrade keys in a multisig
+(DEBT D6), the API calling the program instead of anchoring by memo (DEBT D3, a new brief), and real units to sell
+(DEBT D11). Until then the API refuses any CHAIN_MODE other than dry-run or solana-devnet.
+Why: the partner asked for a live chain and an own chain. A live chain is mainnet; an own chain adds validators, a gas
+token, wallets, an explorer and security to run, and buyers trust the verification, not who runs the chain.
+Who agreed: proposed by Engineering on 2026-11-15. Awaiting Rume and the partner.

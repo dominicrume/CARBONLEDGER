@@ -19,11 +19,9 @@ When something changes, change it here in the same commit (skill: record-decisio
 |---|---|---|
 | Units are verified or real credits | The attestation is simulated; no evidence has been ingested; no verifier is named | D11, ROOTS check 11 |
 | The API enforces the rules on chain | The program is deployed but the API anchors by memo and calls no instruction; the program is unreviewed and its upgrade authority is the devnet hot key | D3 |
-| CI has run on GitHub | The workflows are written and pinned but have never run on a runner | D6, ROOTS check 12 |
 | Keys are safe for production | Authority and verifier keys are not in a multisig | D6, BREAK F5 |
-| An operator can suspend a project or re-anchor a failed receipt through the API | The suspend lever exists only in the model and the program; no re-anchor command | ROOTS check 7, D24 |
 | Data licences are cleared | Open Food Facts (ODbL), OWID, Agribalyse unchecked | D12, COMPLIANCE C13 |
-| Ready for real money or mainnet | No payments in phase 1; no legal review of claims, tokens or the trust | COMPLIANCE C5 to C10 |
+| Ready for real money or mainnet | Payments exist in TEST MODE ONLY (Solana Pay devnet, Stripe test keys); no real credits to sell; no legal review of claims, tokens or payments | D11, D29, COMPLIANCE C5 to C10, docs/GO-LIVE.md |
 
 ## Never say (any channel)
 - "offset", "carbon neutral", "net zero", "climate positive", "verified credits" (tests/test_web_wording.py bans them on screen).

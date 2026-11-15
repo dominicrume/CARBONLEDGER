@@ -53,8 +53,9 @@ Corrected 2026-11-09 (server recompute, login and the program compile are now tr
 - The API enforces the rules on chain. The program is deployed on devnet, unreviewed, upgrade authority is the
   hot key, and the API still anchors by memo (D3).
 - Real verification of real projects. The demo project is seeded with a simulated attestation (D11).
-- CI has run on GitHub, and authority and verifier keys sit in a multisig (D6).
-- Production ready. An operator cannot suspend a project or re-anchor a failed receipt through the API (D24).
+- Authority and verifier keys sit in a multisig (D6).
+- Production ready or taking real money. Payments run in test mode only, nothing real is for sale yet, and counsel
+  has not signed off (D11, D29, docs/GO-LIVE.md).
 
 ## Company brain
 brain/README.md holds the company's context and its self-improving loop (sensors, policy, tools, gates,

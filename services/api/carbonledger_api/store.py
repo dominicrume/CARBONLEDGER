@@ -36,6 +36,9 @@ class MemoryStore:
     def upsert_mandate(self, m) -> None:
         pass
 
+    def update_project_status(self, pid: str, status: str) -> None:
+        pass
+
     def insert_api_key(self, rec) -> None:
         pass
 
@@ -148,6 +151,10 @@ class PostgresStore:
                          VALUES (%s,%s,%s,%s,%s,to_timestamp(%s),%s,%s)
                          ON CONFLICT (id) DO UPDATE SET used_g = EXCLUDED.used_g, revoked = EXCLUDED.revoked""",
                       (m.id, m.owner, m.agent, m.cap_g, m.used_g, m.expires_at, list(m.allow_projects) if m.allow_projects is not None else None, m.revoked))
+
+    def update_project_status(self, pid: str, status: str) -> None:
+        with self._conn() as c:
+            c.execute("UPDATE projects SET status = %s WHERE id = %s", (status, pid))
 
     def insert_api_key(self, rec) -> None:
         with self._conn() as c:

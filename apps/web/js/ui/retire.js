@@ -4,7 +4,8 @@ import { settings } from '../core/settings.js';
 import { tonneShort } from '../core/serials.js';
 import { track, account, live } from '../core/account.js';
 import { store } from '../core/store.js';
-import { ledger, gramsToClt, priceGBP, ref, getDemoLogin } from '../core/ledger.js';
+import { ledger, gramsToClt, priceGBP, ref, getDemoLogin, apiHeaders } from '../core/ledger.js';
+import { CONFIG } from '../config.js';
 import { badgeBook, countryQueue } from '../core/game.js';
 import { target, resolveTarget } from '../core/target.js';
 import { COUNTRIES } from '../data/countries.js';
@@ -39,10 +40,10 @@ export function confirmRetirement(entry, onDone) {
         <span><strong>A country I choose</strong><select id="tgt-country" aria-label="Country">${countryOptions(t.iso3 || 'GBR')}</select></span></label>
     </fieldset>
     <p class="note" id="tgt-note"></p>
-    <p class="note">No payment is taken. Pilot units, not yet verified credits.</p>
+    ${payOn() ? '<p class="note">Test mode: a test payment, no real money moves. Pilot units, not yet verified credits.</p><div class="pay-box" id="pay-box" hidden></div>' : '<p class="note">No payment is taken. Pilot units, not yet verified credits.</p>'}
     <p class="note bad" id="retire-error" role="alert"></p>
     <p class="row" id="retire-login" hidden><button class="btn ghost small" type="button" id="get-demo-login">Get a demo login</button><span class="note">A login for simulated units, kept in this browser. Then confirm again.</span></p>
-    <div class="row"><button class="btn ghost" data-close>Cancel</button><button class="btn primary" id="confirm-retire">Confirm retirement</button></div>
+    <div class="row"><button class="btn ghost" data-close>Cancel</button><button class="btn primary" id="confirm-retire">${payOn() ? 'Pay and retire (test)' : 'Confirm retirement'}</button></div>
   `, { onOpen: (root, close) => {
     const pick = () => ({ mode: root.querySelector('[name=tgt]:checked').value, iso3: root.querySelector('#tgt-country').value });
     const note = () => {
@@ -53,14 +54,18 @@ export function confirmRetirement(entry, onDone) {
     root.querySelectorAll('[name=tgt]').forEach(i => i.addEventListener('change', note));
     root.querySelector('#tgt-country').addEventListener('change', () => { root.querySelector('[name=tgt][value=chosen]').checked = true; note(); });
     note();
+    let payRef = null;
     root.querySelector('#confirm-retire').addEventListener('click', async (e) => {
       e.target.disabled = true;
+      if (payOn() && !payRef) {                        // D29: get a paid quote first; then this button retires
+        try { payRef = await payFirst(root, entry.grams); } catch (err) { root.querySelector('#retire-error').textContent = err.message; e.target.disabled = false; return; }
+      }
       const choice = pick(); target.set(choice);
       const dest = resolveTarget(choice, entry.grams);
       const account = entry.account || 'personal', ctx = { employees: store.get('biz', {}).employees };
       const before = new Set(badgeBook(account, ctx).all.map(b => b.id));
       const xpBefore = xpOf(ledger.history(account)).total;
-      const attempt = () => ledger.retire({ ...entry, idempotencyKey, countryIso3: dest?.iso3, countryName: dest?.name, mode: dest?.mode, finished: !!dest?.finished });
+      const attempt = () => ledger.retire({ ...entry, idempotencyKey, paymentReference: payRef, countryIso3: dest?.iso3, countryName: dest?.name, mode: dest?.mode, finished: !!dest?.finished });
       try {
         let rec;
         try { rec = await attempt(); }
@@ -89,6 +94,27 @@ export function confirmRetirement(entry, onDone) {
       } catch (err) { e.target.disabled = false; root.querySelector('#retire-error').textContent = err.message; }
     });
   } });
+}
+
+// ---- Test-mode payments (docs/DECISIONS.md 2026-11-15, D29): Solana Pay on devnet, no real money ----
+const payOn = () => CONFIG.ledger === 'solana-devnet' && ledger.info.payments && ledger.info.payments !== 'off';
+async function payFirst(root, grams) {
+  const r = await fetch(`${CONFIG.api.baseUrl}/v1/pay/quote`, { method: 'POST', headers: apiHeaders(), body: JSON.stringify({ grams }) });
+  const q = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(typeof q.detail === 'string' ? q.detail : 'Could not get a payment quote. Nothing was recorded.');
+  const box = root.querySelector('#pay-box'); box.hidden = false;
+  box.innerHTML = `<p><strong>Pay ${esc(q.amount)} ${esc(q.currency)}</strong><br><small>${esc(q.note)}</small></p>
+    <div class="row" style="margin-top:0"><a class="btn small" href="${esc(q.url)}" id="pay-open"${q.mode === 'stripe-test' ? ' target="_blank" rel="noopener"' : ''}>${q.mode === 'stripe-test' ? 'Pay by card (test)' : 'Open in wallet'}</a><button class="btn ghost small" type="button" id="pay-copy">Copy payment link</button></div>
+    <p class="note" id="pay-status" role="status">Waiting for the test payment…</p>`;
+  box.querySelector('#pay-copy').addEventListener('click', () => navigator.clipboard?.writeText(q.url).then(() => { box.querySelector('#pay-status').textContent = 'Link copied.'; }).catch(() => {}));
+  const until = Date.now() + 10 * 60 * 1000;
+  while (Date.now() < until && box.isConnected) {
+    await new Promise(res => setTimeout(res, 2500));
+    const s = await (await fetch(`${CONFIG.api.baseUrl}/v1/pay/${encodeURIComponent(q.reference)}`)).json().catch(() => ({}));
+    if (s.status === 'paid') { box.querySelector('#pay-status').textContent = 'Test payment confirmed. Recording your retirement…'; return q.reference; }
+    if (s.status === 'invalid') throw new Error(`The payment did not match the quote (${s.code}). Nothing was recorded.`);
+  }
+  throw new Error('No payment arrived in 10 minutes. Nothing was recorded. Try again for a new quote.');
 }
 
 // Opens Verify for one receipt, the same way a typed #verify?id= link does.
