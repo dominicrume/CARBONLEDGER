@@ -64,3 +64,8 @@ features:
     description: POST /v1/studio/direct turns a brief into film beats, behind an access code and a rate limit.
   - id: web.landing
     description: GET / serves the public landing page; GET /app serves the app shell.
+  # Added 2026-11-15: test-mode payments (docs/DECISIONS.md 2026-11-15, DEBT D29), asked for by Rume and the partner.
+  - id: pay.quote
+    description: POST /v1/pay/quote prices a retirement in Solana devnet test tokens with a one-time Solana Pay reference; test mode only.
+  - id: pay.status
+    description: GET /v1/pay/{reference} reports whether the test payment for a quote is confirmed on Solana devnet.
