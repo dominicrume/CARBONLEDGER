@@ -33,3 +33,13 @@ def test_a_run_record_with_personal_data_is_refused(tmp_path, monkeypatch):
 def test_the_sweep_runs_and_returns_findings():
     import datetime as dt
     assert isinstance(bc.sweep(dt.date(2026, 11, 9)), list)
+
+
+def test_the_sweep_reads_every_waiver_review_wording():
+    """2026-11-15: ROOTS 12 says "Review at first push, by 2026-10-13" and the sweep missed it."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("brain_check", ROOT / "brain" / "tools" / "brain_check.py")
+    bc = importlib.util.module_from_spec(spec); spec.loader.exec_module(bc)
+    assert bc.WAIVER_REVIEW.search("| 7 | x | no suspend endpoint. Review by 2026-10-18. |").group(1) == "2026-10-18"
+    assert bc.WAIVER_REVIEW.search("| 12 | x | never run. Review at first push, by 2026-10-13. |").group(1) == "2026-10-13"
+    assert bc.WAIVER_REVIEW.search("| 3 | x | reviewed and cleared |") is None

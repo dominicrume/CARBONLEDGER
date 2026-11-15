@@ -23,6 +23,7 @@ run as loops, each with five layers. Here is each layer, mapped to what exists i
 | Tools | What can an agent call that always gives the same answer? | loop/TOOLS.md | Strong: pure core library, API, scripts |
 | Quality gate | How do we know the work is right? | loop/GATES.md | Strong for the ledger (2,000+ checks); missing for verification and brand |
 | Learning | How does a failure become a better tool, skill or rule? | loop/LEARNING.md | Manual (BREAK.md, DEBT.md); now has a feedback log and a sweep |
+| Rhythm | When does each part of the loop run? | loop/RHYTHM.md | Daily sweep workflow (2026-11-15); weekly fix, drill and approval days |
 
 ## Load order for any agent
 1. `CLAUDE.md` (the router and the rules that never bend). Other agents: `AGENTS.md` sends you there.

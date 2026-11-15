@@ -12,6 +12,9 @@ import re
 import sys
 from pathlib import Path
 
+# "Review by 2026-10-18" and "Review at first push, by 2026-10-13" are both waiver review dates.
+WAIVER_REVIEW = re.compile(r"Review\b[^|]*?\bby (\d{4}-\d{2}-\d{2})")
+
 ROOT = Path(__file__).resolve().parents[2]
 SKILLS = ROOT / ".agents" / "skills"
 RUNS = ROOT / "brain" / "feedback" / "runs.jsonl"
@@ -124,7 +127,7 @@ def sweep(today):
         if dates and dt.date.fromisoformat(dates[-1]) < today:
             found.append({"kind": "debt overdue", "id": did, "review": dates[-1]})
     for row in (ROOT / "ROOTS-SCORE.md").read_text().splitlines():
-        m = re.search(r"Review by (\d{4}-\d{2}-\d{2})", row)
+        m = WAIVER_REVIEW.search(row)
         if m and dt.date.fromisoformat(m.group(1)) < today:
             check = row.split("|")[1].strip()
             found.append({"kind": "waiver expired", "id": f"ROOTS {check}", "review": m.group(1)})

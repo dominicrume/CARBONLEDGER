@@ -1,0 +1,36 @@
+name: daily sweep
+# The loop's daily sensor (brain/loop/RHYTHM.md). Reads only: the brain gate, the sweep (overdue debt, expired
+# ROOTS waivers, open run records, router drift) and the live /health and /v1/audit/verify. Results go to the
+# job summary; the job fails when the brain gate is red, the live server is down or its receipt chain is broken.
+# Live checks run only when the repository variable PUBLIC_URL is set (for example https://carbonledger.world).
+on:
+  schedule:
+    - cron: "10 6 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with: { python-version: "3.12" }
+      - name: brain gate
+        run: python brain/tools/brain_check.py | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: sweep
+        run: |
+          echo '### Sweep' >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          python brain/tools/brain_check.py --sweep | tee -a "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - name: live health and chain
+        if: ${{ vars.PUBLIC_URL != '' }}
+        env:
+          PUBLIC_URL: ${{ vars.PUBLIC_URL }}
+        run: |
+          set -euo pipefail
+          health=$(curl -fsS --max-time 20 "$PUBLIC_URL/health")
+          audit=$(curl -fsS --max-time 30 "$PUBLIC_URL/v1/audit/verify")
+          printf '### Live\n```json\n%s\n%s\n```\n' "$health" "$audit" >> "$GITHUB_STEP_SUMMARY"
+          python -c 'import json,sys; h=json.loads(sys.argv[1]); a=json.loads(sys.argv[2]); assert h["status"]=="ok", h; assert a["intact"], a' "$health" "$audit"
