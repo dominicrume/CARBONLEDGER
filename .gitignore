@@ -18,3 +18,23 @@ media/**/learn the style of this video voice structure first, before you make ne
 media/learn the style of this video voice structure first, before you make new ideos/
 *.keystore
 *.jks
+
+# Personal media never enters the repo (brain/README.md: photos, voices and cloned takes stay out).
+# Only these media folders are tracked, and no photo, voice or film inside them. Everything else in media/ is local.
+media/*
+!media/brand/
+!media/landscape-01/
+!media/short-01/
+media/brand/posts/out/
+media/**/*.wav
+media/**/*.mp3
+media/**/*.m4a
+media/**/*.mp4
+media/**/*.mov
+media/**/*.jpg
+media/**/*.jpeg
+media/**/*.JPG
+media/**/*.heic
+media/**/rume*.png
+media/**/*env/
+.DS_Store

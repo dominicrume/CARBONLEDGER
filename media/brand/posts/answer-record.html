@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en-GB"><head><meta charset="utf-8"><title>Answer vs record posts</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;800&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,700;1,900&family=JetBrains+Mono:wght@600&display=swap">
+<style>
+  /* Three LinkedIn feed posts, 1080x1350, Rume palette: light blue, transparent diamond, white (+ deep ink for readability).
+     P1 "reminder card": white, avatar + name, two short lines, huge whitespace.
+     P2 "object poster": flat colour field, one glossy 3D object (a glass diamond), a small pill label, almost no text.
+     P3 "thumbnail": 3-word caps headline with one key word coloured, an arrow, the presenter cut-out, one prop. */
+  :root { --sky: #8FD3FF; --sky2: #3FA9F5; --white: #FFFFFF; --ink: #071A2E; --violet: #D9D2FF; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #071A2E; }
+  .post { width: 1080px; height: 1350px; position: relative; overflow: hidden; margin-bottom: 20px; }
+  .abs { position: absolute; }
+  /* P1 */
+  #p1 { background: var(--white); color: var(--ink); font-family: Inter, sans-serif; }
+  #p1 .who { left: 96px; top: 430px; display: flex; gap: 26px; align-items: center; }
+  #p1 .av { width: 120px; height: 120px; border-radius: 50%; overflow: hidden; background: var(--sky); border: 4px solid var(--sky); }
+  #p1 .av img { width: 240px; margin: -6px 0 0 -62px; filter: grayscale(1) contrast(1.1); }
+  #p1 .nm { font: 700 44px Inter, sans-serif; }
+  #p1 .hd { font: 400 34px Inter, sans-serif; color: rgba(7,26,46,.6); margin-top: 4px; }
+  #p1 .tx { left: 96px; top: 610px; width: 900px; font: 500 56px/1.32 Inter, sans-serif; }
+  #p1 .tx b { font-weight: 700; color: var(--sky2); }
+  /* P2 */
+  #p2 { background: radial-gradient(ellipse at 50% 42%, #3FA9F5 0%, rgba(63,169,245,.75) 45%, #071A2E 115%); }
+  #p2 .pill { right: 70px; top: 70px; padding: 14px 26px; border: 3px solid var(--white); border-radius: 18px; color: var(--white); font: 600 26px 'JetBrains Mono', monospace; letter-spacing: .16em; }
+  #p2 svg { left: 140px; top: 260px; width: 800px; height: 800px; filter: drop-shadow(0 60px 60px rgba(0,20,60,.45)); }
+  #p2 .cap { left: 0; width: 1080px; top: 1140px; text-align: center; color: var(--white); font: 800 64px Manrope, sans-serif; letter-spacing: -.01em; }
+  #p2 .cap span { color: var(--sky); }
+  /* P3 */
+  #p3 { background: radial-gradient(ellipse at 75% 35%, rgba(63,169,245,.35) 0%, var(--ink) 65%); }
+  #p3 .dots { position: absolute; inset: 0; background-image: radial-gradient(rgba(143,211,255,.12) 1.4px, transparent 1.8px); background-size: 28px 28px; }
+  #p3 .hl { left: 70px; top: 90px; font: 800 128px/.95 Manrope, sans-serif; color: var(--white); text-transform: uppercase; letter-spacing: -.03em; }
+  #p3 .hl span { color: var(--sky); }
+  #p3 .rume { left: 560px; top: 470px; width: 540px; filter: grayscale(1) contrast(1.12) brightness(1.05) drop-shadow(0 30px 50px rgba(0,0,0,.5)); }
+  #p3 .glass { left: 70px; top: 800px; width: 540px; padding: 34px 36px; border-radius: 28px; background: rgba(255,255,255,.10); border: 2px solid rgba(255,255,255,.55);
+               backdrop-filter: blur(18px); box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 30px 60px rgba(0,0,0,.4); color: var(--white); }
+  #p3 .glass::before { content: ""; position: absolute; inset: -2px; border-radius: 28px; padding: 2px; background: linear-gradient(135deg, var(--sky), #fff 40%, var(--violet) 70%, transparent);
+               -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+  #p3 .glass h4 { font: 800 40px Manrope, sans-serif; letter-spacing: .04em; }
+  #p3 .glass p { font: 600 25px/1.8 'JetBrains Mono', monospace; display: flex; justify-content: space-between; color: rgba(255,255,255,.9); }
+  #p3 .glass p em { font-style: normal; color: var(--sky); }
+  #p3 .arrow { left: 300px; top: 540px; width: 260px; height: 230px; }
+
+  #p3 .hl { font-size: 118px; }
+  #p3 .glass h4 { font-size: 34px; }
+  #p3 .glass p.no em, #p3 .glass p.no { color: #fff; }
+  #p3 .glass p.no b { color: var(--sky); font-weight: 600; }
+</style></head><body>
+
+<div class="post" id="p1">
+  <div class="abs who"><div class="av"><img src="../../gap-evidence/rume.png" alt=""></div><div><div class="nm">Rume Dominic</div><div class="hd">rumedominic.com</div></div></div>
+  <div class="abs tx">Friendly reminder:<br><br>Your agent's answer is not proof.<br><br>A <b>record</b> it can't change is.</div>
+</div>
+
+<div class="post" id="p3">
+  <div class="dots"></div>
+  <div class="abs hl">An answer<br>is not<br>a <span>record</span></div>
+  <img class="abs rume" src="../../gap-evidence/rume.png" alt="">
+  <svg class="abs arrow" viewBox="0 0 260 230"><path d="M230,20 C150,30 70,80 60,190" fill="none" stroke="#8FD3FF" stroke-width="16" stroke-linecap="round"/><path d="M20,150 L60,205 L105,160" fill="none" stroke="#8FD3FF" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <div class="abs glass"><h4>SELF-REPORT</h4><p><em>did</em>7 jobs</p><p><em>refused</em>2</p><p><em>rule broken</em>3 files</p><p class="no"><em>proof</em><b>none</b></p></div>
+</div>
+<script>window.ready = async () => { await document.fonts.ready; await Promise.all([...document.images].map(i => i.complete ? 0 : new Promise(r => i.onload = r))); };</script>
+</body></html>

@@ -53,6 +53,20 @@ Measured from the transcripts: about **140 to 150 words a minute**, short senten
 - **Format:** landscape 1920x1080 by default. Cut 9:16 versions from it, not the other way round.
 - CarbonLedger colours stay: deep green #0b1510, leaf green #3ddc97, cream #f4ecdc.
 
+### Rume Dominic brand colours (from 28 Oct 2026, replaces the orange/gold and VOREM amber accents)
+Light blue, transparent diamond and white. Every Rume Dominic and VOREM visual uses these from now on; the CarbonLedger
+product app keeps its own palette above.
+
+| Token | Value | Use |
+|---|---|---|
+| `--sky` light blue | #8FD3FF (deep variant #3FA9F5 for text on white) | the accent word, rules, nodes, the highlighter bar |
+| `--white` | #FFFFFF | headlines on dark, page background on light |
+| `--diamond` transparent diamond | fill rgba(255,255,255,.10), edge 1px rgba(255,255,255,.55), backdrop blur 18px, a thin prismatic edge highlight (sky to white to pale violet #D9D2FF) | cards, chips, frames, the logo mark: clear faceted glass, never a solid fill |
+| `--ink` (readability only) | #071A2E deep blue | background in dark mode, body text in light mode |
+
+Readability rule: light blue and white alone fail contrast, so text always sits on `--ink` (dark mode) or is `--ink` on white
+(light mode). Light blue is never used for body text on white, only the deep variant #3FA9F5 for large words.
+
 ## 4. Channels
 | Channel | Length | Open with | Close with |
 |---|---|---|---|

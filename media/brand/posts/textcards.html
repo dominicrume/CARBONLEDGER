@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en-GB"><head><meta charset="utf-8"><title>Rume text cards</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap">
+<style>
+  /* Text cards learned from Alex Hormozi's public posts (re-checked 14 Nov 2026): square 1080x1080, face + name + site top left,
+     plain sans, short lines, lots of empty space, no graphics. Rume version: deep ink instead of black, white, light blue key word,
+     no verified tick, no invented handle. */
+  :root { --sky: #8FD3FF; --sky2: #3FA9F5; --white: #FFFFFF; --ink: #071A2E; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #071A2E; }
+  .post { width: 1080px; height: 1080px; position: relative; overflow: hidden; margin-bottom: 20px; font-family: Inter, sans-serif; }
+  .abs { position: absolute; }
+  .who { left: 100px; display: flex; gap: 24px; align-items: center; }
+  .av { width: 104px; height: 104px; border-radius: 50%; overflow: hidden; background: var(--sky); border: 3px solid var(--sky); }
+  .av img { width: 210px; margin: -6px 0 0 -54px; filter: grayscale(1) contrast(1.1); }
+  .nm { font: 700 40px Inter, sans-serif; }
+  .hd { font: 400 32px Inter, sans-serif; margin-top: 2px; }
+  .tx { left: 100px; width: 880px; font: 400 52px/1.3 Inter, sans-serif; }
+  #d { background: var(--ink); color: var(--white); }
+  #d .hd { color: rgba(255,255,255,.55); }
+  #d .tx b { font-weight: 700; color: var(--sky); }
+  #w { background: var(--white); color: var(--ink); }
+  #w .hd { color: rgba(7,26,46,.55); }
+  #w .tx b { font-weight: 700; color: var(--sky2); }
+</style></head><body>
+
+<div class="post" id="d">
+  <div class="abs who" style="top:300px"><div class="av"><img src="../../gap-evidence/rume.png" alt=""></div><div><div class="nm">Rume Dominic</div><div class="hd">rumedominic.com</div></div></div>
+  <div class="abs tx" style="top:460px">Your AI agent says it did 7 jobs.<br><br>The proof?<br><br><b>Its own word.</b></div>
+</div>
+
+<div class="post" id="w">
+  <div class="abs who" style="top:380px"><div class="av"><img src="../../gap-evidence/rume.png" alt=""></div><div><div class="nm">Rume Dominic</div><div class="hd">rumedominic.com</div></div></div>
+  <div class="abs tx" style="top:550px">Friendly reminder:<br><br>Ask your AI agent what it <b>refused</b>.</div>
+</div>
+<script>window.ready = async () => { await document.fonts.ready; await Promise.all([...document.images].map(i => i.complete ? 0 : new Promise(r => i.onload = r))); };</script>
+</body></html>

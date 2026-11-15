@@ -1,0 +1,28 @@
+Microsoft went quiet. What did your AI agents do first?
+
+On Thursday, Outlook, Teams and Copilot went down. Reports came in from 74 countries.
+
+Every agent on Copilot stopped with it. Nobody can say what they did first.
+
+United Airlines said no AI agent may book, change or buy a ticket. Not even with your approval.
+
+CrowdStrike's answer was a kill switch. A switch stops an agent. It does not tell you what the agent did.
+
+It is not more control. It is a record, written as it happens, by something the agent cannot edit.
+
+Ask your agent three things:
+1) What did you do?
+2) What were you refused?
+3) Who can check?
+
+0:00 Microsoft goes quiet
+0:19 United Airlines says no
+0:32 CrowdStrike's kill switch
+0:41 Not control, a record
+0:57 Three questions for your agent
+
+Sources: Microsoft service status and outage reports, United Airlines, CrowdStrike, Nov 2026.
+
+#AIAgents #AIGovernance #KnowYourAgent
+
+If only the agent can answer, you have its word.
