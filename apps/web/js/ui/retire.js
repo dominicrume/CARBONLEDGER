@@ -114,7 +114,7 @@ export function showReceipt(rec, newBadges = [], reward = null) {
     ${!reward && newBadges.length ? `<div class="new-badges">${newBadges.map((b, i) => `<span class="chip-badge" style="--i:${i}">${icon('medal')}${esc(b.name)}</span>`).join('')}</div>` : ''}
     ${reward && live() ? `<div class="save-progress" id="save-progress" hidden role="region" aria-label="Save your progress">
       <p><strong>${icon('seal-check')} Keep this progress</strong><br><small>Right now it lives in this browser only. Save it to your email or your Seeker wallet, and it follows you to any device.</small></p>
-      <div class="row" style="margin-top:0"><button class="btn primary small" id="save-go" data-close>Save my progress</button><button class="btn ghost small" id="save-later" type="button">Not now</button></div>
+      <div class="row" style="margin-top:0"><button class="btn small" id="save-go" data-close>Save my progress</button><button class="btn ghost small" id="save-later" type="button">Not now</button></div>
     </div>` : ''}
     <div class="row"><button class="btn ghost" id="receipt-verify" data-close>Verify it</button>${live() && rec.id ? '<button class="btn ghost" id="receipt-share" type="button">Share</button>' : ''}<button class="btn primary" data-close>Done</button></div>
     <p class="note" id="share-msg" role="status"></p>
