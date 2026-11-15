@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased (2026-11-15): go-live groundwork
+- Stripe Checkout in test mode (PAYMENTS_MODE=stripe-test) for cards, Apple Pay, Google Pay and bank; only sk_test_
+  keys are accepted. Receipts carry payment_amount and payment_unit (lamports or pence).
+- Operator levers (DEBT D24 paid): authority keys suspend a project and re-queue a failed anchor.
+- The clean count: /v1/metrics "real" leaves out INTERNAL_OWNERS and everything before METRICS_SINCE.
+- docs/GO-LIVE.md (the plan out of development), docs/COUNSEL-BRIEF.md, decision proposals for the CarbonCoin name and
+  the mainnet move.
+
 ## Unreleased (2026-11-15): payments, test mode only
 - Solana Pay on Solana devnet behind PAYMENTS_MODE=solana-devnet-test (off by default). POST /v1/pay/quote prices a
   retirement in devnet test SOL with a one-time reference; GET /v1/pay/{reference} finds the transfer on chain;

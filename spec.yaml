@@ -69,3 +69,7 @@ features:
     description: POST /v1/pay/quote prices a retirement in Solana devnet test tokens with a one-time Solana Pay reference; test mode only.
   - id: pay.status
     description: GET /v1/pay/{reference} reports whether the test payment for a quote is confirmed on Solana devnet.
+  - id: admin.suspend
+    description: POST /v1/admin/projects/{id}/suspend lets an authority key suspend a project so nothing more is issued or retired from it (D24).
+  - id: admin.reanchor
+    description: POST /v1/admin/anchors/{id}/reanchor lets an authority key re-queue a receipt whose anchor failed; an anchored one never moves (D24).

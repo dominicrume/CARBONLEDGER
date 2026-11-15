@@ -104,7 +104,7 @@ def test_a_paid_quote_retires_once_and_the_receipt_carries_the_payment():
     ok = c.post("/v1/retire", json=body(grams=1200, idempotency_key="key-p000021", payment_reference=q["reference"]))
     assert ok.status_code == 200
     rec = c.get(f"/v1/receipts/{ok.json()['receipt_id']}").json()["entry"]["receipt"]
-    assert rec["payment_signature"] == sig and rec["payment_lamports"] == 120_000 and rec["payment_mode"] == "solana-devnet-test"
+    assert rec["payment_signature"] == sig and rec["payment_amount"] == 120_000 and rec["payment_unit"] == "lamports" and rec["payment_mode"] == "solana-devnet-test"
     again = c.post("/v1/retire", json=body(grams=1200, idempotency_key="key-p000022", payment_reference=q["reference"]))
     assert again.status_code == 409 and "PAYMENT_USED" in again.json()["detail"]
     same = c.post("/v1/retire", json=body(grams=1200, idempotency_key="key-p000021", payment_reference=q["reference"]))
@@ -120,3 +120,43 @@ def test_an_underpaid_quote_is_reported_and_records_nothing():
     r = c.post("/v1/retire", json=body(grams=1200, idempotency_key="key-p000031", payment_reference=q["reference"]))
     assert r.status_code == 402 and "UNDERPAID" in r.json()["detail"]
     assert c.get("/v1/registry/summary").json()["retirements"] == 0
+
+
+# ---- Stripe test mode: cards, Apple Pay, Google Pay, bank; test keys only ----
+class StubStripe:
+    def __init__(self):
+        self.sessions = {}
+
+    def __call__(self, method, path, data):
+        if method == "POST":
+            sid = f"cs_test_{len(self.sessions) + 1}"
+            self.sessions[sid] = {"id": sid, "url": f"https://checkout.stripe.com/c/pay/{sid}", "payment_status": "unpaid",
+                                  "amount": data["line_items[0][price_data][unit_amount]"], "payment_intent": None}
+            return self.sessions[sid]
+        return self.sessions[path.rsplit("/", 1)[1]]
+
+    def pay(self, sid):
+        self.sessions[sid].update(payment_status="paid", payment_intent="pi_test_" + sid[-1])
+
+
+def test_stripe_test_mode_quotes_in_pence_and_retires_only_when_paid():
+    from carbonledger_api.payments import pence_for
+    assert pence_for(1_000_000, 10_000) == 10_000 and pence_for(57_808, 10_000) == 579 and pence_for(1, 10_000) == 30
+    st = StubStripe()
+    c = make(payments=Payments("stripe-test", stripe=st, pence_per_tonne=10_000, public_url="https://example.test"))
+    q = c.post("/v1/pay/quote", json={"grams": 57_808}).json()
+    assert q["amount"] == "5.79" and q["pence"] == 579 and q["url"].startswith("https://checkout.stripe.com/") and "No real money" in q["note"]
+    r = c.post("/v1/retire", json=body(grams=57_808, idempotency_key="key-s000001", payment_reference=q["reference"]))
+    assert r.status_code == 402 and "PAYMENT_PENDING" in r.json()["detail"]
+    st.pay(q["reference"])
+    ok = c.post("/v1/retire", json=body(grams=57_808, idempotency_key="key-s000002", payment_reference=q["reference"]))
+    assert ok.status_code == 200
+    rec = c.get(f"/v1/receipts/{ok.json()['receipt_id']}").json()["entry"]["receipt"]
+    assert rec["payment_mode"] == "stripe-test" and rec["payment_amount"] == 579 and rec["payment_unit"] == "pence" and rec["payment_signature"] == "pi_test_1"
+
+
+def test_a_live_stripe_key_is_refused(monkeypatch):
+    from carbonledger_api.payments import payments_from_env
+    monkeypatch.setenv("PAYMENTS_MODE", "stripe-test"); monkeypatch.setenv("STRIPE_SECRET_KEY", "sk_live_abc")
+    with pytest.raises(RuntimeError, match="Live keys are refused"):
+        payments_from_env()

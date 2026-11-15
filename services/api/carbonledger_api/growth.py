@@ -159,7 +159,19 @@ def growth_router(st, require_key: Callable, optional_key: Callable, mailer, peo
                   "new_players": sum(r.get("new_players", 0) for r in window),
                   "save_prompt": sum(r.get("save_prompt", 0) for r in window), "signin_done": sum(r.get("signin_done", 0) for r in window),
                   "share": sum(r.get("share", 0) for r in window)}
-        return {"since": since, "units": UNITS_STATUS, "days": dict(sorted(per_day.items())), "funnel": funnel,
+        # The clean count: real people only. Internal and test logins (INTERNAL_OWNERS, plus the shared demo keys) are
+        # left out, and counting starts at METRICS_SINCE (the launch date), so a headline number is never our own testing.
+        internal = {o.strip() for o in os.environ.get("INTERNAL_OWNERS", "").split(",") if o.strip()} | {"demo-player", "demo-business"}
+        start = os.environ.get("METRICS_SINCE", "").strip() or None
+        r_players: Dict[str, Set[str]] = {}; r_ret = r_g = 0
+        for e in st.receipts.entries():
+            rc = e["receipt"]; d = str(rc.get("ts", ""))[:10]; raw = rc.get("owner", "?")
+            if rc.get("outcome") != "ACCEPTED" or raw in internal or main_owner(raw) in internal or (start and d < start):
+                continue
+            r_players.setdefault(main_owner(raw), set()).add(week_of(d)); r_ret += 1; r_g += rc["grams"]
+        real = {"since": start, "excluded_owners": len(internal), "players": len(r_players), "retirements": r_ret, "grams": r_g,
+                "returning_players": sum(1 for w in r_players.values() if len(w) >= 2)}
+        return {"since": since, "units": UNITS_STATUS, "days": dict(sorted(per_day.items())), "funnel": funnel, "real": real,
                 "players": players, "returning_players": returning, "return_rate": round(returning / players, 3) if players else 0.0,
                 "mandates": len(st.mandates), "anchors": st.outbox.counts(), **totals}
 

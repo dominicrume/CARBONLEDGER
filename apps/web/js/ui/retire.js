@@ -40,7 +40,7 @@ export function confirmRetirement(entry, onDone) {
         <span><strong>A country I choose</strong><select id="tgt-country" aria-label="Country">${countryOptions(t.iso3 || 'GBR')}</select></span></label>
     </fieldset>
     <p class="note" id="tgt-note"></p>
-    ${payOn() ? '<p class="note">Test mode: you pay with Solana devnet test tokens from a wallet. No real money moves. Pilot units, not yet verified credits.</p><div class="pay-box" id="pay-box" hidden></div>' : '<p class="note">No payment is taken. Pilot units, not yet verified credits.</p>'}
+    ${payOn() ? '<p class="note">Test mode: a test payment, no real money moves. Pilot units, not yet verified credits.</p><div class="pay-box" id="pay-box" hidden></div>' : '<p class="note">No payment is taken. Pilot units, not yet verified credits.</p>'}
     <p class="note bad" id="retire-error" role="alert"></p>
     <p class="row" id="retire-login" hidden><button class="btn ghost small" type="button" id="get-demo-login">Get a demo login</button><span class="note">A login for simulated units, kept in this browser. Then confirm again.</span></p>
     <div class="row"><button class="btn ghost" data-close>Cancel</button><button class="btn primary" id="confirm-retire">${payOn() ? 'Pay and retire (test)' : 'Confirm retirement'}</button></div>
@@ -104,14 +104,14 @@ async function payFirst(root, grams) {
   if (!r.ok) throw new Error(typeof q.detail === 'string' ? q.detail : 'Could not get a payment quote. Nothing was recorded.');
   const box = root.querySelector('#pay-box'); box.hidden = false;
   box.innerHTML = `<p><strong>Pay ${esc(q.amount)} ${esc(q.currency)}</strong><br><small>${esc(q.note)}</small></p>
-    <div class="row" style="margin-top:0"><a class="btn small" href="${esc(q.url)}" id="pay-open">Open in wallet</a><button class="btn ghost small" type="button" id="pay-copy">Copy payment link</button></div>
-    <p class="note" id="pay-status" role="status">Waiting for the payment on Solana devnet…</p>`;
-  box.querySelector('#pay-copy').addEventListener('click', () => navigator.clipboard?.writeText(q.url).then(() => { box.querySelector('#pay-status').textContent = 'Link copied. Paste it into a wallet set to devnet.'; }).catch(() => {}));
+    <div class="row" style="margin-top:0"><a class="btn small" href="${esc(q.url)}" id="pay-open"${q.mode === 'stripe-test' ? ' target="_blank" rel="noopener"' : ''}>${q.mode === 'stripe-test' ? 'Pay by card (test)' : 'Open in wallet'}</a><button class="btn ghost small" type="button" id="pay-copy">Copy payment link</button></div>
+    <p class="note" id="pay-status" role="status">Waiting for the test payment…</p>`;
+  box.querySelector('#pay-copy').addEventListener('click', () => navigator.clipboard?.writeText(q.url).then(() => { box.querySelector('#pay-status').textContent = 'Link copied.'; }).catch(() => {}));
   const until = Date.now() + 10 * 60 * 1000;
   while (Date.now() < until && box.isConnected) {
     await new Promise(res => setTimeout(res, 2500));
     const s = await (await fetch(`${CONFIG.api.baseUrl}/v1/pay/${encodeURIComponent(q.reference)}`)).json().catch(() => ({}));
-    if (s.status === 'paid') { box.querySelector('#pay-status').textContent = 'Payment confirmed on Solana devnet (test). Recording your retirement…'; return q.reference; }
+    if (s.status === 'paid') { box.querySelector('#pay-status').textContent = 'Test payment confirmed. Recording your retirement…'; return q.reference; }
     if (s.status === 'invalid') throw new Error(`The payment did not match the quote (${s.code}). Nothing was recorded.`);
   }
   throw new Error('No payment arrived in 10 minutes. Nothing was recorded. Try again for a new quote.');

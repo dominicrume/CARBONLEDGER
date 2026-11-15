@@ -83,6 +83,17 @@ class AnchorOutbox:
         with self.changed:
             self.changed.notify_all()
 
+    def reanchor(self, receipt_id: str) -> "AnchorEntry":
+        """Operator lever (D24): a FAILED entry goes back to pending with a fresh attempt count. An anchored entry
+        never moves (the database refuses it too), and a pending one is already queued."""
+        e = self.get(receipt_id)
+        if e is None:
+            raise KeyError(receipt_id)
+        if e.status != FAILED:
+            raise ValueError(f"only a failed anchor can be re-queued; this one is {e.status}")
+        self._set(e, status=PENDING, attempts=0, last_error=None)
+        return e
+
     def restore(self, rows) -> None:
         """Load entries from storage rows: (receipt_id, receipt_hash, status, signature, explorer_url, cluster, slot,
         attempts, last_error, anchored_at, index, anchor_id, anchor_root, proof)."""

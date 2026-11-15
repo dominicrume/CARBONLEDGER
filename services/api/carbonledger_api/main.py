@@ -38,6 +38,7 @@ from .accounts import account_router, world_router
 from .growth import growth_router
 from .studio import studio_router
 from .payments import Payments, payments_from_env, payments_router
+from .admin import admin_router
 from .mailer import mailer_from_env
 from .people import people_from_env
 from .seeker import sgt_lookup_from_env
@@ -304,7 +305,7 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
         if paid is not None:
             if paid["used"]:                       # re-checked under the lock: one payment pays for one retirement
                 raise HTTPException(409, "PAYMENT_USED: this payment already paid for a retirement. Nothing was recorded.")
-            fields.update(payment_mode=st.pay.mode, payment_lamports=paid["lamports"], payment_signature=paid["signature"])
+            fields.update(payment_mode=st.pay.mode, payment_amount=paid["amount"], payment_unit=paid["unit"], payment_signature=paid["signature"])
         # The public id comes from the receipt's own content, so the memo never exposes a running count (F14).
         receipt_id = public_receipt_id(fields)
         fields["receipt_id"] = receipt_id
@@ -328,6 +329,7 @@ def create_app(chain: Optional[ChainClient] = None, now: Callable[[], float] = t
             st.pay.mark_used(body.payment_reference)
         return receipt_id
 
+    app.include_router(admin_router(st, require_key))
     app.include_router(account_router(st, require_key))
     app.include_router(growth_router(st, require_key, optional_key, mailer, st.people, os.environ.get("PUBLIC_URL", "https://carbonledger.world").rstrip("/"), sgt_lookup))
     app.include_router(world_router(st))
